@@ -1,0 +1,131 @@
+<!doctype html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            {% if serif_font %}
+                font-family: 'Source Han Serif', 'Twitter Color Emoji';
+            {% else %}
+                font-family: 'Source Han Sans', 'Twitter Color Emoji';
+            {% endif %}
+            padding: 0;
+            color: #444;
+            font-size: 22px;
+        }
+
+        .card {
+            margin: 0;
+            padding: 18px;
+        }
+
+        .cardTitle {
+            height: 56px;
+            margin-bottom: 12px;
+        }
+
+        .displayName {
+            padding-top: 2px;
+            font-size: 22px;
+            font-weight: bold;
+            line-height: 24px;
+        }
+
+        .username {
+            color: #888;
+            font-size: 20px;
+        }
+
+        .avatar {
+            float: left;
+            height: 56px;
+            border-radius: 28px;
+            padding-right: 8px;
+        }
+
+        .origText {
+            background-color: rgba(128, 0, 0, 0.05);
+            padding: 8px;
+            margin-top: 14px;
+            font-size: 18px;
+        }
+
+        .origLegend {
+            font-size: 18px;
+            margin-bottom: 2px;
+            color: #ff7d84;
+        }
+
+        .hashtags {
+            padding: 0;
+            list-style-type: none;
+        }
+
+        .hashtags li {
+            display: inline;
+            margin-right: 0.5em;
+            color: #4daefd;
+        }
+
+        .media img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .postTime {
+            color: #888;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body lang="zh-cn">
+    <div class="card">
+        <div class="cardTitle">
+            <img class="avatar" src="{{ avatar_url }}">
+            <div class="userInfo">
+                <div class="displayName" lang="ja-jp">
+                    {{ display_name }}
+                </div>
+                <div class="username">
+                    @{{ username }}
+                </div>
+            </div>
+        </div>
+        <div class="cardBody">
+            {% if trans_text %}
+                <div class="transText">
+                    {{ trans_text }}
+                </div>
+                {% if orig_text %}
+                    <div class="origText">
+                        <legend class="origLegend">
+                            翻译自日文
+                        </legend>
+                        <div class="origTextBody" lang="ja-jp">
+                            {{ orig_text }}
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div lang="ja-jp">
+                    {{ orig_text }}
+                </div>
+            {% endif %}
+            <ul class="hashtags" lang="ja-jp">
+                {% for hashtag in hashtags %}
+                    <li>#{{ hashtag }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="media">
+            {% for url in media_urls %}
+                <img src="{{ url }}">
+            {% endfor %}
+        </div>
+        <div class="postTime">
+            ▶ 原推发表于 {{ post_date_formatted }}
+        </div>
+    </div>
+</body>
