@@ -1,4 +1,5 @@
 import { Context } from 'koishi-core'
+import { Twitter } from './twitter'
 import store from './store'
 import translator from './translator'
 
@@ -54,15 +55,12 @@ export function apply (ctx: Context, argv: any = { cut : 8, ispro: true, prefix:
             const twi = parseInt(id)
             if (isNaN(twi)) {
                 if (/^https?:\/\/(((www\.)?twitter\.com)|(t\.co))\//.test(id)) {
-                    const img = translator.get({
-                        url: id,
-                        trans: trans
-                    })
+                    const img = translator.getByUrl(id, trans)
                     return meta.$send(img + (argv.ispro ? "\n[CQ:image,file=" + img + "]" : ""))
                 }
                 return false
             } else {
-                let tw = store.get(twi)
+                let tw: Twitter = store.get(twi)
                 if (!tw) {
                     return meta.$send("找不到 " + id)
                 }
@@ -175,7 +173,7 @@ export function apply (ctx: Context, argv: any = { cut : 8, ispro: true, prefix:
                 twi = store.getlast().id
                 comment = id + " " + comment
             }
-            store.set(twi, comment=comment)
+            store.update(twi, comment=comment)
             meta.$send("")
         })
         .usage("为某个推添加注释，id为空时，加到最近的推")
@@ -184,7 +182,7 @@ export function apply (ctx: Context, argv: any = { cut : 8, ispro: true, prefix:
         .action(({ meta }, id, rid) => {
             let twi = parseInt(id)
             if (isNaN(twi)) {
-                twi = store.getlastTrans().tid
+                twi = store.getlastTrans()
             }
             const trans: any[] = store.getallTrans(twi)
             if (trans.length < 2) return meta.$send("无可撤销")

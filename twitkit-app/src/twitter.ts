@@ -1,8 +1,10 @@
-export class twitter {
+export class Twitter {
+    id:     number
     url:    string
     content:string
     media:  string[]
     published: boolean
+    type: string
     comment?: string
     trans?: string
     img?:   string
