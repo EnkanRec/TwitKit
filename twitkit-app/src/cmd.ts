@@ -3,7 +3,7 @@ import { Twitter } from './twitter'
 import store from './store'
 import translator from './translator'
 
-export function apply (ctx: Context, argv: any = { cut : 8, ispro: true, prefix: '#' }) {
+export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefix: '#' }) {
     ctx.middleware((meta, next) => {
         if (meta.message.startsWith(argv.prefix)) {
             const msg = meta.message.slice(argv.prefix.length)
