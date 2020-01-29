@@ -18,6 +18,7 @@
   "author": "MisakaHonoka",
   "license": "ISC",
   "dependencies": {
+    "@types/node": "^13.5.1",
     "koishi-core": "^1.6.0",
     "koishi-utils": "^1.0.2"
   }
