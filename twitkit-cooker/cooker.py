@@ -7,10 +7,13 @@ from hashlib import md5
 from datetime import datetime
 
 from dateutil.parser import isoparser
+from urllib.parse import urlencode
+from base64 import urlsafe_b64encode, urlsafe_b64decode
 
 import logging
 import json
 import os
+import sys
 import time
 
 app = Flask(__name__, template_folder='template')
@@ -20,7 +23,6 @@ isoparse = isoparser().isoparse
 
 image_path = 'static'
 image_url_prefix = 'http://127.0.0.1:5000/static/'
-
 app.logger.setLevel(logging.DEBUG)
 
 base_fields = {
@@ -106,7 +108,6 @@ class GenerateImage(Resource):
         filename = \
             md5(json.dumps(request_data).encode('utf-8')).hexdigest() + '.png'
 
-        app.logger.debug(request_data['postDate'])
         cook_params = {
             'tid': request_data['tid'],
             'output_path': os.path.join(image_path, filename),
@@ -159,33 +160,31 @@ def cook_tweet(
         tid, output_path, display_name, username, post_date, trans_text="",
         orig_text="", hashtags=[], media_urls=[], viewport_width=640, ppi=96,
         serif_font=False):
-    zoom_ratio = ppi / 96
-    command = ['wkhtmltoimage',
-               '--zoom', str(zoom_ratio),
-               '--width', str(viewport_width),
-               '--disable-smart-width']
 
-    post_date_formatted = post_date.strftime('%Y {} %m {} %d {} %H:%M:%S UTC%z')
+    post_date_formatted = post_date.strftime(
+        '%Y {} %m {} %d {} %H:%M:%S UTC%z')
     post_date_formatted = post_date_formatted.format('年', '月', '日')
 
-    post_fields = {
+    payload_data = urlsafe_b64encode(json.dumps({
         "display_name": display_name,
         "username": username,
         "post_date_formatted": post_date_formatted,
         "trans_text": trans_text,
         "orig_text": orig_text,
-        "hashtags": json.dumps(hashtags),
-        "media_urls": json.dumps(media_urls),
-        "serif_font": json.dumps(serif_font)
-    }
+        "hashtags": hashtags,
+        "media_urls": media_urls,
+        "serif_font": serif_font
+    }).encode('utf-8')).decode('utf-8')
 
-    for field, value in post_fields.items():
-        command.append('--post')
-        command.append(field)
-        command.append(value)
-
-    command.append('/internal/tweet_page')
-    command.append(output_path)
+    zoom_ratio = ppi / 96
+    command = ['wkhtmltoimage',
+               '--zoom', str(zoom_ratio),
+               '--width', str(viewport_width),
+               '--disable-smart-width',
+               '--transparent',
+               f'http://127.0.0.1:5000/internal/tweet_page?payload_data={payload_data}',
+               output_path]
+    print(output_path)
 
     try:
         run_result = run(command, stdout=PIPE, stderr=PIPE)
@@ -193,27 +192,27 @@ def cook_tweet(
         app.logger.error('找不到wkhtmltoimage可执行文件。')
         return False
 
+    if run_result.returncode != 0:
+        app.logger.error(f'wkhtmltoimage执行失败，返回{run_result.returncode}。')
+        app.logger.debug(run_result.stderr.decode(sys.stdout.encoding))
+        app.logger.debug(run_result.stdout.decode(sys.stdout.encoding))
+        return False
+
     return True
 
 
-@app.route('/internal/tweet_page', methods=['POST'])
+@app.route('/internal/tweet_page', methods=['GET', 'POST'])
 def tweet_page():
-    data = request.form
+    payload_data = \
+        json.loads(urlsafe_b64decode(request.values['payload_data']).decode('utf-8'))
 
     rendered = render_template(
         'tweet_template.html',
-        display_name=request.form['display_name'],
-        username=request.form['username'],
-        trans_text=request.form['trans_text'],
-        orig_text=request.form['orig_text'],
-        hashtags=json.loads(request.form['hashtags']),
-        media_urls=json.loads(request.form['media_urls']),
-        post_date_formatted=request.form['post_date_formatted'],
-        serif_font=json.loads(request.form['serif_font'])
+        **payload_data
     )
 
     return rendered
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0")
