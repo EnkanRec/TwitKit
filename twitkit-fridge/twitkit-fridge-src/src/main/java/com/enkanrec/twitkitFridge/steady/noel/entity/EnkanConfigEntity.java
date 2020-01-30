@@ -15,11 +15,27 @@ import java.util.Objects;
  */
 @Entity
 @ToString
-@Table(name = "enkanConfig", schema = "Noel")
+@Table(name = "enkan_config", schema = "Noel", catalog = "")
 public class EnkanConfigEntity {
     private long id;
     private String key;
     private String value;
+    private String namespace;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EnkanConfigEntity that = (EnkanConfigEntity) o;
+        return id == that.id &&
+                Objects.equals(key, that.key) &&
+                Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, key, value);
+    }
 
     @Id
     @Column(name = "id", nullable = false)
@@ -51,18 +67,13 @@ public class EnkanConfigEntity {
         this.value = value;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        EnkanConfigEntity that = (EnkanConfigEntity) o;
-        return id == that.id &&
-                Objects.equals(key, that.key) &&
-                Objects.equals(value, that.value);
+    @Basic
+    @Column(name = "namespace", nullable = false, length = 255)
+    public String getNamespace() {
+        return namespace;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, key, value);
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
     }
 }

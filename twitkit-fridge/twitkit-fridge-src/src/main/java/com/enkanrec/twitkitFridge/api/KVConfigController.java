@@ -4,6 +4,8 @@
  */
 package com.enkanrec.twitkitFridge.api;
 
+import com.enkanrec.twitkitFridge.api.form.JsonDataFridgeForm;
+import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.service.kvConfig.KVConfigService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -24,7 +26,15 @@ public class KVConfigController {
     }
 
     @RequestMapping(value = "/getall", method = RequestMethod.POST)
-    public Object getAllKVConfig() {
-        return this.service.getAll();
+    public StandardResponse getAllKVConfigs() {
+        return StandardResponse.ok(this.service.getAll());
     }
+
+    @RequestMapping(value = "/get", method = RequestMethod.POST)
+    public StandardResponse getKVConfigs(JsonDataFridgeForm form) {
+        System.out.println(form);
+        return StandardResponse.ok(this.service.getAll());
+    }
+
+
 }

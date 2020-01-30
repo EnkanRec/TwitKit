@@ -16,6 +16,10 @@ import java.util.Map;
  */
 public interface KVConfigService {
 
+    void setOneDefault(String key, String value);
+
+    String getOneDefault(String key);
+
     void setOne(String namespace, String key, String value);
 
     String getOne(String namespace, String key);
