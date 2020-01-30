@@ -51,23 +51,23 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
     })
 
     ctx.command('translate <id> [trans...]')
-        .action(({ meta }, id, trans) => {
+        .action(async ({ meta }, id, trans) => {
             const twi = parseInt(id)
             if (isNaN(twi)) {
                 if (/^https?:\/\/(((www\.)?twitter\.com)|(t\.co))\//.test(id)) {
-                    const img = translator.getByUrl(id, trans)
+                    const img = await translator.getByUrl(id, trans)
                     return meta.$send(img + (argv.ispro ? "\n[CQ:image,file=" + img + "]" : ""))
                 }
                 return false
             } else {
-                let tw: Twitter = store.get(twi)
+                let tw: Twitter = await store.get(twi)
                 if (!tw) {
                     return meta.$send("找不到 " + id)
                 }
                 if (trans) {
                     tw.trans = trans
-                    tw.img = translator.get(tw)
-                    store.update(twi, trans, tw.img)
+                    tw.img = await translator.get(tw)
+                    store.trans(twi, trans, tw.img)
                 }
                 if (tw.trans) {
                     return meta.$send(tw.img + (argv.ispro ? "\n[CQ:image,file=" + tw.img + "]" : ""))
@@ -87,12 +87,12 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
         .usage("获取/更新这个id的翻译内容")
 
     ctx.command('list [id]')
-        .action(({ meta }, id) => {
+        .action(async ({ meta }, id) => {
             let twi = parseInt(id)
             if (isNaN(twi)) {
-                twi = store.getTodo()
+                twi = await store.getTodo()
             }
-            const list: any[] = store.list(twi)
+            const list: any[] = await store.list(twi)
             let msg:string
             if (list.length) {
                 msg = "从" + argv.prefix + twi + "到现在的已烤推特如下："
@@ -119,12 +119,12 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
         .usage("查看队列某个id后的任务，id为空时表示快速搜索")
 
     ctx.command('list-detail [id]')
-        .action(({ meta }, id) => {
+        .action(async ({ meta }, id) => {
             let twi = parseInt(id)
             if (isNaN(twi)) {
-                twi = store.getTodo()
+                twi = await store.getTodo()
             }
-            const list: any[] = store.list(twi)
+            const list: any[] = await store.list(twi)
             let msg:string
             for (const i of list) if (i.trans) {
                 msg += "\n" + argv.prefix + i.id + "\n"
@@ -140,10 +140,10 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
         .usage("批量获取队列某个id后的烤推结果，id为空时使用快速搜索")
 
     ctx.command('current [id]')
-        .action(({ meta }, id) => {
+        .action(async ({ meta }, id) => {
             let twi = parseInt(id)
             if (isNaN(twi)) {
-                twi = store.getCatch()
+                twi = await store.getCatch()
             }
             store.setTodo(twi)
             return meta.$send("")
@@ -151,11 +151,11 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
         .usage("设置队列头，id为空时，尝试从监控到最后的烤推发布读取")
 
     ctx.command('hide [id]')
-        .action(({ meta }, id) => {
+        .action(async ({ meta }, id) => {
             const twi = parseInt(id)
             let arr: number[] = []
             if (isNaN(twi)) {
-                const list: any[] = store.list(twi)
+                const list: any[] = await store.list(twi)
                 for (const i of list) if (i.published) arr.push(i.id)
                 store.hide(arr)
             } else {
@@ -167,24 +167,24 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
         .usage("隐藏某个推，id为空时，隐藏所有已烤的推")
 
     ctx.command('comment [id] [comment...]')
-        .action(({ meta }, id, comment) => {
+        .action(async ({ meta }, id, comment) => {
             let twi = parseInt(id)
             if (isNaN(twi)) {
-                twi = store.getlast().id
+                twi = (await store.getlast()).id
                 comment = id + " " + comment
             }
-            store.update(twi, comment=comment)
+            store.comment(twi, comment)
             meta.$send("")
         })
         .usage("为某个推添加注释，id为空时，加到最近的推")
 
     ctx.command('undo [id] [rid]')
-        .action(({ meta }, id, rid) => {
+        .action(async ({ meta }, id, rid) => {
             let twi = parseInt(id)
             if (isNaN(twi)) {
-                twi = store.getlastTrans()
+                twi = await store.getlastTrans()
             }
-            const trans: any[] = store.getallTrans(twi)
+            const trans: any[] = await store.getallTrans(twi)
             if (trans.length < 2) return meta.$send("无可撤销")
             store.undo(trans[trans.length - 1].rid)
 
