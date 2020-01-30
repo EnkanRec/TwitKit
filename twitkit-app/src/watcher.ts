@@ -13,20 +13,42 @@ class request {
 
 class rss {
     taskId: uuid
+    tid?: number[]
     title?: string
     content: string
     url?: string
-    media: string[]
-    author?: string
-    postDate: ISO8601
+    media?: string[]
+    author: string
+    postDate?: ISO8601
 }
 
-function Twitter2msg(tw: Twitter): string {
-    return
+function Twitter2msg(tw: Twitter, argv = { ispro: true, prefix: '#' }): string {
+    let msg: string = "【" + tw.user.name + "】" + tw.type
+                    + "\n----------------\n"
+                    + "内容：" + tw.content
+    if (tw.media) {
+        msg += "\n媒体："
+        for (const img of tw.media) msg += argv.ispro ? "[CQ:image,file=" + img + "]" : img
+    }
+    msg += "\n原链接：" + tw.url + "\n快速嵌字发送：" + argv.prefix + tw.id + " 译文"
+    return msg
 }
 
-function rss2msg(tw: rss): string {
-    return
+function rss2msg(tw: rss, argv = { ispro: true, prefix: '#' }): string {
+    let msg: string = "【" + tw.author + "】"
+    if (tw.title) msg += tw.title
+    msg += "\n----------------\n内容：" + tw.content
+    if (tw.media) {
+        msg += "\n媒体："
+        for (const img of tw.media) msg += argv.ispro ? "[CQ:image,file=" + img + "]" : img
+    }
+    if (tw.url) msg += "\n原链接：" + tw.url
+    if (tw.tid && tw.tid.length) msg += "\n识别到本条发布包含" + tw.tid.length + "条烤推结果："
+                                    + tw.tid.join(',') + "\n - 发送#-批量隐藏已发推特"
+                                    + "\n- 发送" + argv.prefix + "~核对记录的推文是否全部发布"
+                                    + "\n- 发送" + argv.prefix + "/将快速搜索起始位置更新为即将到来的下一条推特"
+                                    + "\n辛苦了！"
+    return msg
 }
 
 export default function (ctx: Context, argv: any = { group: [], ispro: true, port: 1551, prefix: '#' }) {
@@ -42,7 +64,7 @@ export default function (ctx: Context, argv: any = { group: [], ispro: true, por
                 data = JSON.parse(req.read())
                 Logger.debug("[" + data.forwardFrom + "] " + data.timestamp + " :")
             } catch (e) {
-                Logger.error("Parse data error: " + e)
+                Logger.warn("Parse data error: " + e)
                 res.write('{"code": 400, "message": "Data format error"}')
                 return res.end()
             }
@@ -52,7 +74,8 @@ export default function (ctx: Context, argv: any = { group: [], ispro: true, por
                         Logger.debug("Event %s, tid: %d", i, data.data[i])
                         const tw:Twitter = store.get(data.data[i])
                         Logger.debug("[" + tw.user.name + "]" + tw.content)
-                        const msg:string = Twitter2msg(tw)
+                        const msg:string = Twitter2msg(tw, argv)
+                        Logger.debug("msg: " + msg)
                         for (const j of argv.group) {
                             ctx.sender.sendGroupMsgAsync(j, msg)
                             Logger.debug("tid: %d, target: G_%d send", data.data[i], j)
@@ -68,9 +91,10 @@ export default function (ctx: Context, argv: any = { group: [], ispro: true, por
                         rdata = <rss> data.data
                         Logger.debug("[" + rdata.postDate + "] " + rdata.content)
                     } catch (e) {
-                        Logger.error("Parse rss data error: " + e)
+                        Logger.warn("Parse rss data error: " + e)
                     }
-                    const msg:string = rss2msg(rdata)
+                    const msg:string = rss2msg(rdata, argv)
+                    Logger.debug("msg: " + msg)
                     for (const j of argv.group) {
                         ctx.sender.sendGroupMsgAsync(j, msg)
                         Logger.debug("rss, target: G_%d send", j)
@@ -89,6 +113,6 @@ export default function (ctx: Context, argv: any = { group: [], ispro: true, por
         server.listen(argv.port);
         Logger.success("Listening watcher on port %d", argv.port)
     } catch (e) {
-        Logger.error("Listen watcher fail on port " + argv.port + ": " + e)
+        Logger.warn("Listen watcher fail on port " + argv.port + ": " + e)
     }
 }
