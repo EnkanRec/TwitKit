@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
@@ -33,8 +34,15 @@ public class KVConfigController {
         return StandardResponse.ok(this.service.getAll());
     }
 
+    @RequestMapping(value = "/set", method = RequestMethod.POST)
+    public StandardResponse setKVConfigsByDefaultNamespace(@Valid JsonDataFridgeForm form) {
+        Map params = form.getMappedData();
+        this.service.setManyDefault(params);
+        return StandardResponse.ok("");
+    }
+
     @RequestMapping(value = "/get", method = RequestMethod.POST)
-    public StandardResponse getKVConfigs(JsonDataFridgeForm form) {
+    public StandardResponse getKVConfigsByDefaultNamespace(@Valid JsonDataFridgeForm form) {
         List params = form.getListedData();
         Map result = this.service.getManyDefault(params);
         return StandardResponse.ok(result);

@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -20,7 +21,9 @@ import java.io.Serializable;
 public abstract class BaseFridgeForm implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    @NotNull
     private String forwardFrom;
 
+    @NotNull
     private String timestamp;
 }
