@@ -1,25 +1,25 @@
 import { Context } from 'koishi-core'
 import * as http from 'http'
 import url from 'url'
-import { uuid, ISO8601 } from './utils'
+import * as utils from './utils'
 import { Twitter } from './twitter'
 import store from './store'
 
 class request {
     forwardFrom: string
-    timestamp: ISO8601
+    timestamp: utils.ISO8601
     data: any
 }
 
 class rss {
-    taskId: uuid
+    taskId: utils.uuid
     tid?: number[]
     title?: string
     content: string
     url?: string
     media?: string[]
     author: string
-    postDate?: ISO8601
+    postDate?: utils.ISO8601
 }
 
 function Twitter2msg(tw: Twitter, argv = { ispro: true, prefix: '#' }): string {
@@ -52,8 +52,8 @@ function rss2msg(tw: rss, argv = { ispro: true, prefix: '#' }): string {
 }
 
 export default function (ctx: Context, argv: any = { group: [], ispro: true, port: 1551, prefix: '#' }) {
-    const Logger = ctx.logger("info")
-    const server = http.createServer({}, (req, res) => {
+    const Logger = ctx.logger()
+    const server = http.createServer(async (req, res) => {
         let pathname = url.parse(req.url).pathname;
         Logger.debug(req.method + " " + pathname + " " + req.httpVersion)
         res.writeHead(200, {'Content-Type': 'application/json'})
@@ -72,7 +72,7 @@ export default function (ctx: Context, argv: any = { group: [], ispro: true, por
                 case "twitter":
                     for (const i in data.data) if (data.data[i]) {
                         Logger.debug("Event %s, tid: %d", i, data.data[i])
-                        const tw:Twitter = store.get(data.data[i])
+                        const tw:Twitter = await store.get(data.data[i])
                         Logger.debug("[" + tw.user.name + "]" + tw.content)
                         const msg:string = Twitter2msg(tw, argv)
                         Logger.debug("msg: " + msg)

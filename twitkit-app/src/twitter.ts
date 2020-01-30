@@ -5,6 +5,8 @@ export class Twitter {
     media:  string[]
     published: boolean
     type: string
+    postDate?: string
+    tag?: string[]
     comment?: string
     trans?: string
     img?:   string
