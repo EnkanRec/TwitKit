@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Class : KVConfigController
  * Usage : KV设置存储器对外接口
@@ -32,9 +35,8 @@ public class KVConfigController {
 
     @RequestMapping(value = "/get", method = RequestMethod.POST)
     public StandardResponse getKVConfigs(JsonDataFridgeForm form) {
-        System.out.println(form);
-        return StandardResponse.ok(this.service.getAll());
+        List params = form.getListedData();
+        Map result = this.service.getManyDefault(params);
+        return StandardResponse.ok(result);
     }
-
-
 }

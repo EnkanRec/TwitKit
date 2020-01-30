@@ -20,6 +20,10 @@ public interface KVConfigService {
 
     String getOneDefault(String key);
 
+    void setManyDefault(Map<String, String> configs);
+
+    Map<String, String> getManyDefault(Collection<String> keys);
+
     void setOne(String namespace, String key, String value);
 
     String getOne(String namespace, String key);

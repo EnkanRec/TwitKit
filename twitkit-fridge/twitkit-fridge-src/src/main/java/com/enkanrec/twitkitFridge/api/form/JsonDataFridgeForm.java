@@ -7,7 +7,6 @@ package com.enkanrec.twitkitFridge.api.form;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.enkanrec.twitkitFridge.util.JsonUtil;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;

@@ -43,6 +43,18 @@ public class KVConfigServiceImpl implements KVConfigService {
 
     @Transactional
     @Override
+    public void setManyDefault(Map<String, String> configs) {
+        this.setMany(KEY_NAMESPACE_DEFAULT, configs);
+    }
+
+    @Transactional
+    @Override
+    public Map<String, String> getManyDefault(Collection<String> keys) {
+        return this.getMany(KEY_NAMESPACE_DEFAULT, keys);
+    }
+
+    @Transactional
+    @Override
     public void setOne(String namespace, String key, String value) {
         EnkanConfigEntity ece = this.repository.findByNamespaceAndKey(namespace, key);
         if (ece == null) {
