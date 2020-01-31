@@ -19,7 +19,7 @@ public class PrometheusBean {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Bean
-    public ServletRegistrationBean servletRegistrationBean(){
+    public ServletRegistrationBean prometheusRegistrationBean(){
         DefaultExports.initialize();
         return new ServletRegistrationBean(new MetricsServlet(), "/metrics");
     }
