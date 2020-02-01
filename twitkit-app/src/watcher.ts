@@ -1,6 +1,6 @@
 import { Context } from 'koishi-core'
 import * as http from 'http'
-import url from 'url'
+import { parse } from 'url'
 import * as utils from './utils'
 import { Twitter } from './twitter'
 import store from './store'
@@ -53,8 +53,9 @@ function rss2msg(tw: rss, argv = { ispro: true, prefix: '#' }): string {
 
 export default function (ctx: Context, argv: any = { group: [], ispro: true, port: 1551, prefix: '#' }) {
     const Logger = ctx.logger()
+    Logger.debug("watcher server starting...")
     const server = http.createServer(async (req, res) => {
-        let pathname = url.parse(req.url).pathname;
+        let pathname = parse(req.url).pathname;
         Logger.debug(req.method + " " + pathname + " " + req.httpVersion)
         res.writeHead(200, {'Content-Type': 'application/json'})
         let r = /^\/api\/app\/(twitter|other)$/.exec(pathname)

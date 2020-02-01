@@ -2,7 +2,7 @@
   "name": "koishi-plugin-twitkit-app",
   "version": "0.0.1",
   "description": "Twitter translator tools plugin for koishi",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
