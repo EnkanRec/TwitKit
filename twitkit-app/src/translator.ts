@@ -10,7 +10,7 @@ async function get(tw: Twitter): Promise<string> {
         origText: tw.content,
         transText: tw.trans,
         media: tw.media,
-        tags: tw.tag,
+        // tags: tw.tag,
         avatar: tw.user ? tw.user.image : "",
         displayName: tw.user ? tw.user.name : "",
         postDate: tw.postDate

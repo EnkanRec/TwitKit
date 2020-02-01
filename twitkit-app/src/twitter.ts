@@ -6,7 +6,7 @@ export class Twitter {
     published: boolean
     type: string
     postDate?: string
-    tag?: string[]
+    // tag?: string[]
     comment?: string
     trans?: string
     img?:   string
