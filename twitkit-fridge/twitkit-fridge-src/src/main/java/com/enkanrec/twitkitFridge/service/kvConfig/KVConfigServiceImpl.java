@@ -56,27 +56,27 @@ public class KVConfigServiceImpl implements KVConfigService {
     @Transactional
     @Override
     public void setOne(String namespace, String key, String value) {
-        EnkanConfigEntity ece = this.repository.findByNamespaceAndKey(namespace, key);
+        EnkanConfigEntity ece = this.repository.findByNamespaceAndConfigKey(namespace, key);
         if (ece == null) {
             EnkanConfigEntity nObj = new EnkanConfigEntity();
             nObj.setNamespace(namespace);
-            nObj.setKey(key);
-            nObj.setValue(value);
-            this.repository.saveAndFlush(nObj);
+            nObj.setConfigKey(key);
+            nObj.setConfigValue(value);
+            this.repository.save(nObj);
         } else {
-            ece.setValue(value);
-            this.repository.saveAndFlush(ece);
+            ece.setConfigValue(value);
+            this.repository.save(ece);
         }
     }
 
     @Transactional
     @Override
     public String getOne(String namespace, String key) {
-        EnkanConfigEntity ece = this.repository.findByNamespaceAndKey(namespace, key);
+        EnkanConfigEntity ece = this.repository.findByNamespaceAndConfigKey(namespace, key);
         if (ece == null) {
             return null;
         } else {
-            return ece.getValue();
+            return ece.getConfigValue();
         }
     }
 
@@ -105,7 +105,7 @@ public class KVConfigServiceImpl implements KVConfigService {
         Map<String, String> result = new HashMap<>();
         List<EnkanConfigEntity> eces = this.repository.findAllByNamespace(namespace);
         for (EnkanConfigEntity ece : eces) {
-            result.put(ece.getKey(), ece.getValue());
+            result.put(ece.getConfigKey(), ece.getConfigValue());
         }
         return result;
     }
@@ -115,7 +115,7 @@ public class KVConfigServiceImpl implements KVConfigService {
     public Map<String, String> getAll() {
         Map<String, String> result = new HashMap<>();
         List<EnkanConfigEntity> allConfig = repository.findAll();
-        allConfig.forEach(c -> result.put(c.getKey(), c.getValue()));
+        allConfig.forEach(c -> result.put(c.getConfigKey(), c.getConfigValue()));
         return result;
     }
 }
