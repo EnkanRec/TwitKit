@@ -16,7 +16,7 @@ public class TranslateForm extends JsonDataFridgeForm {
      * 任务id
      */
     @NotNull
-    private Long tid;
+    private Integer tid;
 
     /**
      * 翻译完毕文本

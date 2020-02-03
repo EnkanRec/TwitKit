@@ -23,5 +23,5 @@ public class TidForm extends JsonDataFridgeForm {
      * 任务id
      */
     @NotNull
-    private Long tid;
+    private Integer tid;
 }

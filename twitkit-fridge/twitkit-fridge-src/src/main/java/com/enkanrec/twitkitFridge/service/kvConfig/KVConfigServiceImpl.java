@@ -43,7 +43,7 @@ public class KVConfigServiceImpl implements KVConfigService {
 
     @Transactional
     @Override
-    public void setManyDefault(Map<String, String> configs) {
+    public void setManyDefault(Map<String, Object> configs) {
         this.setMany(KEY_NAMESPACE_DEFAULT, configs);
     }
 
@@ -82,9 +82,14 @@ public class KVConfigServiceImpl implements KVConfigService {
 
     @Transactional
     @Override
-    public void setMany(String namespace, Map<String, String> configs) {
-        for (Map.Entry<String, String> kvp : configs.entrySet()) {
-            this.setOne(namespace, kvp.getKey(), kvp.getValue());
+    public void setMany(String namespace, Map<String, Object> configs) {
+        for (Map.Entry<String, Object> kvp : configs.entrySet()) {
+            Object val = kvp.getValue();
+            if (val != null) {
+                this.setOne(namespace, kvp.getKey(), val.toString());
+            } else {
+                this.setOne(namespace, kvp.getKey(), null);
+            }
         }
     }
 
