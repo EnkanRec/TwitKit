@@ -11,17 +11,23 @@ import lombok.ToString;
 import javax.validation.constraints.NotNull;
 
 /**
- * Class : TidForm
+ * Class : CommentForm
  * Usage :
  */
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class TidForm extends JsonDataFridgeForm {
+public class CommentForm extends JsonDataFridgeForm {
 
     /**
      * 任务id
      */
     @NotNull
     private Long tid;
+
+    /**
+     * 备注内容
+     */
+    @NotNull
+    private String comment;
 }
