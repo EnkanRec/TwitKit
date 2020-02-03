@@ -36,14 +36,14 @@ public class KVConfigController {
 
     @RequestMapping(value = "/set", method = RequestMethod.POST)
     public StandardResponse setKVConfigsByDefaultNamespace(@Valid JsonDataFridgeForm form) {
-        Map params = form.getMappedData();
+        Map params = form.asMap();
         this.service.setManyDefault(params);
         return StandardResponse.ok("");
     }
 
     @RequestMapping(value = "/get", method = RequestMethod.POST)
     public StandardResponse getKVConfigsByDefaultNamespace(@Valid JsonDataFridgeForm form) {
-        List params = form.getListedData();
+        List params = form.asList();
         Map result = this.service.getManyDefault(params);
         return StandardResponse.ok(result);
     }

@@ -10,7 +10,9 @@ import com.enkanrec.twitkitFridge.util.JsonUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +20,7 @@ import java.util.Map;
  * Class : JsonDataFridgeForm
  * Usage :
  */
+@Slf4j
 @ToString
 @EqualsAndHashCode(callSuper = true)
 public class JsonDataFridgeForm extends BaseFridgeForm {
@@ -44,10 +47,14 @@ public class JsonDataFridgeForm extends BaseFridgeForm {
         if (data.startsWith("{")) {
             this.autoDecodeType = JsonDataType.Map;
             this.mappedData = this.dataToMap();
+            if (this.getClass() != JsonDataFridgeForm.class) {
+                this.autoDispatchMappedDataField();
+            }
         } else {
             this.autoDecodeType = JsonDataType.List;
             this.listedData = this.dataToList();
         }
+        this.afterSetData();
     }
 
     public Map<String, Object> dataToMap() {
@@ -59,6 +66,29 @@ public class JsonDataFridgeForm extends BaseFridgeForm {
         JSONArray jObject = JSONObject.parseArray(this.data);
         return JsonUtil.toList(jObject);
     }
+
+    public Map<String, Object> asMap() {
+        return this.mappedData;
+    }
+
+    public List<Object> asList() {
+        return this.listedData;
+    }
+
+    private void autoDispatchMappedDataField() {
+        for (Map.Entry<String, Object> kvp : this.mappedData.entrySet()) {
+            try {
+                Field keyedField = this.getClass().getDeclaredField(kvp.getKey());
+                keyedField.setAccessible(true);
+                keyedField.set(this, kvp.getValue());
+            }
+            catch (Exception ignore) {
+                // pass
+            }
+        }
+    }
+
+    protected void afterSetData() { }
 
     public static enum JsonDataType {
         Map,

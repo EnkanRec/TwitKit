@@ -6,6 +6,7 @@ package com.enkanrec.twitkitFridge.api.response;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
@@ -18,6 +19,7 @@ import java.time.format.DateTimeFormatter;
  */
 @Data
 @ToString
+@NoArgsConstructor
 @EqualsAndHashCode
 public class StandardResponse implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -29,7 +31,7 @@ public class StandardResponse implements Serializable {
 
     private String message;
 
-    private String timestamp;
+    private String timestamp = ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 
     private Object data;
 
@@ -45,7 +47,6 @@ public class StandardResponse implements Serializable {
         this.code = code;
         this.message = message;
         this.data = payload;
-        this.timestamp = ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 
     public static StandardResponse ok() {
