@@ -7,6 +7,7 @@ package com.enkanrec.twitkitFridge.steady.noel.entity;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.Objects;
 
 /**
@@ -15,12 +16,14 @@ import java.util.Objects;
  */
 @Entity
 @ToString
-@Table(name = "enkan_config", schema = "Noel", catalog = "")
+@Table(name = "enkan_config", schema = "Noel")
 public class EnkanConfigEntity {
     private long id;
     private String key;
     private String value;
     private String namespace;
+    private Timestamp newdate;
+    private Timestamp updatetime;
 
     @Override
     public boolean equals(Object o) {
@@ -75,5 +78,25 @@ public class EnkanConfigEntity {
 
     public void setNamespace(String namespace) {
         this.namespace = namespace;
+    }
+
+    @Basic
+    @Column(name = "newdate", nullable = false, updatable = false)
+    public Timestamp getNewdate() {
+        return newdate;
+    }
+
+    public void setNewdate(Timestamp newdate) {
+        this.newdate = newdate;
+    }
+
+    @Basic
+    @Column(name = "updatetime", nullable = false, updatable = false)
+    public Timestamp getUpdatetime() {
+        return updatetime;
+    }
+
+    public void setUpdatetime(Timestamp updatetime) {
+        this.updatetime = updatetime;
     }
 }
