@@ -35,7 +35,8 @@
     * 如果是生产环境，也将`gunicorn_config_example.py`复制一份，命名为`gunicorn_config.py`，根据需要修改配置。（配置文件设置项可参考[文档](http://docs.gunicorn.org/en/stable/settings.html)）
 
 6. 安装字体：
-    从<https://github.com/adobe-fonts/source-han-sans/releases>下载[SourceHanSans.ttc](https://github.com/adobe-fonts/source-han-sans/releases/download/2.001R/SourceHanSans.ttc)，放入`/usr/local/share/fonts/`。此为全语言全字重的字体集，比较方便。或者用其他字体也可以。
+   
+    从<https://github.com/adobe-fonts/source-han-sans/releases>下载[SourceHanSans.ttc](https://github.com/adobe-fonts/source-han-sans/releases/download/2.001R/SourceHanSans.ttc)，放入`/usr/local/share/fonts/`。此为全语言全字重的字体集，比较方便。或者用其他字体也可以。可执行`fc-list`确认字体已装好。
 
 ## 配置文件说明
 
