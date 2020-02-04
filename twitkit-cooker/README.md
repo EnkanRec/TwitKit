@@ -73,7 +73,7 @@ Cooker从`config.py`中的变量读入配置。变量名和说明如下。
 生产环境下，用`gunicorn`运行`app`。
 
 ```
-gunicorn -c gunicorn_config.py --workers=4 app:app
+gunicorn -c gunicorn_config.py app:app
 ```
 
 ### 开发环境
