@@ -6,6 +6,8 @@ package com.enkanrec.twitkitFridge.service.task;
 
 import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTaskEntity;
 
+import java.util.Map;
+
 /**
  * Class : TaskService
  * Usage :
@@ -13,4 +15,6 @@ import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTaskEntity;
 public interface TaskService {
 
     EnkanTaskEntity getOneLatest();
+
+    TaskServiceImpl.TranslatedTask getOneWithTranslation(Integer tid);
 }

@@ -4,6 +4,7 @@
  */
 package com.enkanrec.twitkitFridge.api;
 
+import com.enkanrec.twitkitFridge.api.form.BaseFridgeForm;
 import com.enkanrec.twitkitFridge.api.form.JsonDataFridgeForm;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.service.kvConfig.KVConfigService;
@@ -35,7 +36,7 @@ public class KVConfigController {
      */
     @ResponseBody
     @RequestMapping(value = "/getall", method = RequestMethod.POST)
-    public StandardResponse getAllKVConfigs() {
+    public StandardResponse getAllKVConfigs(@Valid BaseFridgeForm form) {
         return StandardResponse.ok(this.service.getAll());
     }
 

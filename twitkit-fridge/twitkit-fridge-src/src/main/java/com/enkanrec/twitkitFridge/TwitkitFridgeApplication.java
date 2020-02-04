@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilde
 import org.springframework.context.annotation.Bean;
 
 import java.time.format.DateTimeFormatter;
+import java.util.TimeZone;
 
 @SpringBootApplication
 public class TwitkitFridgeApplication {
@@ -17,6 +18,7 @@ public class TwitkitFridgeApplication {
 
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {
-        return builder -> builder.serializers(new LocalDateTimeSerializer(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+        return builder -> builder.timeZone(TimeZone.getTimeZone("Asia/Shanghai"))
+                .serializers(new LocalDateTimeSerializer(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
     }
 }

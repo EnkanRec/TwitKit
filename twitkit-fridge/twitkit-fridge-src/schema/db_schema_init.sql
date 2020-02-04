@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS enkan_config;
 DROP TABLE IF EXISTS enkan_task;
 
 CREATE TABLE `enkan_config` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `namespace` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '___DEFAULT___',
   `config_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `config_value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,

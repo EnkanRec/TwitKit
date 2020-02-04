@@ -51,7 +51,9 @@ public class KVConfigTest {
 
     @Test
     public void GetAll() throws Exception {
-        RequestBuilder request = MockMvcRequestBuilders.post(BASE_URL + "/getall");
+        RequestBuilder request = MockMvcRequestBuilders.post(BASE_URL + "/getall")
+                .param("forwardFrom", "tester")
+                .param("timestamp", "2020-01-29T14:40:00.000+08:00");
         MvcResult future = this.mvc
                 .perform(request)
                 .andExpect(MockMvcResultMatchers.status().isOk())

@@ -10,7 +10,6 @@ import com.enkanrec.twitkitFridge.api.form.TidForm;
 import com.enkanrec.twitkitFridge.api.form.TranslateForm;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.service.task.TaskService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -38,7 +37,7 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/get", method = RequestMethod.POST)
     public StandardResponse getTask(@Valid TidForm form) {
-        return StandardResponse.ok();
+        return StandardResponse.ok(this.service.getOneWithTranslation(form.getTid()));
     }
 
     /**
