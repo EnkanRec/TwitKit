@@ -5,6 +5,7 @@
 package com.enkanrec.twitkitFridge.steady.noel.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -15,6 +16,7 @@ import java.util.Objects;
  * Usage :
  */
 @Entity
+@ToString(exclude = {"task"})
 @Table(name = "enkan_translate", schema = "Noel")
 public class EnkanTranslateEntity {
     private int zzid;
@@ -24,7 +26,6 @@ public class EnkanTranslateEntity {
     private String img;
     private Timestamp newdate;
     private Timestamp updatetime;
-
 
     private EnkanTaskEntity task;
 

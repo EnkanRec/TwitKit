@@ -4,6 +4,8 @@
  */
 package com.enkanrec.twitkitFridge.steady.noel.entity;
 
+import lombok.ToString;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -13,6 +15,7 @@ import java.util.Objects;
  * Usage :
  */
 @Entity
+@ToString
 @Table(name = "enkan_config", schema = "Noel")
 public class EnkanConfigEntity {
     private Integer id;

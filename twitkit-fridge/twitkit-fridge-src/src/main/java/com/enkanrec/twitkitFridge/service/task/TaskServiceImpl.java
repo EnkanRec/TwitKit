@@ -51,15 +51,16 @@ public class TaskServiceImpl implements TaskService {
             EnkanTranslateEntity translateEntity = this.translateRepository.findFirstByTidOrderByVersionDesc(tid);
             return TranslatedTask.of(taskEntity, translateEntity);
         } else {
-            log.warn("try to get task by tid but return null from DB");
+            log.warn("try to get task, but tid not mapped any record in DB");
             return null;
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Transactional
     @Override
     public List<TranslatedTask> getManyFromTidWithTranslation(Integer tid) {
-        List<EnkanTaskEntity> tasks = this.taskRepository.findAllByTidGreaterThan(tid);
+        List<EnkanTaskEntity> tasks = this.taskRepository.findAllByTidGreaterThanAndHidedIsFalse(tid);
         if (tasks.size() == 0) {
             return Collections.EMPTY_LIST;
         }
@@ -69,12 +70,28 @@ public class TaskServiceImpl implements TaskService {
             if (versionedTrans.size() == 0) {
                 result.add(TranslatedTask.of(task, null));
             } else {
-                versionedTrans.sort((x, y) -> -1 * Integer.compare(x.getVersion(), y.getVersion()));
+                versionedTrans.sort((x, y) ->
+                        -1 * Integer.compare(x.getVersion(), y.getVersion()));
                 EnkanTranslateEntity translated = versionedTrans.get(0);
                 result.add(TranslatedTask.of(task, translated));
             }
         }
         return result;
+    }
+
+    @Transactional
+    @Override
+    public EnkanTaskEntity updateComment(Integer tid, String comment) {
+        Optional<EnkanTaskEntity> chosenOne = this.taskRepository.findById(tid);
+        if (chosenOne.isPresent()) {
+            EnkanTaskEntity existed = chosenOne.get();
+            existed.setComment(comment);
+            this.taskRepository.save(existed);
+            return existed;
+        } else {
+            log.warn("try to comment a task, but tid not mapped any record in DB");
+            return null;
+        }
     }
 
     @Data

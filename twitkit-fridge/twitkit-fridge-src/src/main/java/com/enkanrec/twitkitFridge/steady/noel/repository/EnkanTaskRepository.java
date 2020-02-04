@@ -17,7 +17,7 @@ public interface EnkanTaskRepository extends JpaRepository<EnkanTaskEntity, Inte
 
     EnkanTaskEntity findFirstByOrderByTidDesc();
 
-    List<EnkanTaskEntity> findAllByTidGreaterThan(Integer tid);
+    List<EnkanTaskEntity> findAllByTidGreaterThanAndHidedIsFalse(Integer tid);
 
     EnkanTaskEntity findTop10ByTidOrderByNewdate(Integer tid);
 }

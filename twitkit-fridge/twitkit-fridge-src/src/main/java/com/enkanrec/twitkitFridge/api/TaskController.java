@@ -46,8 +46,7 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/list", method = RequestMethod.POST)
     public StandardResponse listTask(@Valid TidForm form) {
-        Object result = this.service.getManyFromTidWithTranslation(form.getTid());
-        return StandardResponse.ok(result);
+        return StandardResponse.ok(this.service.getManyFromTidWithTranslation(form.getTid()));
     }
 
     /**
@@ -56,8 +55,7 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/getlast", method = RequestMethod.POST)
     public StandardResponse getLastTask(@Valid BaseFridgeForm form) {
-        Object one = this.service.getOneLatest();
-        return StandardResponse.ok(one);
+        return StandardResponse.ok(this.service.getOneLatest());
     }
 
     /**
@@ -66,7 +64,7 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/comment", method = RequestMethod.POST)
     public StandardResponse commentTask(@Valid CommentForm form) {
-        return StandardResponse.ok();
+        return StandardResponse.ok(this.service.updateComment(form.getTid(), form.getComment()));
     }
 
     /**

@@ -21,6 +21,7 @@ CREATE TABLE `enkan_task` (
   `content` longtext COLLATE utf8mb4_general_ci NOT NULL COMMENT '推文内容',
   `media` text COLLATE utf8mb4_general_ci NOT NULL COMMENT '媒体地址',
   `published` tinyint(2) NOT NULL DEFAULT '0' COMMENT '是否已发布',
+  `hided` tinyint(2) NOT NULL DEFAULT '0' COMMENT '是否隐藏',
   `comment` varchar(1023) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '备注',
   `newdate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

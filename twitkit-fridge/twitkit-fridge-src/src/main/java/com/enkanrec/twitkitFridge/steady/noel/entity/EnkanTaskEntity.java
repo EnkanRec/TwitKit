@@ -5,6 +5,7 @@
 package com.enkanrec.twitkitFridge.steady.noel.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -16,6 +17,7 @@ import java.util.Objects;
  * Usage :
  */
 @Entity
+@ToString(exclude = {"translations"})
 @Table(name = "enkan_task", schema = "Noel")
 public class EnkanTaskEntity {
     private int tid;
@@ -23,10 +25,10 @@ public class EnkanTaskEntity {
     private String content;
     private String media;
     private boolean published;
+    private boolean hided;
     private String comment;
     private Timestamp newdate;
     private Timestamp updatetime;
-
 
     private List<EnkanTranslateEntity> translations;
 
@@ -78,6 +80,16 @@ public class EnkanTaskEntity {
 
     public void setPublished(boolean published) {
         this.published = published;
+    }
+
+    @Basic
+    @Column(name = "hided", nullable = false)
+    public boolean isHided() {
+        return hided;
+    }
+
+    public void setHided(boolean hided) {
+        this.hided = hided;
     }
 
     @Basic

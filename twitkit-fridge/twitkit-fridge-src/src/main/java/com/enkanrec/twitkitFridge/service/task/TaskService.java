@@ -20,4 +20,6 @@ public interface TaskService {
     TaskServiceImpl.TranslatedTask getOneWithTranslation(Integer tid);
 
     List<TaskServiceImpl.TranslatedTask> getManyFromTidWithTranslation(Integer tid);
+
+    EnkanTaskEntity updateComment(Integer tid, String comment);
 }
