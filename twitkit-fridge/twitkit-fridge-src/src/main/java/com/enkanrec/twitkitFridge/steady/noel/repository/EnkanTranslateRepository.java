@@ -8,6 +8,7 @@ import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTranslateEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -19,5 +20,7 @@ public interface EnkanTranslateRepository extends JpaRepository<EnkanTranslateEn
     @Query(value = "SELECT * FROM enkan_translate t, (SELECT tid, max(version) maxVersion FROM enkan_translate AS et GROUP BY et.tid) tr WHERE t.tid = tr.tid AND t.version = tr.maxVersion", nativeQuery = true)
     List<EnkanTranslateEntity> getTranslationsWithLatestVersion();
 
-    EnkanTranslateEntity getFirstByTidOrderByVersionDesc(Integer tid);
+    EnkanTranslateEntity findFirstByTidOrderByVersionDesc(Integer tid);
+
+    List<EnkanTranslateEntity> findAllByTidIn(Collection<Integer> tidCandidates);
 }

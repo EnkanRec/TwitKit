@@ -46,7 +46,8 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/list", method = RequestMethod.POST)
     public StandardResponse listTask(@Valid TidForm form) {
-        return StandardResponse.ok();
+        Object result = this.service.getManyFromTidWithTranslation(form.getTid());
+        return StandardResponse.ok(result);
     }
 
     /**

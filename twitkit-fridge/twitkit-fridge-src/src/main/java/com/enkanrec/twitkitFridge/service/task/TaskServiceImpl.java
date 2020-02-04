@@ -11,14 +11,11 @@ import com.enkanrec.twitkitFridge.steady.noel.repository.EnkanTranslateRepositor
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Class : TaskServiceImpl
@@ -51,12 +48,33 @@ public class TaskServiceImpl implements TaskService {
         Optional<EnkanTaskEntity> task = this.taskRepository.findById(tid);
         if (task.isPresent()) {
             EnkanTaskEntity taskEntity = task.get();
-            EnkanTranslateEntity translateEntity = this.translateRepository.getFirstByTidOrderByVersionDesc(tid);
+            EnkanTranslateEntity translateEntity = this.translateRepository.findFirstByTidOrderByVersionDesc(tid);
             return TranslatedTask.of(taskEntity, translateEntity);
         } else {
             log.warn("try to get task by tid but return null from DB");
             return null;
         }
+    }
+
+    @Transactional
+    @Override
+    public List<TranslatedTask> getManyFromTidWithTranslation(Integer tid) {
+        List<EnkanTaskEntity> tasks = this.taskRepository.findAllByTidGreaterThan(tid);
+        if (tasks.size() == 0) {
+            return Collections.EMPTY_LIST;
+        }
+        List<TranslatedTask> result = new ArrayList<>();
+        for (EnkanTaskEntity task : tasks) {
+            List<EnkanTranslateEntity> versionedTrans = task.getTranslations();
+            if (versionedTrans.size() == 0) {
+                result.add(TranslatedTask.of(task, null));
+            } else {
+                versionedTrans.sort((x, y) -> -1 * Integer.compare(x.getVersion(), y.getVersion()));
+                EnkanTranslateEntity translated = versionedTrans.get(0);
+                result.add(TranslatedTask.of(task, translated));
+            }
+        }
+        return result;
     }
 
     @Data

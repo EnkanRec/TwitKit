@@ -4,6 +4,8 @@
  */
 package com.enkanrec.twitkitFridge.steady.noel.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -23,6 +25,9 @@ public class EnkanTranslateEntity {
     private Timestamp newdate;
     private Timestamp updatetime;
 
+
+    private EnkanTaskEntity task;
+
     @Id
     @Column(name = "zzid", nullable = false)
     public int getZzid() {
@@ -34,7 +39,7 @@ public class EnkanTranslateEntity {
     }
 
     @Basic
-    @Column(name = "tid", nullable = false)
+    @Column(name = "tid", nullable = false, insertable = false, updatable = false)
     public int getTid() {
         return tid;
     }
@@ -110,5 +115,16 @@ public class EnkanTranslateEntity {
     @Override
     public int hashCode() {
         return Objects.hash(zzid, tid, version, translation, img, newdate, updatetime);
+    }
+
+    @JsonIgnore
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "tid")
+    public EnkanTaskEntity getTask() {
+        return task;
+    }
+
+    public void setTask(EnkanTaskEntity task) {
+        this.task = task;
     }
 }
