@@ -94,6 +94,36 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
+    @Transactional
+    @Override
+    public EnkanTaskEntity hide(Integer tid) {
+        Optional<EnkanTaskEntity> chosenOne = this.taskRepository.findById(tid);
+        if (chosenOne.isPresent()) {
+            EnkanTaskEntity existed = chosenOne.get();
+            existed.setHided(true);
+            this.taskRepository.save(existed);
+            return existed;
+        } else {
+            log.warn("try to hide a task, but tid not mapped any record in DB");
+            return null;
+        }
+    }
+
+    @Transactional
+    @Override
+    public EnkanTaskEntity visible(Integer tid) {
+        Optional<EnkanTaskEntity> chosenOne = this.taskRepository.findById(tid);
+        if (chosenOne.isPresent()) {
+            EnkanTaskEntity existed = chosenOne.get();
+            existed.setHided(false);
+            this.taskRepository.save(existed);
+            return existed;
+        } else {
+            log.warn("try to set visible a task, but tid not mapped any record in DB");
+            return null;
+        }
+    }
+
     @Data
     @EqualsAndHashCode
     @AllArgsConstructor(staticName = "of")

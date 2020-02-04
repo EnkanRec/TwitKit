@@ -73,7 +73,7 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/hide", method = RequestMethod.POST)
     public StandardResponse hideTask(@Valid TidForm form) {
-        return StandardResponse.ok();
+        return StandardResponse.ok(this.service.hide(form.getTid()));
     }
 
     /**
@@ -82,7 +82,7 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/visible", method = RequestMethod.POST)
     public StandardResponse visibleTask(@Valid TidForm form) {
-        return StandardResponse.ok();
+        return StandardResponse.ok(this.service.visible(form.getTid()));
     }
 
     /**
