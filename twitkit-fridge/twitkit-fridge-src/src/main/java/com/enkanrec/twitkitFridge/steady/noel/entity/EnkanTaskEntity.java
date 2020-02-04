@@ -16,7 +16,6 @@ import java.util.Objects;
 @Table(name = "enkan_task", schema = "Noel")
 public class EnkanTaskEntity {
     private int tid;
-    private int version;
     private String url;
     private String content;
     private String media;
@@ -24,27 +23,6 @@ public class EnkanTaskEntity {
     private String comment;
     private Timestamp newdate;
     private Timestamp updatetime;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        EnkanTaskEntity that = (EnkanTaskEntity) o;
-        return tid == that.tid &&
-                version == that.version &&
-                published == that.published &&
-                Objects.equals(url, that.url) &&
-                Objects.equals(content, that.content) &&
-                Objects.equals(media, that.media) &&
-                Objects.equals(comment, that.comment) &&
-                Objects.equals(newdate, that.newdate) &&
-                Objects.equals(updatetime, that.updatetime);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(tid, version, url, content, media, published, comment, newdate, updatetime);
-    }
 
     @Id
     @Column(name = "tid", nullable = false)
@@ -54,16 +32,6 @@ public class EnkanTaskEntity {
 
     public void setTid(int tid) {
         this.tid = tid;
-    }
-
-    @Basic
-    @Column(name = "version", nullable = false)
-    public int getVersion() {
-        return version;
-    }
-
-    public void setVersion(int version) {
-        this.version = version;
     }
 
     @Basic
@@ -117,7 +85,7 @@ public class EnkanTaskEntity {
     }
 
     @Basic
-    @Column(name = "newdate", nullable = false, updatable = false, insertable = false)
+    @Column(name = "newdate", nullable = false, insertable = false, updatable = false)
     public Timestamp getNewdate() {
         return newdate;
     }
@@ -127,12 +95,32 @@ public class EnkanTaskEntity {
     }
 
     @Basic
-    @Column(name = "updatetime", nullable = false, updatable = false, insertable = false)
+    @Column(name = "updatetime", nullable = false, insertable = false, updatable = false)
     public Timestamp getUpdatetime() {
         return updatetime;
     }
 
     public void setUpdatetime(Timestamp updatetime) {
         this.updatetime = updatetime;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EnkanTaskEntity that = (EnkanTaskEntity) o;
+        return tid == that.tid &&
+                published == that.published &&
+                Objects.equals(url, that.url) &&
+                Objects.equals(content, that.content) &&
+                Objects.equals(media, that.media) &&
+                Objects.equals(comment, that.comment) &&
+                Objects.equals(newdate, that.newdate) &&
+                Objects.equals(updatetime, that.updatetime);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tid, url, content, media, published, comment, newdate, updatetime);
     }
 }

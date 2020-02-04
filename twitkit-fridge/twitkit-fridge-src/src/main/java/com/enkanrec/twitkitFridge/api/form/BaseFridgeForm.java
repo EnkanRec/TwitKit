@@ -18,7 +18,7 @@ import java.io.Serializable;
 @Data
 @ToString
 @EqualsAndHashCode
-public abstract class BaseFridgeForm implements Serializable {
+public class BaseFridgeForm implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**

@@ -16,7 +16,7 @@ import java.util.Map;
 
 /**
  * Class : KVConfigServiceImpl
- * Usage :
+ * Usage : 公共键值对配置仓库的交互逻辑
  */
 @Service
 public class KVConfigServiceImpl implements KVConfigService {

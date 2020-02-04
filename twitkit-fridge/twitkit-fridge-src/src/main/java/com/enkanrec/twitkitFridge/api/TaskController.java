@@ -4,10 +4,13 @@
  */
 package com.enkanrec.twitkitFridge.api;
 
+import com.enkanrec.twitkitFridge.api.form.BaseFridgeForm;
 import com.enkanrec.twitkitFridge.api.form.CommentForm;
 import com.enkanrec.twitkitFridge.api.form.TidForm;
 import com.enkanrec.twitkitFridge.api.form.TranslateForm;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
+import com.enkanrec.twitkitFridge.service.task.TaskService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -22,6 +25,12 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/api/db/task")
 public class TaskController {
+
+    private final TaskService service;
+
+    public TaskController(TaskService service) {
+        this.service = service;
+    }
 
     /**
      * 获取单条推文
@@ -46,8 +55,9 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/getlast", method = RequestMethod.POST)
-    public StandardResponse getLastTask() {
-        return StandardResponse.ok();
+    public StandardResponse getLastTask(@Valid BaseFridgeForm form) {
+        Object one = this.service.getOneLatest();
+        return StandardResponse.ok(one);
     }
 
     /**
