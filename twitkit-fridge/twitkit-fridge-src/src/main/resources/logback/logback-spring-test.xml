@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <!-- 加载properties文件中找到对应的配置项 -->
+    <springProperty scope="context" name="logging.path" source="enkanRec.logging.path"/>
+    <contextName>twitkit-fridge</contextName>
+
+    <!-- 标准输出 -->
+    <appender name="consoleLog" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>
+                %yellow(%date{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Asia/Shanghai}) %highlight(%-5level) [%thread] %cyan(%logger{50}) %magenta([%file:%line]) - %msg %n
+            </pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 可读的运行日志 -->
+    <appender name="fileInfoLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>
+                %date{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Asia/Shanghai} %-5level [%thread] %logger{50} [%file:%line] - %msg %n
+            </pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logging.path}/fridge.run.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <MaxHistory>7</MaxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- 可读的错误日志 -->
+    <appender name="fileErrorLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder>
+            <pattern>
+                %date{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Asia/Shanghai} %-5level [%thread] %logger{50} [%file:%line] - %msg %n
+            </pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logging.path}/fridge.error.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <MaxHistory>30</MaxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- 根日志配置 -->
+    <root level="info">
+        <appender-ref ref="consoleLog"/>
+        <appender-ref ref="fileInfoLog"/>
+        <appender-ref ref="fileErrorLog"/>
+    </root>
+</configuration>
