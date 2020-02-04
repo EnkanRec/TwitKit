@@ -1,218 +1,127 @@
-#!/usr/bin/env python3
 
-from flask import Flask, request, render_template
-from flask_restplus import Resource, Api, fields, Model
+from flask import Blueprint, request, render_template
 from subprocess import run, PIPE
-from hashlib import md5
-from datetime import datetime
+from twitter_util import username_to_displayname, username_to_avatar_url
+from PIL import Image
+from tid_code import add_code_to_image
 
-from dateutil.parser import isoparser
-from urllib.parse import urlencode
-from base64 import urlsafe_b64encode, urlsafe_b64decode
-
-import logging
-import json
 import os
 import sys
-import time
-
-app = Flask(__name__, template_folder='template')
-api = Api(app)
-
-isoparse = isoparser().isoparse
-
-image_path = 'static'
-image_url_prefix = 'http://127.0.0.1:5000/static/'
-app.logger.setLevel(logging.DEBUG)
-
-base_fields = {
-    'forwardFrom': fields.String(
-        required=True,
-        description='一个字符串，标定是哪个服务调用了此接口',
-        example='twitkit-stargazer'),
-    'timestamp': fields.DateTime(
-        dt_format='iso8601',
-        required=True,
-        description='请求发出时间戳，ISO8601格式',
-        example='2020-01-29T14:23:23.233+08:00')
-}
-
-cook_data_model = api.model('cookDataModel', {
-    'taskId': fields.String(
-        required=True,
-        description='一个UUID，是一个任务的上下文唯一标识符',
-        example='123e4567-e89b-12d3-a456-426655440000'),
-    'tid': fields.Integer(
-        required=True,
-        description='推文ID'),
-    'origText': fields.String(
-        description='推文原文，Plain Text格式，不传则只输出译文'),
-    'transText': fields.String(
-        description='推文译文，Plain Text格式，不传则只输出原文'),
-    'media': fields.List(
-        fields.String,
-        description='媒体列表，列表里每个字符串是一个媒体URL'),
-    'tags': fields.List(
-        fields.String,
-        description='标签列表，列表里每个字符串是一个标签（不含`#`）'),
-    'avatar': fields.String(
-        required=True,
-        description='推特用户头像URL'),
-    'displayName': fields.String(
-        required=True,
-        description='推特用户显示名'),
-    'username': fields.String(
-        required=True,
-        description='推特用户名（不含`@`）'),
-    'postDate': fields.String(
-        dt_format='iso8601',
-        required=True,
-        description='请求发出时间戳，ISO8601格式',
-        example='2020-01-29T14:23:23.233+08:00'),
-    'viewportWidth': fields.Integer(
-        default=960,
-        description='浏览器视口宽度（像素）'),
-    'ppi': fields.Integer(
-        default=96,
-        description='生成图像PPI'),
-    'serifFont': fields.Boolean(
-        default=False,
-        description='使用衬线字体渲染'),
-})
-
-cook_fields = base_fields.copy()
-cook_fields['data'] = fields.Nested(
-    cook_data_model, description='请求数据', required=True)
+import logging
+import json
+import config
 
 
-cook_model = api.model('cookRequestModel', cook_fields)
-
-response_model = api.model('cookResponseModel', {
-    'code': fields.Integer(description='返回码，0为成功，其他情况另外注明',
-                           required=True),
-    'message': fields.String(description='备注消息', required=True),
-    'processTime': fields.Integer(description='处理用时（毫秒）'),
-    'resultUrl': fields.String(description='输出图片URL')
-})
-
-
-@api.route('/api/cook')
-class GenerateImage(Resource):
-    @api.expect(cook_model, validate=True)
-    @api.doc("test", model=response_model)
-    def post(self):
-        request_base_data = request.json
-        request_data = request_base_data['data']
-        app.logger.info(f'从{request_base_data["forwardFrom"]}'
-                        f'收到任务{request_data["taskId"]}')
-        filename = \
-            md5(json.dumps(request_data).encode('utf-8')).hexdigest() + '.png'
-
-        cook_params = {
-            'tid': request_data['tid'],
-            'output_path': os.path.join(image_path, filename),
-            'display_name': request_data['displayName'],
-            'username': request_data['username'],
-            'post_date': isoparse(request_data['postDate'])
-        }
-
-        if 'origText' in request_data or 'transText' in request_data:
-            if 'origText' in request_data:
-                cook_params['orig_text'] = request_data['origText']
-            if 'transText' in request_data:
-                cook_params['trans_text'] = request_data['transText']
-        else:
-            return make_response(400, '必须至少指定原文和译文之一')
-
-        if 'media' in request_data:
-            cook_params['media_urls'] = request_data['media']
-        if 'tags' in request_data:
-            cook_params['hashtags'] = request_data['tags']
-        if 'viewportWidth' in request_data:
-            cook_params['viewport_width'] = request_data['viewportWidth']
-        if 'ppi' in request_data:
-            cook_params['ppi'] = request_data['ppi']
-        if 'serifFont' in request_data:
-            cook_params['serif_font'] = request_data['serifFont']
-
-        start_time = time.time()
-        cook_result = cook_tweet(**cook_params)
-        end_time = time.time()
-        process_time_ms = int((end_time - start_time) * 1000)
-        if not cook_result:
-            return make_response(500, '后端生成图片发生错误，请联系管理员检查日志')
-        else:
-            result_url = image_url_prefix + filename
-            return make_response(
-                message='OK',
-                resultUrl=result_url,
-                processTime=process_time_ms
-            )
-
-
-def make_response(code=0, message="", **kwargs):
-    response = {'code': code, 'message': message}
-    response.update(kwargs)
-    return response
+logger = logging.getLogger('app')
+tweet_page_bp = Blueprint('internal', __name__, template_folder='template')
 
 
 def cook_tweet(
-        tid, output_path, display_name, username, post_date, trans_text="",
-        orig_text="", hashtags=[], media_urls=[], viewport_width=640, ppi=96,
-        serif_font=False):
+        tid, output_path, username, post_date, retweeter_username=None,
+        trans_text="", orig_text="", hashtags=[], media_urls=[],
+        ppi=config.DEFAULT_PPI, transparent=True, smooth=True):
 
     post_date_formatted = post_date.strftime(
-        '%Y {} %m {} %d {} %H:%M:%S UTC%z')
+        '%Y {}!%m {}!%d {} %H:%M:%S (UTC%z)')
     post_date_formatted = post_date_formatted.format('年', '月', '日')
+    post_date_formatted = post_date_formatted.replace('!0', ' ')
+    post_date_formatted = post_date_formatted.replace('!', ' ')
 
-    payload_data = urlsafe_b64encode(json.dumps({
-        "display_name": display_name,
-        "username": username,
-        "post_date_formatted": post_date_formatted,
-        "trans_text": trans_text,
-        "orig_text": orig_text,
-        "hashtags": hashtags,
-        "media_urls": media_urls,
-        "serif_font": serif_font
-    }).encode('utf-8')).decode('utf-8')
+    try:
+        display_name = username_to_displayname(username)
+        avatar_url = username_to_avatar_url(username)
+        if retweeter_username:
+            retweeter_avatar_url = username_to_avatar_url(retweeter_username)
+        else:
+            retweeter_avatar_url = ''
+        if retweeter_username:
+            retweeter_displayname = username_to_displayname(retweeter_username)
+        else:
+            retweeter_displayname = ''
+    except Exception as e:
+        logger.error(f'拉取推特用户信息时出错：{e}')
+        return False
+
+    if not retweeter_username:
+        retweeter_username = ''
+
+    payload_data = json.dumps({
+        'display_name': display_name,
+        'username': username,
+        'avatar_url': avatar_url,
+        'is_retweet': bool(retweeter_username),
+        'retweeter_display_name': retweeter_displayname,
+        'retweeter_username': retweeter_username,
+        'retweeter_avatar_url': retweeter_avatar_url,
+        'post_date_formatted': post_date_formatted,
+        'trans_text': trans_text,
+        'orig_text': orig_text,
+        'hashtags': hashtags,
+        'media_urls': media_urls
+    })
 
     zoom_ratio = ppi / 96
+    if smooth:
+        zoom_ratio *= 2
+
+    viewport_width = config.VIEWPORT_WIDTH
+
     command = ['wkhtmltoimage',
                '--zoom', str(zoom_ratio),
-               '--width', str(viewport_width),
+               '--width', str(int(round(viewport_width * zoom_ratio))),
                '--disable-smart-width',
-               '--transparent',
-               f'http://127.0.0.1:5000/internal/tweet_page?payload_data={payload_data}',
-               output_path]
-    print(output_path)
+               '--cookie',
+               'payload_data',
+               payload_data]
+    if transparent:
+        command.append('--transparent')
 
+    command.append(f'{config.INTERNAL_BASE_URL}/internal/tweet_page')
+    command.append(output_path)
+
+    try:
+        os.makedirs(os.path.dirname(output_path), mode=0o755, exist_ok=True)
+    except OSError:
+        logger.error('创建输出目录失败。')
+        return False
     try:
         run_result = run(command, stdout=PIPE, stderr=PIPE)
     except FileNotFoundError:
-        app.logger.error('找不到wkhtmltoimage可执行文件。')
+        logger.error('找不到wkhtmltoimage可执行文件。')
         return False
 
     if run_result.returncode != 0:
-        app.logger.error(f'wkhtmltoimage执行失败，返回{run_result.returncode}。')
-        app.logger.debug(run_result.stderr.decode(sys.stdout.encoding))
-        app.logger.debug(run_result.stdout.decode(sys.stdout.encoding))
+        logger.error(f'wkhtmltoimage执行失败，返回{run_result.returncode}。')
+        logger.debug(run_result.stderr.decode(sys.stdout.encoding))
+        logger.debug(run_result.stdout.decode(sys.stdout.encoding))
         return False
+
+    render_ppi = int(zoom_ratio * 96)
+    im = Image.open(output_path)
+    add_code_to_image(im, tid,
+                      config.TID_CODE_POS_X, config.TID_CODE_POS_Y,
+                      config.TID_CODE_WIDTH, config.TID_CODE_HEIGHT)
+
+    if smooth:
+        # 如果前面wkhtmltoimage能写入图片，应该可以认为图片输出没问题，这里就不检查了。
+        new_size = (int(round(im.size[0] / 2)), int(round(im.size[1] / 2)))
+        im.thumbnail(new_size, resample=Image.BICUBIC)
+
+    im.save(output_path)
 
     return True
 
 
-@app.route('/internal/tweet_page', methods=['GET', 'POST'])
+@tweet_page_bp.route('/tweet_page', methods=['GET'])
 def tweet_page():
-    payload_data = \
-        json.loads(urlsafe_b64decode(request.values['payload_data']).decode('utf-8'))
+    payload_data = json.loads(
+        request.cookies['payload_data'])
 
     rendered = render_template(
         'tweet_template.html',
+        zh_font = config.ZH_FONT,
+        ja_font = config.JA_FONT,
         **payload_data
     )
 
     return rendered
-
-
-if __name__ == '__main__':
-    app.run(host="0.0.0.0")

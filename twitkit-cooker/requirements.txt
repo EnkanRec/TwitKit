@@ -1,2 +1,4 @@
 flask_restplus
 python-dateutil
+pillow
+crc8
