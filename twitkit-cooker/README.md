@@ -59,8 +59,8 @@ Cooker从`config.py`中的变量读入配置。变量名和说明如下。
 * `TID_CODE_POS_Y`：tid二维码垂直定位（若填写负数，表示从下起）
 
 ### URL设置
-* `EXTERNAL_BASE_URL`：指向`/static`的对外URL前缀，返回输出图片URL时用，例如`https://example.local/images/`。
-* `INTERNAL_BASE_URL`：内部URL前缀，在`wkhtmltoimage`访问内部生成的推文页面时用。如果Gunicorn配置里改了端口号，这里要相应修改。
+* `EXT_STATIC_BASE_URL`：指向`/static`的对外URL前缀，返回输出图片URL时用，例如`https://example.local/images`。
+* `INT_BASE_URL`：内部URL前缀，在`wkhtmltoimage`访问内部生成的推文页面时用。如果Gunicorn配置里改了端口号，这里要相应修改。
 
 ### 日志设置
 * `LOG_LEVEL`：日志等级。Cooker里只用到`INFO`和`DEBUG`这两个等级。
