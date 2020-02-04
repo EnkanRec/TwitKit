@@ -14,6 +14,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @WebAppConfiguration
+@TestPropertySource("classpath:application-test.properties")
 public class KVConfigTest {
 
     private static final String BASE_URL = "/api/db/kv";
@@ -48,7 +50,7 @@ public class KVConfigTest {
     }
 
     @Test
-    public void Test_GetAll() throws Exception {
+    public void GetAll() throws Exception {
         RequestBuilder request = MockMvcRequestBuilders.post(BASE_URL + "/getall");
         MvcResult future = this.mvc
                 .perform(request)
@@ -61,8 +63,8 @@ public class KVConfigTest {
         Assert.assertEquals(StandardResponse.CODE_SUCCESS, resp.get("code"));
         Assert.assertEquals(StandardResponse.MESSAGE_SUCCESS, resp.get("message"));
         Assert.assertNotNull(resp.get("data"));
-        Assert.assertEquals(((JSONObject) resp.get("data")).get("test.ren.wife.name"), "绫野梨花❤");
-        Assert.assertEquals(((JSONObject) resp.get("data")).get("test.iroha.wife.name"), "yachiyo san");
+        Assert.assertEquals("already", ((JSONObject) resp.get("data")).get("test.existed"));
+        Assert.assertEquals("中文＋Emoji❤", ((JSONObject) resp.get("data")).get("test.existed.2"));
         Assert.assertNull(((JSONObject) resp.get("data")).get("test.not.exist.one"));
     }
 }

@@ -15,7 +15,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "enkan_config", schema = "Noel")
 public class EnkanConfigEntity {
-    private long id;
+    private Integer id;
     private String namespace;
     private String configKey;
     private String configValue;
@@ -24,11 +24,11 @@ public class EnkanConfigEntity {
 
     @Id
     @Column(name = "id", nullable = false)
-    public long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
