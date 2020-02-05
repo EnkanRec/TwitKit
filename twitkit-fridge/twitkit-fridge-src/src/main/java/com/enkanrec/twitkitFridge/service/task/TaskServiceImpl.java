@@ -4,6 +4,7 @@
  */
 package com.enkanrec.twitkitFridge.service.task;
 
+import com.enkanrec.twitkitFridge.api.form.TaskCreationForm;
 import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTaskEntity;
 import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTranslateEntity;
 import com.enkanrec.twitkitFridge.steady.noel.repository.EnkanTaskRepository;
@@ -56,7 +57,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional
     @Override
-    public List<CreateTaskReplay> addTaskByBulk(List<Map<String, String>> twitters) {
+    public List<CreateTaskReplay> addTaskByBulk(List<TaskCreationForm> twitters) {
         List<CreateTaskReplay> result = new ArrayList<>();
         if (twitters.size() == 0) {
             return result;
@@ -67,8 +68,8 @@ public class TaskServiceImpl implements TaskService {
         // 使用串行隔离级别可以解决这个问题，但有性能开销，不是很必要？
         Set<String> urlSet = new HashSet<>();
         Map<String, Boolean> existMap = new HashMap<>();
-        for (Map<String, String> twitter : twitters) {
-            String url = twitter.get("url");
+        for (TaskCreationForm twitter : twitters) {
+            String url = twitter.getUrl();
             existMap.put(url, this.taskRepository.existsByUrl(url));
             urlSet.add(url);
         }
@@ -82,10 +83,10 @@ public class TaskServiceImpl implements TaskService {
         String sqlTemplate = sb.toString().substring(0, sb.length() - 1);
         Query insertQuery = this.entityManager.createNativeQuery(sqlTemplate);
         int paramPointer = 1;
-        for (Map<String, String> twitter : twitters) {
-            insertQuery.setParameter(paramPointer++, twitter.get("url"));
-            insertQuery.setParameter(paramPointer++, twitter.get("content"));
-            insertQuery.setParameter(paramPointer++, twitter.get("media"));
+        for (TaskCreationForm twitter : twitters) {
+            insertQuery.setParameter(paramPointer++, twitter.getUrl());
+            insertQuery.setParameter(paramPointer++, twitter.getContent());
+            insertQuery.setParameter(paramPointer++, twitter.getMedia());
         }
         int affected = insertQuery.executeUpdate();
         List<EnkanTaskEntity> tasks = this.taskRepository.findByUrlIn(urlSet);

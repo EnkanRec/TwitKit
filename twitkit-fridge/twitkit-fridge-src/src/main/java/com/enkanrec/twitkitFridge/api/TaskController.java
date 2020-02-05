@@ -8,12 +8,15 @@ import com.enkanrec.twitkitFridge.api.form.*;
 import com.enkanrec.twitkitFridge.api.response.AffectedCountResponse;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.service.task.TaskService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,6 +40,17 @@ public class TaskController {
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     public StandardResponse createTask(@Valid TaskCreationForm form) {
         return StandardResponse.ok(this.service.addTask(form.getUrl(), form.getContent(), form.getMedia()));
+    }
+
+    /**
+     * 入库一条推文
+     */
+    @ResponseBody
+    @RequestMapping(value = "/bulk", method = RequestMethod.POST)
+    public StandardResponse bulkTask(@Valid JsonDataFridgeForm form) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        List<TaskCreationForm> taskCreationForms = mapper.readValue(form.getData(), new TypeReference<List<TaskCreationForm>>() {});
+        return StandardResponse.ok(this.service.addTaskByBulk(taskCreationForms));
     }
 
     /**

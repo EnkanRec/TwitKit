@@ -4,6 +4,7 @@
  */
 package com.enkanrec.twitkitFridge.service.task;
 
+import com.enkanrec.twitkitFridge.api.form.TaskCreationForm;
 import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTaskEntity;
 import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTranslateEntity;
 
@@ -18,7 +19,7 @@ public interface TaskService {
 
     TaskServiceImpl.CreateTaskReplay addTask(String url, String content, String media);
 
-    public List<TaskServiceImpl.CreateTaskReplay> addTaskByBulk(List<Map<String, String>> twitters);
+    public List<TaskServiceImpl.CreateTaskReplay> addTaskByBulk(List<TaskCreationForm> twitters);
 
     EnkanTaskEntity getOneLatestOfVisible();
 
