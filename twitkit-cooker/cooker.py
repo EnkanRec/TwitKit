@@ -76,7 +76,7 @@ def cook_tweet(
     if transparent:
         command.append('--transparent')
 
-    command.append(f'{config.INTERNAL_BASE_URL}/internal/tweet_page')
+    command.append(f'{config.INT_BASE_URL}/internal/tweet_page')
     command.append(output_path)
 
     try:

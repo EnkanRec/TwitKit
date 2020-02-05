@@ -35,7 +35,8 @@
     * 如果是生产环境，也将`gunicorn_config_example.py`复制一份，命名为`gunicorn_config.py`，根据需要修改配置。（配置文件设置项可参考[文档](http://docs.gunicorn.org/en/stable/settings.html)）
 
 6. 安装字体：
-    从<https://github.com/adobe-fonts/source-han-sans/releases>下载[SourceHanSans.ttc](https://github.com/adobe-fonts/source-han-sans/releases/download/2.001R/SourceHanSans.ttc)，放入`/usr/local/share/fonts/`。此为全语言全字重的字体集，比较方便。或者用其他字体也可以。
+   
+    从<https://github.com/adobe-fonts/source-han-sans/releases>下载[SourceHanSans.ttc](https://github.com/adobe-fonts/source-han-sans/releases/download/2.001R/SourceHanSans.ttc)，放入`/usr/local/share/fonts/`。此为全语言全字重的字体集，比较方便。或者用其他字体也可以。可执行`fc-list`确认字体已装好。
 
 ## 配置文件说明
 
@@ -58,8 +59,8 @@ Cooker从`config.py`中的变量读入配置。变量名和说明如下。
 * `TID_CODE_POS_Y`：tid二维码垂直定位（若填写负数，表示从下起）
 
 ### URL设置
-* `EXTERNAL_BASE_URL`：指向`/static`的对外URL前缀，返回输出图片URL时用，例如`https://example.local/images/`。
-* `INTERNAL_BASE_URL`：内部URL前缀，在`wkhtmltoimage`访问内部生成的推文页面时用。如果Gunicorn配置里改了端口号，这里要相应修改。
+* `EXT_STATIC_BASE_URL`：指向`/static`的对外URL前缀，返回输出图片URL时用，例如`https://example.local/images`。
+* `INT_BASE_URL`：内部URL前缀，在`wkhtmltoimage`访问内部生成的推文页面时用。如果Gunicorn配置里改了端口号，这里要相应修改。
 
 ### 日志设置
 * `LOG_LEVEL`：日志等级。Cooker里只用到`INFO`和`DEBUG`这两个等级。
@@ -73,7 +74,7 @@ Cooker从`config.py`中的变量读入配置。变量名和说明如下。
 生产环境下，用`gunicorn`运行`app`。
 
 ```
-gunicorn -c gunicorn_config.py --workers=4 app:app
+gunicorn -c gunicorn_config.py app:app
 ```
 
 ### 开发环境

@@ -1,4 +1,5 @@
 from flask_restplus import fields, Namespace
+import config
 
 cooker_api = Namespace('api', description='烤推出图API')
 
@@ -21,30 +22,37 @@ cook_data_model = cooker_api.model('cookDataModel', {
         example='123e4567-e89b-12d3-a456-426655440000'),
     'tid': fields.Integer(
         required=True,
-        description='推文ID'),
+        description='推文ID',
+        example=2233),
     'origText': fields.String(
-        description='推文原文，Plain Text格式，不传则只输出译文'),
+        description='推文原文，Plain Text格式，不传则只输出译文',
+        example='マギアレコードの新魔法少女「南津　涼子」のキャラデザを担当させていただき'
+                'ました！どうぞよろしくお願いします✨ #マギレコ'),
     'transText': fields.String(
-        description='推文译文，Plain Text格式，不传则只输出原文'),
+        description='推文译文，Plain Text格式，不传则只输出原文',
+        example='我有幸担任了魔法纪录新魔法少女“南津 凉子”的人物设计！请多多指教✨'),
     'media': fields.List(
         fields.String,
-        description='媒体列表，列表里每个字符串是一个媒体URL'),
-    'tags': fields.List(
-        fields.String,
-        description='标签列表，列表里每个字符串是一个标签（不含`#`）'),
+        description='媒体列表，列表里每个字符串是一个媒体URL',
+        example=[
+            'https://pbs.twimg.com/media/EPcgk0JUUAE3NLt?format=jpg&name=orig'
+        ]),
     'username': fields.String(
         required=True,
-        description='推特用户名（不含`@`）'),
+        description='推特用户名（不含`@`）',
+        example='azure_0608'),
     'retweeterUsername': fields.String(
-        description='如果是转推，转推者的推特用户名（不含`@`）'),
+        description='如果是转推，转推者的推特用户名（不含`@`）',
+        example='magireco'),
     'postDate': fields.String(
         dt_format='iso8601',
         required=True,
         description='推文发出日期时间，ISO8601格式',
         example='2020-01-29T14:23:23.233+08:00'),
     'ppi': fields.Integer(
-        default=96,
-        description='生成图像PPI')
+        default=config.DEFAULT_PPI,
+        description='生成图像PPI',
+        example=144)
 })
 
 cook_fields = base_fields.copy()
@@ -60,7 +68,9 @@ check_data_model = cooker_api.model('checkDataModel', {
         example='123e4567-e89b-12d3-a456-426655440000'),
     'imageUrl': fields.String(
         required=True,
-        description='要查询tid的图片的URL')
+        description='要查询tid的图片的URL',
+        example='http://localhost:5000/static/'
+                '4f5b954b59360a1aeb8dfd9df0ed60ca.png')
 })
 
 check_fields = base_fields.copy()
