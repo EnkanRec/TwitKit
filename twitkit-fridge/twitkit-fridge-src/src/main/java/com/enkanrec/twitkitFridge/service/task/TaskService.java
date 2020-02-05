@@ -8,12 +8,17 @@ import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTaskEntity;
 import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTranslateEntity;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class : TaskService
  * Usage :
  */
 public interface TaskService {
+
+    TaskServiceImpl.CreateTaskReplay addTask(String url, String content, String media);
+
+    public List<TaskServiceImpl.CreateTaskReplay> addTaskByBulk(List<Map<String, String>> twitters);
 
     EnkanTaskEntity getOneLatestOfVisible();
 

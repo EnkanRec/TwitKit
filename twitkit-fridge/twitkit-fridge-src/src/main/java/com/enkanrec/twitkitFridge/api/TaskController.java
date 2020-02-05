@@ -31,6 +31,15 @@ public class TaskController {
     }
 
     /**
+     * 入库一条推文
+     */
+    @ResponseBody
+    @RequestMapping(value = "/create", method = RequestMethod.POST)
+    public StandardResponse createTask(@Valid TaskCreationForm form) {
+        return StandardResponse.ok(this.service.addTask(form.getUrl(), form.getContent(), form.getMedia()));
+    }
+
+    /**
      * 获取单条推文
      */
     @ResponseBody

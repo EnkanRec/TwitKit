@@ -6,7 +6,8 @@ package com.enkanrec.twitkitFridge.steady.noel.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.ToString;
-import org.springframework.data.jpa.repository.Query;
+import org.hibernate.annotations.ResultCheckStyle;
+import org.hibernate.annotations.SQLInsert;
 
 import javax.persistence.*;
 import java.sql.Timestamp;

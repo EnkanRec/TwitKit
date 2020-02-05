@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.util.*;
 
 /**
@@ -39,6 +40,61 @@ public class TaskServiceImpl implements TaskService {
                            EnkanTranslateRepository translateRepository) {
         this.taskRepository = taskRepository;
         this.translateRepository = translateRepository;
+    }
+
+    @Transactional
+    @Override
+    public CreateTaskReplay addTask(String url, String content, String media) {
+        Query insertQuery = this.entityManager.createNativeQuery("INSERT IGNORE INTO enkan_task (url, content, media) VALUES (:url, :content, :media)");
+        insertQuery.setParameter("url", url);
+        insertQuery.setParameter("content", content);
+        insertQuery.setParameter("media", media);
+        int affected = insertQuery.executeUpdate();
+        EnkanTaskEntity task = this.taskRepository.findByUrl(url);
+        return CreateTaskReplay.of(task, affected == 0);
+    }
+
+    @Transactional
+    @Override
+    public List<CreateTaskReplay> addTaskByBulk(List<Map<String, String>> twitters) {
+        List<CreateTaskReplay> result = new ArrayList<>();
+        if (twitters.size() == 0) {
+            return result;
+        }
+
+        // 测试存在性，但这里会有幻读的问题，会影响返回“已存在性”字段的准确性，但入库只会有唯一一条记录
+        // 比如两个bulk请求同时提交了同一个URL的推文，可能都返回`alreadyExist`为`false`
+        // 使用串行隔离级别可以解决这个问题，但有性能开销，不是很必要？
+        Set<String> urlSet = new HashSet<>();
+        Map<String, Boolean> existMap = new HashMap<>();
+        for (Map<String, String> twitter : twitters) {
+            String url = twitter.get("url");
+            existMap.put(url, this.taskRepository.existsByUrl(url));
+            urlSet.add(url);
+        }
+        if (urlSet.size() != twitters.size()) {
+            log.warn("Url distinct set size skewed");
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("INSERT IGNORE INTO enkan_task (url, content, media) VALUES ");
+        twitters.forEach(t -> sb.append("(?,?,?),"));
+        String sqlTemplate = sb.toString().substring(0, sb.length() - 1);
+        Query insertQuery = this.entityManager.createNativeQuery(sqlTemplate);
+        int paramPointer = 1;
+        for (Map<String, String> twitter : twitters) {
+            insertQuery.setParameter(paramPointer++, twitter.get("url"));
+            insertQuery.setParameter(paramPointer++, twitter.get("content"));
+            insertQuery.setParameter(paramPointer++, twitter.get("media"));
+        }
+        int affected = insertQuery.executeUpdate();
+        List<EnkanTaskEntity> tasks = this.taskRepository.findByUrlIn(urlSet);
+
+        for (EnkanTaskEntity task : tasks) {
+            result.add(CreateTaskReplay.of(task, existMap.getOrDefault(task.getUrl(), false)));
+        }
+
+        return result;
     }
 
     @Transactional
@@ -194,5 +250,15 @@ public class TaskServiceImpl implements TaskService {
         private EnkanTaskEntity twitter;
 
         private EnkanTranslateEntity translation;
+    }
+
+    @Data
+    @EqualsAndHashCode
+    @AllArgsConstructor(staticName = "of")
+    public static class CreateTaskReplay {
+
+        private EnkanTaskEntity twitter;
+
+        private boolean alreadyExist;
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import javax.persistence.LockModeType;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -17,6 +18,12 @@ import java.util.List;
  * Usage :
  */
 public interface EnkanTaskRepository extends JpaRepository<EnkanTaskEntity, Integer> {
+
+    boolean existsByUrl(String url);
+
+    EnkanTaskEntity findByUrl(String url);
+
+    List<EnkanTaskEntity> findByUrlIn(Collection<String> urls);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT et FROM EnkanTaskEntity et WHERE et.tid = :tid")
