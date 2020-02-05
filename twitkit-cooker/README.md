@@ -21,7 +21,7 @@
 3. 安装Python依赖：
 
     ```
-    pip -r requirements.txt
+    pip install -r requirements.txt
     ```
 
 4. 安装Gunicorn和gevent（生产环境需要）：
