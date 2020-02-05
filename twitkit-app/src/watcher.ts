@@ -5,12 +5,6 @@ import * as utils from './utils'
 import { Twitter } from './twitter'
 import store from './store'
 
-class request {
-    forwardFrom: string
-    timestamp: utils.ISO8601
-    data: any
-}
-
 class rss {
     taskId: utils.uuid
     tid?: number[]
@@ -57,11 +51,11 @@ function sendmsg(ctx: Context, target: any = { discuss: [], private: [], group: 
     Logger.debug("msg: " + msg)
     for (const j of target.discuss) {
         ctx.sender.sendDiscussMsgAsync(j, msg)
-        Logger.debug("tid: %d, target: G_%d send", tid, j)
+        Logger.debug("tid: %d, target: D_%d send", tid, j)
     }
     for (const j of target.private) {
         ctx.sender.sendPrivateMsgAsync(j, msg)
-        Logger.debug("tid: %d, target: G_%d send", tid, j)
+        Logger.debug("tid: %d, target: P_%d send", tid, j)
     }
     for (const j of target.group) {
         ctx.sender.sendGroupMsgAsync(j, msg)
@@ -74,13 +68,14 @@ export default function (ctx: Context, argv: any = { target: {}, ispro: true, po
     Logger.debug("watcher server starting...")
     const server = http.createServer((req, res) => {
         let pathname = parse(req.url).pathname;
-        Logger.debug(req.method + " " + pathname + " " + req.httpVersion)
+        Logger.debug(req.method + " " + pathname + " HTTP " + req.httpVersion)
         res.writeHead(200, {'Content-Type': 'application/json'})
         let r = /^\/api\/app\/(twitter|other)$/.exec(pathname)
         if (req.method === "POST" && r) {
-            req.on("readable", async () => {
-                let data: request
-                const raw = req.read()
+            let raw: string = ""
+            req.on("data", (chunk) => { raw += chunk })
+            req.on("end", async () => {
+                let data: utils.request
                 try {
                     data = JSON.parse(raw)
                     Logger.debug("[" + data.forwardFrom + "] " + data.timestamp + " :")
@@ -90,9 +85,6 @@ export default function (ctx: Context, argv: any = { target: {}, ispro: true, po
                     res.end('{"code": 400, "message": "Data format error"}')
                     return //res.end()
                 }
-                // return res.end()
-            // })
-            // req.on("end", async () => {
                 switch (r[1]) {
                     case "twitter":
                         for (const i in data.data) if (data.data[i]) {
@@ -115,7 +107,6 @@ export default function (ctx: Context, argv: any = { target: {}, ispro: true, po
                             Logger.warn("Parse rss data error: " + e)
                         }
                         const msg:string = rss2msg(rdata, argv)
-                        Logger.debug("msg: " + msg)
                         sendmsg(ctx, argv.target, msg)
                         Logger.info("Update notice done")
                         break
@@ -124,8 +115,7 @@ export default function (ctx: Context, argv: any = { target: {}, ispro: true, po
             })
         } else {
             Logger.warn("Unknow request: " + pathname)
-            res.write('{"code": 404, "message": "Not found"}')
-            res.end()
+            res.end('{"code": 404, "message": "Not found"}')
         }
     })
     try {
