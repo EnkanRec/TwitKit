@@ -7,7 +7,10 @@ export {
     watcher
 }
 
-export function apply (ctx: Context, argv = {}) {
+export function apply (ctx: Context, argv?) {
+    const Logger = ctx.logger("info")
+    Logger.debug("apply plugin watcher")
     ctx.plugin(watcher, argv)
+    Logger.debug("apply plugin cmd")
     ctx.plugin(cmd, argv)
 }
