@@ -43,8 +43,23 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional
     @Override
-    public EnkanTaskEntity getOneLatestWithVisible() {
+    public EnkanTaskEntity getOneLatestOfVisible() {
         return this.taskRepository.findFirstByHidedIsFalseOrderByTidDesc();
+    }
+
+    @Transactional
+    @Override
+    public TranslatedTask getOneLatestOfVisibleWithTranslation() {
+        EnkanTaskEntity entity = this.taskRepository.findFirstByHidedIsFalseOrderByTidDesc();
+        if (entity != null) {
+            List<EnkanTranslateEntity> translations = entity.getTranslations();
+            if (translations.isEmpty()) {
+                return TranslatedTask.of(entity, null);
+            }
+            EnkanTranslateEntity lastTrans = translations.get(translations.size() - 1);
+            return TranslatedTask.of(entity, lastTrans);
+        }
+        return TranslatedTask.of(null, null);
     }
 
     @Transactional
@@ -163,7 +178,7 @@ public class TaskServiceImpl implements TaskService {
             translations.add(trans);
             this.taskRepository.save(chosenOne);
             EnkanTranslateEntity latest = this.translateRepository.findFirstByTaskOrderByVersionDesc(chosenOne);
-            this.entityManager.refresh(latest);  // refresh for updatetime and newdate
+            this.entityManager.refresh(latest);  // refresh for `updatetime` and `newdate`
             return latest;
         } else {
             log.warn("try to add translation for a task, but tid not mapped any record in DB: " + tid.toString());

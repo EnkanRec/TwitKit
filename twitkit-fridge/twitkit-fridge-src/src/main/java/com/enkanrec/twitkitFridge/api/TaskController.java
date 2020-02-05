@@ -4,10 +4,7 @@
  */
 package com.enkanrec.twitkitFridge.api;
 
-import com.enkanrec.twitkitFridge.api.form.BaseFridgeForm;
-import com.enkanrec.twitkitFridge.api.form.CommentForm;
-import com.enkanrec.twitkitFridge.api.form.TidForm;
-import com.enkanrec.twitkitFridge.api.form.TranslateForm;
+import com.enkanrec.twitkitFridge.api.form.*;
 import com.enkanrec.twitkitFridge.api.response.AffectedCountResponse;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.service.task.TaskService;
@@ -17,7 +14,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -53,12 +49,17 @@ public class TaskController {
     }
 
     /**
-     * 忽略被隐藏的推文后，获取最后一条推文
+     * 忽略被隐藏的推文后，获取最后一条推文及其最新的翻译
      */
     @ResponseBody
     @RequestMapping(value = "/last", method = RequestMethod.POST)
-    public StandardResponse getLastTask(@Valid BaseFridgeForm form) {
-        return StandardResponse.ok(this.service.getOneLatestWithVisible());
+    public StandardResponse getLastTask(@Valid JsonDataFridgeForm form) {
+        Map<String, Object> param = form.getMappedData();
+        if ((Boolean) param.getOrDefault("withTranslation", false)) {
+            return StandardResponse.ok(this.service.getOneLatestOfVisibleWithTranslation());
+        } else {
+            return StandardResponse.ok(this.service.getOneLatestOfVisible());
+        }
     }
 
     /**

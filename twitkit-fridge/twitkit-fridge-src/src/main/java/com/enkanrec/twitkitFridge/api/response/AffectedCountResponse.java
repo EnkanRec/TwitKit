@@ -4,6 +4,7 @@
  */
 package com.enkanrec.twitkitFridge.api.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -22,6 +23,7 @@ public class AffectedCountResponse extends StandardResponse {
 
     private static final String KEY_AFFECTED_COUNT = "affected";
 
+    @JsonIgnore
     private int affectedCount;
 
     public static AffectedCountResponse of(int affected) {

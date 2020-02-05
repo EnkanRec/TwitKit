@@ -15,7 +15,9 @@ import java.util.List;
  */
 public interface TaskService {
 
-    EnkanTaskEntity getOneLatestWithVisible();
+    EnkanTaskEntity getOneLatestOfVisible();
+
+    TaskServiceImpl.TranslatedTask getOneLatestOfVisibleWithTranslation();
 
     EnkanTaskEntity getOneLatest();
 
