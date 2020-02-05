@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class : TaskController
@@ -50,11 +52,20 @@ public class TaskController {
     }
 
     /**
-     * 获取最后一条推文
+     * 忽略被隐藏的推文后，获取最后一条推文
      */
     @ResponseBody
-    @RequestMapping(value = "/getlast", method = RequestMethod.POST)
+    @RequestMapping(value = "/last", method = RequestMethod.POST)
     public StandardResponse getLastTask(@Valid BaseFridgeForm form) {
+        return StandardResponse.ok(this.service.getOneLatestWithVisible());
+    }
+
+    /**
+     * 获取tid最大的一条推文
+     */
+    @ResponseBody
+    @RequestMapping(value = "/actuallast", method = RequestMethod.POST)
+    public StandardResponse getActualLastTask(@Valid BaseFridgeForm form) {
         return StandardResponse.ok(this.service.getOneLatest());
     }
 
@@ -109,6 +120,8 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/reset", method = RequestMethod.POST)
     public StandardResponse resetTask(@Valid TidForm form) {
-        return StandardResponse.ok();
+        Map<String, Integer> result = new HashMap<>();
+        result.put("affected_count", this.service.removeAllTranslations(form.getTid()));
+        return StandardResponse.ok(result);
     }
 }

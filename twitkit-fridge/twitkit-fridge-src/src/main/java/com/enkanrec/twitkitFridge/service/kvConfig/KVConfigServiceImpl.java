@@ -7,8 +7,8 @@ package com.enkanrec.twitkitFridge.service.kvConfig;
 import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanConfigEntity;
 import com.enkanrec.twitkitFridge.steady.noel.repository.EnkanConfigRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;

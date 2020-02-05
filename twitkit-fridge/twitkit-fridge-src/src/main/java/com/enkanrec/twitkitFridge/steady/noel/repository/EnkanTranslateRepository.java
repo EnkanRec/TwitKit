@@ -7,6 +7,7 @@ package com.enkanrec.twitkitFridge.steady.noel.repository;
 import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTranslateEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -17,10 +18,15 @@ import java.util.List;
  */
 public interface EnkanTranslateRepository extends JpaRepository<EnkanTranslateEntity, Integer> {
 
-    @Query(value = "SELECT * FROM enkan_translate t, (SELECT tid, max(version) maxVersion FROM enkan_translate AS et GROUP BY et.tid) tr WHERE t.tid = tr.tid AND t.version = tr.maxVersion", nativeQuery = true)
+    @Transactional
+    @Query(nativeQuery = true, value = "SELECT * FROM enkan_translate t, (SELECT tid, max(version) maxVersion FROM enkan_translate AS et GROUP BY et.tid) tr WHERE t.tid = tr.tid AND t.version = tr.maxVersion")
     List<EnkanTranslateEntity> getTranslationsWithLatestVersion();
 
     EnkanTranslateEntity findFirstByTidOrderByVersionDesc(Integer tid);
+
+    @Transactional
+    @Query("delete from EnkanTranslateEntity ete where ete.tid = ?1")
+    int bulkDeleteByTid(Integer tid);
 
     List<EnkanTranslateEntity> findAllByTidIn(Collection<Integer> tidCandidates);
 }

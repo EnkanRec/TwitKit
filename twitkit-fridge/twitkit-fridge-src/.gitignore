@@ -68,4 +68,4 @@ buildNumber.properties
 hs_err_pid*
 
 /.mvn/
-/.web_server/
+/web_server/

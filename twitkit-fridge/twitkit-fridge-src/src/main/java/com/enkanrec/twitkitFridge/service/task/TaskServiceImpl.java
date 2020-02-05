@@ -13,8 +13,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.*;
 
 /**
@@ -37,9 +37,14 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional
     @Override
+    public EnkanTaskEntity getOneLatestWithVisible() {
+        return this.taskRepository.findFirstByHidedIsFalseOrderByTidDesc();
+    }
+
+    @Transactional
+    @Override
     public EnkanTaskEntity getOneLatest() {
-        EnkanTaskEntity task = this.taskRepository.findFirstByOrderByTidDesc();
-        return task;
+        return this.taskRepository.findFirstByOrderByTidDesc();
     }
 
     @Transactional
@@ -51,7 +56,7 @@ public class TaskServiceImpl implements TaskService {
             EnkanTranslateEntity translateEntity = this.translateRepository.findFirstByTidOrderByVersionDesc(tid);
             return TranslatedTask.of(taskEntity, translateEntity);
         } else {
-            log.warn("try to get task, but tid not mapped any record in DB");
+            log.warn("try to get task, but tid not mapped any record in DB: " + tid.toString());
             return null;
         }
     }
@@ -89,7 +94,7 @@ public class TaskServiceImpl implements TaskService {
             this.taskRepository.save(existed);
             return existed;
         } else {
-            log.warn("try to comment a task, but tid not mapped any record in DB");
+            log.warn("try to comment a task, but tid not mapped any record in DB: " + tid.toString());
             return null;
         }
     }
@@ -104,7 +109,7 @@ public class TaskServiceImpl implements TaskService {
             this.taskRepository.save(existed);
             return existed;
         } else {
-            log.warn("try to hide a task, but tid not mapped any record in DB");
+            log.warn("try to hide a task, but tid not mapped any record in DB: " + tid.toString());
             return null;
         }
     }
@@ -119,9 +124,15 @@ public class TaskServiceImpl implements TaskService {
             this.taskRepository.save(existed);
             return existed;
         } else {
-            log.warn("try to set visible a task, but tid not mapped any record in DB");
+            log.warn("try to set visible a task, but tid not mapped any record in DB: " + tid.toString());
             return null;
         }
+    }
+
+    @Override
+    public Integer removeAllTranslations(Integer tid) {
+        int affected = this.translateRepository.bulkDeleteByTid(tid);
+        return affected;
     }
 
     @Data

@@ -15,6 +15,8 @@ import java.util.List;
  */
 public interface EnkanTaskRepository extends JpaRepository<EnkanTaskEntity, Integer> {
 
+    EnkanTaskEntity findFirstByHidedIsFalseOrderByTidDesc();
+
     EnkanTaskEntity findFirstByOrderByTidDesc();
 
     List<EnkanTaskEntity> findAllByTidGreaterThanAndHidedIsFalse(Integer tid);

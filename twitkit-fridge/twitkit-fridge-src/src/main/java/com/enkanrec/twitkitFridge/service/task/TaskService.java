@@ -14,6 +14,8 @@ import java.util.List;
  */
 public interface TaskService {
 
+    EnkanTaskEntity getOneLatestWithVisible();
+
     EnkanTaskEntity getOneLatest();
 
     TaskServiceImpl.TranslatedTask getOneWithTranslation(Integer tid);
@@ -25,4 +27,6 @@ public interface TaskService {
     EnkanTaskEntity hide(Integer tid);
 
     EnkanTaskEntity visible(Integer tid);
+
+    Integer removeAllTranslations(Integer tid);
 }
