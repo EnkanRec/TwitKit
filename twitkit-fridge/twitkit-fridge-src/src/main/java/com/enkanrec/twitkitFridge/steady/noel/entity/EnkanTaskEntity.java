@@ -6,6 +6,7 @@ package com.enkanrec.twitkitFridge.steady.noel.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.ToString;
+import org.springframework.data.jpa.repository.Query;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -34,6 +35,7 @@ public class EnkanTaskEntity {
 
     @Id
     @Column(name = "tid", nullable = false, insertable = false, updatable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int getTid() {
         return tid;
     }

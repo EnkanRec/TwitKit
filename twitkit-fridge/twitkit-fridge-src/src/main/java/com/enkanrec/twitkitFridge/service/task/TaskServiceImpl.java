@@ -13,8 +13,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.*;
 
 /**
@@ -28,6 +31,9 @@ public class TaskServiceImpl implements TaskService {
     private final EnkanTaskRepository taskRepository;
 
     private final EnkanTranslateRepository translateRepository;
+
+    @PersistenceContext(unitName = "entityManagerFactoryNoel")
+    private EntityManager entityManager;
 
     public TaskServiceImpl(EnkanTaskRepository taskRepository,
                            EnkanTranslateRepository translateRepository) {
@@ -53,7 +59,7 @@ public class TaskServiceImpl implements TaskService {
         Optional<EnkanTaskEntity> task = this.taskRepository.findById(tid);
         if (task.isPresent()) {
             EnkanTaskEntity taskEntity = task.get();
-            EnkanTranslateEntity translateEntity = this.translateRepository.findFirstByTidOrderByVersionDesc(tid);
+            EnkanTranslateEntity translateEntity = this.translateRepository.findFirstByTaskOrderByVersionDesc(taskEntity);
             return TranslatedTask.of(taskEntity, translateEntity);
         } else {
             log.warn("try to get task, but tid not mapped any record in DB: " + tid.toString());
@@ -129,10 +135,40 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
+    @Transactional
     @Override
     public Integer removeAllTranslations(Integer tid) {
-        int affected = this.translateRepository.bulkDeleteByTid(tid);
-        return affected;
+        return this.translateRepository.bulkDeleteByTid(tid);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Override
+    public EnkanTranslateEntity addTranslation(Integer tid, String translation, String img) {
+        EnkanTaskEntity chosenOne = this.taskRepository.findByTidForUpdate(tid);
+        if (chosenOne != null) {
+            List<EnkanTranslateEntity> translations = chosenOne.getTranslations();
+            Optional<EnkanTranslateEntity> maxOne = translations
+                    .stream()
+                    .max(Comparator.comparingInt(EnkanTranslateEntity::getVersion));
+            int nextVersion = 0;
+            if (maxOne.isPresent()) {
+                EnkanTranslateEntity lastTranslation = maxOne.get();
+                nextVersion = lastTranslation.getVersion() + 1;
+            }
+            EnkanTranslateEntity trans = new EnkanTranslateEntity();
+            trans.setVersion(nextVersion);
+            trans.setTask(chosenOne);
+            trans.setImg(img);
+            trans.setTranslation(translation);
+            translations.add(trans);
+            this.taskRepository.save(chosenOne);
+            EnkanTranslateEntity latest = this.translateRepository.findFirstByTaskOrderByVersionDesc(chosenOne);
+            this.entityManager.refresh(latest);  // refresh for updatetime and newdate
+            return latest;
+        } else {
+            log.warn("try to add translation for a task, but tid not mapped any record in DB: " + tid.toString());
+            return null;
+        }
     }
 
     @Data

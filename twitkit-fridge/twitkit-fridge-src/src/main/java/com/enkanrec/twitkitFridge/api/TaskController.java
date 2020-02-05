@@ -8,6 +8,7 @@ import com.enkanrec.twitkitFridge.api.form.BaseFridgeForm;
 import com.enkanrec.twitkitFridge.api.form.CommentForm;
 import com.enkanrec.twitkitFridge.api.form.TidForm;
 import com.enkanrec.twitkitFridge.api.form.TranslateForm;
+import com.enkanrec.twitkitFridge.api.response.AffectedCountResponse;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.service.task.TaskService;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -102,7 +103,7 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/translate", method = RequestMethod.POST)
     public StandardResponse translateTask(@Valid TranslateForm form) {
-        return StandardResponse.ok();
+        return StandardResponse.ok(this.service.addTranslation(form.getTid(), form.getTrans(), form.getImg()));
     }
 
     /**
@@ -120,8 +121,6 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/reset", method = RequestMethod.POST)
     public StandardResponse resetTask(@Valid TidForm form) {
-        Map<String, Integer> result = new HashMap<>();
-        result.put("affected_count", this.service.removeAllTranslations(form.getTid()));
-        return StandardResponse.ok(result);
+        return AffectedCountResponse.of(this.service.removeAllTranslations(form.getTid()));
     }
 }

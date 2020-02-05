@@ -20,7 +20,6 @@ import java.util.Objects;
 @Table(name = "enkan_translate", schema = "Noel")
 public class EnkanTranslateEntity {
     private int zzid;
-    private int tid;
     private int version;
     private String translation;
     private String img;
@@ -31,22 +30,13 @@ public class EnkanTranslateEntity {
 
     @Id
     @Column(name = "zzid", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int getZzid() {
         return zzid;
     }
 
     public void setZzid(int zzid) {
         this.zzid = zzid;
-    }
-
-    @Basic
-    @Column(name = "tid", nullable = false, insertable = false, updatable = false)
-    public int getTid() {
-        return tid;
-    }
-
-    public void setTid(int tid) {
-        this.tid = tid;
     }
 
     @Basic
@@ -105,7 +95,7 @@ public class EnkanTranslateEntity {
         if (o == null || getClass() != o.getClass()) return false;
         EnkanTranslateEntity that = (EnkanTranslateEntity) o;
         return zzid == that.zzid &&
-                tid == that.tid &&
+                getTask().equals(that.getTask()) &&
                 version == that.version &&
                 Objects.equals(translation, that.translation) &&
                 Objects.equals(img, that.img) &&
@@ -115,11 +105,11 @@ public class EnkanTranslateEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(zzid, tid, version, translation, img, newdate, updatetime);
+        return Objects.hash(zzid, this.getTask().getTid(), version, translation, img, newdate, updatetime);
     }
 
     @JsonIgnore
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.REFRESH)
     @JoinColumn(name = "tid")
     public EnkanTaskEntity getTask() {
         return task;

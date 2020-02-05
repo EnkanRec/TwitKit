@@ -4,12 +4,19 @@
  */
 package com.enkanrec.twitkitFridge.api.form;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 import javax.validation.constraints.NotNull;
 
 /**
  * Class : TranslateForm
  * Usage :
  */
+@Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 public class TranslateForm extends JsonDataFridgeForm {
 
     /**

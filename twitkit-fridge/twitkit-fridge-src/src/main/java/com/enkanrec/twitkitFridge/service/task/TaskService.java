@@ -5,6 +5,7 @@
 package com.enkanrec.twitkitFridge.service.task;
 
 import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTaskEntity;
+import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTranslateEntity;
 
 import java.util.List;
 
@@ -29,4 +30,6 @@ public interface TaskService {
     EnkanTaskEntity visible(Integer tid);
 
     Integer removeAllTranslations(Integer tid);
+
+    EnkanTranslateEntity addTranslation(Integer tid, String translation, String img);
 }

@@ -18,7 +18,7 @@ import java.util.Objects;
 @ToString
 @Table(name = "enkan_config", schema = "Noel")
 public class EnkanConfigEntity {
-    private Integer id;
+    private int id;
     private String namespace;
     private String configKey;
     private String configValue;
@@ -27,6 +27,7 @@ public class EnkanConfigEntity {
 
     @Id
     @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int getId() {
         return id;
     }
