@@ -34,6 +34,8 @@ function Twitter2msg(tw: Twitter, argv = { ispro: true, prefix: '#' }): string {
     return msg
 }
 
+let Logger
+
 function rss2msg(tw: rss, argv = { ispro: true, prefix: '#' }): string {
     let msg: string = "【" + tw.author + "】"
     if (tw.title) msg += tw.title
@@ -51,64 +53,80 @@ function rss2msg(tw: rss, argv = { ispro: true, prefix: '#' }): string {
     return msg
 }
 
-export default function (ctx: Context, argv: any = { group: [], ispro: true, port: 1551, prefix: '#' }) {
-    const Logger = ctx.logger()
+function sendmsg(ctx: Context, target: any = { discuss: [], private: [], group: [] }, msg: string, tid: number = null): void {
+    Logger.debug("msg: " + msg)
+    for (const j of target.discuss) {
+        ctx.sender.sendDiscussMsgAsync(j, msg)
+        Logger.debug("tid: %d, target: G_%d send", tid, j)
+    }
+    for (const j of target.private) {
+        ctx.sender.sendPrivateMsgAsync(j, msg)
+        Logger.debug("tid: %d, target: G_%d send", tid, j)
+    }
+    for (const j of target.group) {
+        ctx.sender.sendGroupMsgAsync(j, msg)
+        Logger.debug("tid: %d, target: G_%d send", tid, j)
+    }
+}
+
+export default function (ctx: Context, argv: any = { target: {}, ispro: true, port: 1551, prefix: '#' }) {
+    Logger = ctx.logger()
     Logger.debug("watcher server starting...")
-    const server = http.createServer(async (req, res) => {
+    const server = http.createServer((req, res) => {
         let pathname = parse(req.url).pathname;
         Logger.debug(req.method + " " + pathname + " " + req.httpVersion)
         res.writeHead(200, {'Content-Type': 'application/json'})
         let r = /^\/api\/app\/(twitter|other)$/.exec(pathname)
         if (req.method === "POST" && r) {
-            let data: request
-            try {
-                data = JSON.parse(req.read())
-                Logger.debug("[" + data.forwardFrom + "] " + data.timestamp + " :")
-            } catch (e) {
-                Logger.warn("Parse data error: " + e)
-                res.write('{"code": 400, "message": "Data format error"}')
-                return res.end()
-            }
-            switch (r[1]) {
-                case "twitter":
-                    for (const i in data.data) if (data.data[i]) {
-                        Logger.debug("Event %s, tid: %d", i, data.data[i])
-                        const tw:Twitter = await store.get(data.data[i])
-                        Logger.debug("[" + tw.user.name + "]" + tw.content)
-                        const msg:string = Twitter2msg(tw, argv)
-                        Logger.debug("msg: " + msg)
-                        for (const j of argv.group) {
-                            ctx.sender.sendGroupMsgAsync(j, msg)
-                            Logger.debug("tid: %d, target: G_%d send", data.data[i], j)
+            req.on("readable", async () => {
+                let data: request
+                const raw = req.read()
+                try {
+                    data = JSON.parse(raw)
+                    Logger.debug("[" + data.forwardFrom + "] " + data.timestamp + " :")
+                    res.end('{"code": 0, "message": "copy"}')
+                } catch (e) {
+                    Logger.warn("Parse data error: " + e)
+                    res.end('{"code": 400, "message": "Data format error"}')
+                    return //res.end()
+                }
+                // return res.end()
+            // })
+            // req.on("end", async () => {
+                switch (r[1]) {
+                    case "twitter":
+                        for (const i in data.data) if (data.data[i]) {
+                            Logger.debug("Event %s, tid: %d", i, data.data[i])
+                            const tw:Twitter = await store.get(data.data[i])
+                            Logger.debug("[" + tw.user.name + "]" + tw.content)
+                            const msg:string = Twitter2msg(tw, argv)
+                            sendmsg(ctx, argv.target, msg, data.data[i])
+                        } else {
+                            Logger.debug("Event %s, no update", i)
                         }
-                    } else {
-                        Logger.debug("Event %s, no update", i)
-                    }
-                    Logger.info("Update notice done")
-                    break
-                case "other":
-                    let rdata: rss
-                    try {
-                        rdata = <rss> data.data
-                        Logger.debug("[" + rdata.postDate + "] " + rdata.content)
-                    } catch (e) {
-                        Logger.warn("Parse rss data error: " + e)
-                    }
-                    const msg:string = rss2msg(rdata, argv)
-                    Logger.debug("msg: " + msg)
-                    for (const j of argv.group) {
-                        ctx.sender.sendGroupMsgAsync(j, msg)
-                        Logger.debug("rss, target: G_%d send", j)
-                    }
-                    Logger.info("Update notice done")
-                    break
-                default:
-            }
+                        Logger.info("Update notice done")
+                        break
+                    case "other":
+                        let rdata: rss
+                        try {
+                            rdata = <rss> data.data
+                            Logger.debug("[" + rdata.postDate + "] " + rdata.content)
+                        } catch (e) {
+                            Logger.warn("Parse rss data error: " + e)
+                        }
+                        const msg:string = rss2msg(rdata, argv)
+                        Logger.debug("msg: " + msg)
+                        sendmsg(ctx, argv.target, msg)
+                        Logger.info("Update notice done")
+                        break
+                    default:
+                }
+            })
         } else {
             Logger.warn("Unknow request: " + pathname)
             res.write('{"code": 404, "message": "Not found"}')
+            res.end()
         }
-        res.end()
     })
     try {
         server.listen(argv.port);
