@@ -10,8 +10,6 @@ import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.service.task.TaskService;
 import com.enkanrec.twitkitFridge.util.JsonUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -50,8 +48,17 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/bulk", method = RequestMethod.POST)
     public StandardResponse bulkTask(@Valid JsonDataFridgeForm form) throws Exception {
-        List<TaskCreationForm> taskCreationForms = JsonUtil.Mapper.readValue(form.getData(), new TypeReference<List<TaskCreationForm>>() {});
+        List<TaskCreationForm> taskCreationForms = JsonUtil.parseRaw(form.getData(), new TypeReference<List<TaskCreationForm>>() {});
         return StandardResponse.ok(this.service.addTaskByBulk(taskCreationForms));
+    }
+
+    /**
+     * 删除一条推文任务和她的所有翻译，这个操作不能回滚
+     */
+    @ResponseBody
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
+    public StandardResponse removeTask(@Valid TidForm form) {
+        return StandardResponse.ok(this.service.removeTask(form.getTid()));
     }
 
     /**

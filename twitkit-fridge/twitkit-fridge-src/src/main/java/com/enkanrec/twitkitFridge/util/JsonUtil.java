@@ -4,7 +4,9 @@
  */
 package com.enkanrec.twitkitFridge.util;
 
+import com.enkanrec.twitkitFridge.api.form.TaskCreationForm;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.*;
@@ -21,6 +23,10 @@ public class JsonUtil {
 
     public static String dumps(Object dumper) throws JsonProcessingException {
         return JsonUtil.Mapper.writeValueAsString(dumper);
+    }
+
+    public static <T> T parseRaw(String jString, TypeReference<T> valueTypeRef) throws JsonProcessingException {
+        return JsonUtil.Mapper.readValue(jString, valueTypeRef);
     }
 
     public static <T> T parse(String jString, Class<T> outerHint) throws JsonProcessingException {

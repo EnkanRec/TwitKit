@@ -46,11 +46,13 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @Override
     public CreateTaskReplay addTask(String url, String content, String media) {
+        log.info(String.format("Begin add twitter [%s], size: %s", url, content.length()));
         Query insertQuery = this.entityManager.createNativeQuery("INSERT IGNORE INTO enkan_task (url, content, media) VALUES (:url, :content, :media)");
         insertQuery.setParameter("url", url);
         insertQuery.setParameter("content", content);
         insertQuery.setParameter("media", media);
         int affected = insertQuery.executeUpdate();
+        log.info(String.format("Pre-commit twitter [%s]", url));
         EnkanTaskEntity task = this.taskRepository.findByUrl(url);
         return CreateTaskReplay.of(task, affected == 0);
     }
@@ -58,6 +60,7 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @Override
     public List<CreateTaskReplay> addTaskByBulk(List<TaskCreationForm> twitters) {
+        log.info(String.format("Begin bulk twitter, size: %s", twitters.size()));
         List<CreateTaskReplay> result = new ArrayList<>();
         if (twitters.size() == 0) {
             return result;
@@ -74,7 +77,8 @@ public class TaskServiceImpl implements TaskService {
             urlSet.add(url);
         }
         if (urlSet.size() != twitters.size()) {
-            log.warn("Url distinct set size skewed");
+            log.warn(String.format("Url distinct set size skewed, set size: %s, twi size: %s",
+                    urlSet.size(), twitters.size()));
         }
 
         StringBuilder sb = new StringBuilder();
@@ -89,19 +93,42 @@ public class TaskServiceImpl implements TaskService {
             insertQuery.setParameter(paramPointer++, twitter.getMedia());
         }
         int affected = insertQuery.executeUpdate();
+        log.debug("Pre-commit bulk with affected count: " + affected);
         List<EnkanTaskEntity> tasks = this.taskRepository.findByUrlIn(urlSet);
 
         for (EnkanTaskEntity task : tasks) {
             result.add(CreateTaskReplay.of(task, existMap.getOrDefault(task.getUrl(), false)));
         }
-
         return result;
     }
 
     @Transactional
     @Override
+    public Boolean removeTask(Integer tid) {
+        log.warn("try to delete task by tid: " + tid);
+        Optional<EnkanTaskEntity> et = this.taskRepository.findById(tid);
+        boolean flag = false;
+        if (et.isPresent()) {
+            EnkanTaskEntity task = et.get();
+            this.taskRepository.delete(task);
+            flag = true;
+        } else {
+            log.warn("Delete task by tid, but nothing affected");
+        }
+        return flag;
+    }
+
+    @Transactional
+    @Override
     public EnkanTaskEntity getOneLatestOfVisible() {
-        return this.taskRepository.findFirstByHidedIsFalseOrderByTidDesc();
+        EnkanTaskEntity et = this.taskRepository.findFirstByHidedIsFalseOrderByTidDesc();
+        if (et == null) {
+            log.warn("Retrieve last visible task, but return null");
+        } else {
+            log.info(String.format("Retrieve last visible task, response tid: %s with updatetime: %s",
+                    et.getTid(), et.getUpdatetime()));
+        }
+        return et;
     }
 
     @Transactional
@@ -122,7 +149,14 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @Override
     public EnkanTaskEntity getOneLatest() {
-        return this.taskRepository.findFirstByOrderByTidDesc();
+        EnkanTaskEntity et = this.taskRepository.findFirstByOrderByTidDesc();
+        if (et == null) {
+            log.warn("Retrieve actual last task with largest tid, but return null");
+        } else {
+            log.info(String.format("Retrieve actual last task with largest tid, response tid: %s with updatetime: %s",
+                    et.getTid(), et.getUpdatetime()));
+        }
+        return et;
     }
 
     @Transactional
@@ -165,6 +199,7 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @Override
     public EnkanTaskEntity updateComment(Integer tid, String comment) {
+        log.info(String.format("Update comment for twitter [%s] size: %s", tid, comment.length()));
         Optional<EnkanTaskEntity> chosenOne = this.taskRepository.findById(tid);
         if (chosenOne.isPresent()) {
             EnkanTaskEntity existed = chosenOne.get();
@@ -216,6 +251,7 @@ public class TaskServiceImpl implements TaskService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
     public EnkanTranslateEntity addTranslation(Integer tid, String translation, String img) {
+        log.info(String.format("Add translation for twitter [%s] size: %s", tid, translation.length()));
         EnkanTaskEntity chosenOne = this.taskRepository.findByTidForUpdate(tid);
         if (chosenOne != null) {
             List<EnkanTranslateEntity> translations = chosenOne.getTranslations();
