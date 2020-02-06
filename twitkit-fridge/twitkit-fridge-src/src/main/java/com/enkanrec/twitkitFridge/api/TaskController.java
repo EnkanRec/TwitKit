@@ -144,7 +144,7 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/rollback", method = RequestMethod.POST)
     public StandardResponse rollbackTask(@Valid TidForm form) {
-        return StandardResponse.ok();
+        return StandardResponse.ok(this.service.rollbackTranslation(form.getTid()));
     }
 
     /**

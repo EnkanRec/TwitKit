@@ -245,12 +245,13 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @Override
     public Integer removeAllTranslations(Integer tid) {
+        log.warn("Remove all translations for tid: " + tid);
         return this.translateRepository.bulkDeleteByTid(tid);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     @Override
-    public EnkanTranslateEntity addTranslation(Integer tid, String translation, String img) {
+    public TranslatedTask addTranslation(Integer tid, String translation, String img) {
         log.info(String.format("Add translation for twitter [%s] size: %s", tid, translation.length()));
         EnkanTaskEntity chosenOne = this.taskRepository.findByTidForUpdate(tid);
         if (chosenOne != null) {
@@ -272,10 +273,34 @@ public class TaskServiceImpl implements TaskService {
             this.taskRepository.save(chosenOne);
             EnkanTranslateEntity latest = this.translateRepository.findFirstByTaskOrderByVersionDesc(chosenOne);
             this.entityManager.refresh(latest);  // refresh for `updatetime` and `newdate`
-            return latest;
+            return TranslatedTask.of(chosenOne, latest);
         } else {
-            log.warn("try to add translation for a task, but tid not mapped any record in DB: " + tid.toString());
-            return null;
+            log.warn("try to add translation for a task, but tid not mapped any record in DB: " + tid);
+            return TranslatedTask.of(null, null);
+        }
+    }
+
+    @Transactional
+    @Override
+    public TranslatedTask rollbackTranslation(Integer tid) {
+        Optional<EnkanTaskEntity> et = this.taskRepository.findById(tid);
+        if (et.isPresent()) {
+            EnkanTaskEntity task = et.get();
+            List<EnkanTranslateEntity> translations = task.getTranslations();
+            if (translations.size() == 0) {
+                return TranslatedTask.of(task, null);
+            }
+            translations.sort((x, y) -> -1 * Integer.compare(x.getVersion(), y.getVersion()));
+            EnkanTranslateEntity pendingTrans = translations.remove(0);
+            this.translateRepository.delete(pendingTrans);
+            EnkanTranslateEntity lastTrans = null;
+            if (translations.size() > 0) {
+                lastTrans = translations.get(0);
+            }
+            return TranslatedTask.of(task, lastTrans);
+        } else {
+            log.warn("try to rollback translation for a task, but tid not mapped any record in DB: " + tid);
+            return TranslatedTask.of(null, null);
         }
     }
 

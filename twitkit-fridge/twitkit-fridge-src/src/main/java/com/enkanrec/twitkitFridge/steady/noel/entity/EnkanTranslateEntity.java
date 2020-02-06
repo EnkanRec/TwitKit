@@ -109,7 +109,7 @@ public class EnkanTranslateEntity {
     }
 
     @JsonIgnore
-    @ManyToOne(cascade = CascadeType.REFRESH)
+    @ManyToOne(cascade = {CascadeType.REFRESH})
     @JoinColumn(name = "tid")
     public EnkanTaskEntity getTask() {
         return task;

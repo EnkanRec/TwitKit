@@ -40,5 +40,7 @@ public interface TaskService {
 
     Integer removeAllTranslations(Integer tid);
 
-    EnkanTranslateEntity addTranslation(Integer tid, String translation, String img);
+    TaskServiceImpl.TranslatedTask addTranslation(Integer tid, String translation, String img);
+
+    TaskServiceImpl.TranslatedTask rollbackTranslation(Integer tid);
 }
