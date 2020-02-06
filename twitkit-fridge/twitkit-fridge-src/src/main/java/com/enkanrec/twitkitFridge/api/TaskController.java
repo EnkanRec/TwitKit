@@ -86,7 +86,7 @@ public class TaskController {
     @RequestMapping(value = "/last", method = RequestMethod.POST)
     public StandardResponse getLastTask(@Valid JsonDataFridgeForm form) {
         Map<String, Object> param = form.getMappedData();
-        if ((Boolean) param.getOrDefault("withTranslation", false)) {
+        if (param != null && (Boolean) param.getOrDefault("withTranslation", false)) {
             return StandardResponse.ok(this.service.getOneLatestOfVisibleWithTranslation());
         } else {
             return StandardResponse.ok(this.service.getOneLatestOfVisible());

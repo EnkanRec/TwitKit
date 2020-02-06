@@ -8,7 +8,7 @@
     <appender name="consoleLog" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>
-                %yellow(%date{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Asia/Shanghai}) %highlight(%-5level) [%thread] %cyan(%logger{50}) %magenta([%file:%line]) - %msg %n
+                %yellow(%date{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Asia/Shanghai}) %highlight(%-5level) [%thread][%X{requestId}] %cyan(%logger{50}) %magenta([%file:%line]) - %msg%n
             </pattern>
             <charset>UTF-8</charset>
         </encoder>
@@ -21,7 +21,7 @@
         </filter>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>
-                %date{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Asia/Shanghai} %-5level [%thread] %logger{50} [%file:%line] - %msg %n
+                %date{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Asia/Shanghai} %-5level [%thread][%X{requestId}] %logger{50} [%file:%line] - %msg%n
             </pattern>
             <charset>UTF-8</charset>
         </encoder>
@@ -39,7 +39,7 @@
         </filter>
         <encoder>
             <pattern>
-                %date{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Asia/Shanghai} %-5level [%thread] %logger{50} [%file:%line] - %msg %n
+                %date{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Asia/Shanghai} %-5level [%thread][%X{requestId}] %logger{50} [%file:%line] - %msg%n
             </pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
