@@ -43,4 +43,6 @@ public interface TaskService {
     TaskServiceImpl.TranslatedTask addTranslation(Integer tid, String translation, String img);
 
     TaskServiceImpl.TranslatedTask rollbackTranslation(Integer tid);
+
+    TaskServiceImpl.VersionedTranslatedTask getAllTranslation(Integer tid);
 }

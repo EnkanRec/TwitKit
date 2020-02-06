@@ -85,6 +85,7 @@ public class TaskServiceImpl implements TaskService {
         sb.append("INSERT IGNORE INTO enkan_task (url, content, media) VALUES ");
         twitters.forEach(t -> sb.append("(?,?,?),"));
         String sqlTemplate = sb.toString().substring(0, sb.length() - 1);
+        log.info(String.format("Bulk sql length is: %s", sqlTemplate.length()));
         Query insertQuery = this.entityManager.createNativeQuery(sqlTemplate);
         int paramPointer = 1;
         for (TaskCreationForm twitter : twitters) {
@@ -93,7 +94,7 @@ public class TaskServiceImpl implements TaskService {
             insertQuery.setParameter(paramPointer++, twitter.getMedia());
         }
         int affected = insertQuery.executeUpdate();
-        log.debug("Pre-commit bulk with affected count: " + affected);
+        log.info("Pre-commit bulk with affected count: " + affected);
         List<EnkanTaskEntity> tasks = this.taskRepository.findByUrlIn(urlSet);
 
         for (EnkanTaskEntity task : tasks) {
@@ -304,6 +305,21 @@ public class TaskServiceImpl implements TaskService {
         }
     }
 
+    @Transactional
+    @Override
+    public VersionedTranslatedTask getAllTranslation(Integer tid) {
+        Optional<EnkanTaskEntity> et = this.taskRepository.findById(tid);
+        if (et.isPresent()) {
+            EnkanTaskEntity task = et.get();
+            List<EnkanTranslateEntity> translations = task.getTranslations();
+            translations.sort((x, y) -> -1 * Integer.compare(x.getVersion(), y.getVersion()));
+            return VersionedTranslatedTask.of(task, translations);
+        } else {
+            log.warn("try to get all translations for a task, but tid not mapped any record in DB: " + tid);
+            return VersionedTranslatedTask.of(null, null);
+        }
+    }
+
     @Data
     @EqualsAndHashCode
     @AllArgsConstructor(staticName = "of")
@@ -312,6 +328,16 @@ public class TaskServiceImpl implements TaskService {
         private EnkanTaskEntity twitter;
 
         private EnkanTranslateEntity translation;
+    }
+
+    @Data
+    @EqualsAndHashCode
+    @AllArgsConstructor(staticName = "of")
+    public static class VersionedTranslatedTask {
+
+        private EnkanTaskEntity twitter;
+
+        private List<EnkanTranslateEntity> translations;
     }
 
     @Data

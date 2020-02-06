@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter;
 public class StandardResponse implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    public static final int CODE_SUCCESS = 200;
+    public static final int CODE_SUCCESS = 0;
     public static final int CODE_NOTFOUND = 404;
     public static final int CODE_EXCEPTION = 500;
 

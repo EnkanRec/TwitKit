@@ -139,6 +139,15 @@ public class TaskController {
     }
 
     /**
+     * 获取一个推文的全部翻译版本
+     */
+    @ResponseBody
+    @RequestMapping(value = "/translations", method = RequestMethod.POST)
+    public StandardResponse getAllTranslationsForTask(@Valid TidForm form) {
+        return StandardResponse.ok(this.service.getAllTranslation(form.getTid()));
+    }
+
+    /**
      * 将翻译向前回滚一个版本
      */
     @ResponseBody
