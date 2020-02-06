@@ -2,6 +2,7 @@ BEGIN;
 
 DROP TABLE IF EXISTS enkan_config;
 DROP TABLE IF EXISTS enkan_task;
+DROP TABLE IF EXISTS enkan_translate;
 
 CREATE TABLE `enkan_config` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
