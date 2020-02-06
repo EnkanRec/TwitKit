@@ -4,9 +4,8 @@
  */
 package com.enkanrec.twitkitFridge.api.form;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.enkanrec.twitkitFridge.util.JsonUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -58,13 +57,23 @@ public class JsonDataFridgeForm extends BaseFridgeForm {
     }
 
     public Map<String, Object> dataToMap() {
-        JSONObject jObject = JSONObject.parseObject(this.data);
-        return JsonUtil.jsonToMap(jObject);
+        Map<String, Object> result = null;
+        try {
+            result = JsonUtil.parse(this.data, Map.class);
+        } catch (JsonProcessingException e) {
+            log.error("try to parse form data to map but failed: " + e.getMessage());
+        }
+        return result;
     }
 
     public List<Object> dataToList() {
-        JSONArray jObject = JSONObject.parseArray(this.data);
-        return JsonUtil.toList(jObject);
+        List<Object> result = null;
+        try {
+            result = JsonUtil.parse(this.data, List.class);
+        } catch (JsonProcessingException e) {
+            log.error("try to parse form data to list but failed: " + e.getMessage());
+        }
+        return result;
     }
 
     public Map<String, Object> asMap() {

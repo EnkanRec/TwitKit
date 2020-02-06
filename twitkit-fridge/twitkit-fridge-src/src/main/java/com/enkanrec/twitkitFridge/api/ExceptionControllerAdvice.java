@@ -4,11 +4,10 @@
  */
 package com.enkanrec.twitkitFridge.api;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
+import com.enkanrec.twitkitFridge.util.JsonUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -36,7 +35,13 @@ public class ExceptionControllerAdvice {
         hint.put("msg", e.getMessage());
         hint.put("path", request.getPathInfo());
         hint.put("method", request.getMethod());
-        String formatted = JSON.toJSONString(hint, SerializerFeature.WriteMapNullValue);
+        String formatted;
+        try {
+            formatted = JsonUtil.Mapper.writeValueAsString(hint);
+        } catch (JsonProcessingException ex) {
+            log.error("cannot json dump exception hint, " + ex.getMessage());
+            formatted = "___EXCEPTION_HANDLER_FAULT___";
+        }
         log.error(String.format("Rest Exception: %s", formatted));
         sr.setMessage(formatted);
         if (e instanceof org.springframework.web.servlet.NoHandlerFoundException) {

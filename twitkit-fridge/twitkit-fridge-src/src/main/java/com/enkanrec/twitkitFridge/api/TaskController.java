@@ -8,7 +8,9 @@ import com.enkanrec.twitkitFridge.api.form.*;
 import com.enkanrec.twitkitFridge.api.response.AffectedCountResponse;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.service.task.TaskService;
+import com.enkanrec.twitkitFridge.util.JsonUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -48,8 +50,7 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/bulk", method = RequestMethod.POST)
     public StandardResponse bulkTask(@Valid JsonDataFridgeForm form) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        List<TaskCreationForm> taskCreationForms = mapper.readValue(form.getData(), new TypeReference<List<TaskCreationForm>>() {});
+        List<TaskCreationForm> taskCreationForms = JsonUtil.Mapper.readValue(form.getData(), new TypeReference<List<TaskCreationForm>>() {});
         return StandardResponse.ok(this.service.addTaskByBulk(taskCreationForms));
     }
 

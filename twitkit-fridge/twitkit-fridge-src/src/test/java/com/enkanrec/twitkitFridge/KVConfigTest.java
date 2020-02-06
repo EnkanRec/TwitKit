@@ -4,9 +4,9 @@
  */
 package com.enkanrec.twitkitFridge;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
+import com.enkanrec.twitkitFridge.util.JsonUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * Class : KVConfigTest
@@ -60,13 +61,14 @@ public class KVConfigTest {
                 .andReturn();
         MockHttpServletResponse result = future.getResponse();
         String cnt = result.getContentAsString(StandardCharsets.UTF_8);
-        JSONObject resp = JSON.parseObject(cnt);
+        StandardResponse resp = JsonUtil.Mapper.readValue(cnt, new TypeReference<StandardResponse>() {});
         Assert.assertNotNull(resp);
-        Assert.assertEquals(StandardResponse.CODE_SUCCESS, resp.get("code"));
-        Assert.assertEquals(StandardResponse.MESSAGE_SUCCESS, resp.get("message"));
-        Assert.assertNotNull(resp.get("data"));
-        Assert.assertEquals("already", ((JSONObject) resp.get("data")).get("test.existed"));
-        Assert.assertEquals("中文＋Emoji❤", ((JSONObject) resp.get("data")).get("test.existed.2"));
-        Assert.assertNull(((JSONObject) resp.get("data")).get("test.not.exist.one"));
+        Assert.assertEquals(StandardResponse.CODE_SUCCESS, resp.getCode());
+        Assert.assertEquals(StandardResponse.MESSAGE_SUCCESS, resp.getMessage());
+        Assert.assertNotNull(resp.getData());
+        Map<String, Object> respData = (Map<String, Object>) resp.getData();
+        Assert.assertEquals("already", respData.get("test.existed"));
+        Assert.assertEquals("中文＋Emoji❤", respData.get("test.existed.2"));
+        Assert.assertNull(respData.get("test.not.exist.one"));
     }
 }
