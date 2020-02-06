@@ -67,8 +67,9 @@ public class KVConfigTest {
         Assert.assertEquals(StandardResponse.MESSAGE_SUCCESS, resp.getMessage());
         Assert.assertNotNull(resp.getData());
         Map<String, Object> respData = (Map<String, Object>) resp.getData();
-        Assert.assertEquals("already", respData.get("test.existed"));
-        Assert.assertEquals("中文＋Emoji❤", respData.get("test.existed.2"));
+        Assert.assertEquals("iroha", respData.get("test.default.yachiyo.love"));
+        Assert.assertEquals("五十铃怜", respData.get("test.default.rika"));
+        Assert.assertEquals("❤①+123AB\uF8FF", respData.get("___TEST_MB4___#test.mb4.emoji"));
         Assert.assertNull(respData.get("test.not.exist.one"));
     }
 }
