@@ -7,8 +7,8 @@ package com.enkanrec.twitkitFridge.service.kvConfig;
 import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanConfigEntity;
 import com.enkanrec.twitkitFridge.steady.noel.repository.EnkanConfigRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.Map;
 
 /**
  * Class : KVConfigServiceImpl
- * Usage :
+ * Usage : 公共键值对配置仓库的交互逻辑
  */
 @Service
 public class KVConfigServiceImpl implements KVConfigService {
@@ -43,7 +43,7 @@ public class KVConfigServiceImpl implements KVConfigService {
 
     @Transactional
     @Override
-    public void setManyDefault(Map<String, String> configs) {
+    public void setManyDefault(Map<String, Object> configs) {
         this.setMany(KEY_NAMESPACE_DEFAULT, configs);
     }
 
@@ -56,35 +56,40 @@ public class KVConfigServiceImpl implements KVConfigService {
     @Transactional
     @Override
     public void setOne(String namespace, String key, String value) {
-        EnkanConfigEntity ece = this.repository.findByNamespaceAndKey(namespace, key);
+        EnkanConfigEntity ece = this.repository.findByNamespaceAndConfigKey(namespace, key);
         if (ece == null) {
             EnkanConfigEntity nObj = new EnkanConfigEntity();
             nObj.setNamespace(namespace);
-            nObj.setKey(key);
-            nObj.setValue(value);
-            this.repository.saveAndFlush(nObj);
+            nObj.setConfigKey(key);
+            nObj.setConfigValue(value);
+            this.repository.save(nObj);
         } else {
-            ece.setValue(value);
-            this.repository.saveAndFlush(ece);
+            ece.setConfigValue(value);
+            this.repository.save(ece);
         }
     }
 
     @Transactional
     @Override
     public String getOne(String namespace, String key) {
-        EnkanConfigEntity ece = this.repository.findByNamespaceAndKey(namespace, key);
+        EnkanConfigEntity ece = this.repository.findByNamespaceAndConfigKey(namespace, key);
         if (ece == null) {
             return null;
         } else {
-            return ece.getValue();
+            return ece.getConfigValue();
         }
     }
 
     @Transactional
     @Override
-    public void setMany(String namespace, Map<String, String> configs) {
-        for (Map.Entry<String, String> kvp : configs.entrySet()) {
-            this.setOne(namespace, kvp.getKey(), kvp.getValue());
+    public void setMany(String namespace, Map<String, Object> configs) {
+        for (Map.Entry<String, Object> kvp : configs.entrySet()) {
+            Object val = kvp.getValue();
+            if (val != null) {
+                this.setOne(namespace, kvp.getKey(), val.toString());
+            } else {
+                this.setOne(namespace, kvp.getKey(), null);
+            }
         }
     }
 
@@ -105,7 +110,7 @@ public class KVConfigServiceImpl implements KVConfigService {
         Map<String, String> result = new HashMap<>();
         List<EnkanConfigEntity> eces = this.repository.findAllByNamespace(namespace);
         for (EnkanConfigEntity ece : eces) {
-            result.put(ece.getKey(), ece.getValue());
+            result.put(ece.getConfigKey(), ece.getConfigValue());
         }
         return result;
     }
@@ -115,7 +120,7 @@ public class KVConfigServiceImpl implements KVConfigService {
     public Map<String, String> getAll() {
         Map<String, String> result = new HashMap<>();
         List<EnkanConfigEntity> allConfig = repository.findAll();
-        allConfig.forEach(c -> result.put(c.getKey(), c.getValue()));
+        allConfig.forEach(c -> result.put(c.getConfigKey(), c.getConfigValue()));
         return result;
     }
 }

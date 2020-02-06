@@ -4,11 +4,13 @@
  */
 package com.enkanrec.twitkitFridge.api;
 
+import com.enkanrec.twitkitFridge.api.form.BaseFridgeForm;
 import com.enkanrec.twitkitFridge.api.form.JsonDataFridgeForm;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.service.kvConfig.KVConfigService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -29,21 +31,33 @@ public class KVConfigController {
         this.service = service;
     }
 
+    /**
+     * 获取全部配置项
+     */
+    @ResponseBody
     @RequestMapping(value = "/getall", method = RequestMethod.POST)
-    public StandardResponse getAllKVConfigs() {
+    public StandardResponse getAllKVConfigs(@Valid BaseFridgeForm form) {
         return StandardResponse.ok(this.service.getAll());
     }
 
+    /**
+     * 更新默认命名空间下的设置项
+     */
+    @ResponseBody
     @RequestMapping(value = "/set", method = RequestMethod.POST)
     public StandardResponse setKVConfigsByDefaultNamespace(@Valid JsonDataFridgeForm form) {
-        Map params = form.getMappedData();
+        Map params = form.asMap();
         this.service.setManyDefault(params);
         return StandardResponse.ok("");
     }
 
+    /**
+     * 获取默认命名空间下的设置项
+     */
+    @ResponseBody
     @RequestMapping(value = "/get", method = RequestMethod.POST)
     public StandardResponse getKVConfigsByDefaultNamespace(@Valid JsonDataFridgeForm form) {
-        List params = form.getListedData();
+        List params = form.asList();
         Map result = this.service.getManyDefault(params);
         return StandardResponse.ok(result);
     }

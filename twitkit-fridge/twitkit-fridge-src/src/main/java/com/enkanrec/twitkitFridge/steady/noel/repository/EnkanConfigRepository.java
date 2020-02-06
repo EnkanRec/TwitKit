@@ -13,11 +13,11 @@ import java.util.List;
  * Class : EnkanConfigRepository
  * Usage :
  */
-public interface EnkanConfigRepository extends JpaRepository<EnkanConfigEntity, Long> {
+public interface EnkanConfigRepository extends JpaRepository<EnkanConfigEntity, Integer> {
 
-    EnkanConfigEntity findByNamespaceAndKey(String namespace, String key);
+    EnkanConfigEntity findByNamespaceAndConfigKey(String namespace, String key);
 
-    List<EnkanConfigEntity> findAllByNamespaceAndKey(String namespace, String key);
+    List<EnkanConfigEntity> findAllByNamespaceAndConfigKey(String namespace, String key);
 
     List<EnkanConfigEntity> findAllByNamespace(String namespace);
 }
