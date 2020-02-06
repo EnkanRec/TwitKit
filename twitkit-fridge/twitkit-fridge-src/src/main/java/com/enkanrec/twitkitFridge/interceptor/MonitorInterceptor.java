@@ -9,7 +9,6 @@ import com.enkanrec.twitkitFridge.monitor.InterceptorMonitor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -62,6 +61,6 @@ public class MonitorInterceptor implements HandlerInterceptor {
                 .observe(completedTime);
         String requestId = MDC.get(LOG_KEY_REQUEST_ID);
         MDC.remove(LOG_KEY_REQUEST_ID);
-        log.debug("Request id is removed: " + requestId);
+        log.info("Request id is removed: " + requestId);
     }
 }
