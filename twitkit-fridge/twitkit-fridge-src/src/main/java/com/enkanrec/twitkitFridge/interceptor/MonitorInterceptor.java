@@ -54,16 +54,10 @@ public class MonitorInterceptor implements HandlerInterceptor {
         Long timingAttr = (Long) request.getAttribute(REQ_PARAM_TIMING);
         long completedTime = System.currentTimeMillis() - timingAttr;
         String handlerLabel = handler.toString();
-//        String url = "";
-//        if (handler instanceof HandlerMethod) {
-//            Method method = ((HandlerMethod) handler).getMethod();
-//            handlerLabel = method.getDeclaringClass().getSimpleName() + "." + method.getName();
-//            try {
-//                url = String.join(",", method.getAnnotation(RequestMapping.class).value());
-//            } catch (Exception ignored) {
-//                // pass
-//            }
-//        }
+        if (handler instanceof HandlerMethod) {
+            Method method = ((HandlerMethod) handler).getMethod();
+            handlerLabel = method.getDeclaringClass().getSimpleName() + "." + method.getName();
+        }
         this.monitor.responseTimeInMs.labels(request.getMethod(), handlerLabel, request.getRequestURI(), Integer.toString(response.getStatus()))
                 .observe(completedTime);
         String requestId = MDC.get(LOG_KEY_REQUEST_ID);
