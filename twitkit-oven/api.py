@@ -5,10 +5,10 @@ from flask import request
 from hashlib import md5
 from datetime import datetime
 from dateutil.parser import isoparser
-from api_models import cooker_api
-from api_models import cook_model, cook_response_model
+from api_models import oven_api
+from api_models import bake_model, bake_response_model
 from api_models import check_model, check_response_model
-from cooker import cook_tweet
+from oven import bake_tweet
 from tid_code import read_code_from_image_url
 from traceback import format_exc
 
@@ -26,10 +26,10 @@ image_url_prefix = f'{config.EXT_STATIC_BASE_URL}/'
 logger = logging.getLogger('app')
 
 
-@cooker_api.route('/cook')
+@oven_api.route('/bake')
 class GenerateImage(Resource):
-    @cooker_api.expect(cook_model, validate=True)
-    @cooker_api.doc("CookResponse", model=cook_response_model)
+    @oven_api.expect(bake_model, validate=True)
+    @oven_api.doc("bakeResponse", model=bake_response_model)
     def post(self):
         request_base_data = request.json
         request_data = request_base_data['data']
@@ -39,12 +39,12 @@ class GenerateImage(Resource):
         except ValueError as e:
             return make_response(400, f'日期时间格式有误：{e}')
 
-        logger.info(f'从 {request_base_data["forwardFrom"]} '
-                    f'收到烤图任务 {request_data["taskId"]} ')
+        logger.info(f'[{request_data["taskId"]}] '
+                    f'从 {request_base_data["forwardFrom"]} 收到烤图任务')
         filename = \
             md5(json.dumps(request_data).encode('utf-8')).hexdigest() + '.png'
 
-        cook_params = {
+        bake_params = {
             'tid': request_data['tid'],
             'output_path': os.path.join(image_path, filename),
             'username': request_data['username'],
@@ -53,29 +53,31 @@ class GenerateImage(Resource):
 
         if 'origText' in request_data or 'transText' in request_data:
             if 'origText' in request_data:
-                cook_params['orig_text'] = request_data['origText']
+                bake_params['orig_text'] = request_data['origText']
             if 'transText' in request_data:
-                cook_params['trans_text'] = request_data['transText']
+                bake_params['trans_text'] = request_data['transText']
         else:
             return make_response(400, '必须至少指定原文和译文之一')
 
         if 'media' in request_data:
-            cook_params['media_urls'] = request_data['media']
+            bake_params['media_urls'] = request_data['media']
         if 'tags' in request_data:
-            cook_params['hashtags'] = request_data['tags']
+            bake_params['hashtags'] = request_data['tags']
         if 'ppi' in request_data:
-            cook_params['ppi'] = request_data['ppi']
+            bake_params['ppi'] = request_data['ppi']
         if 'retweeterUsername' in request_data:
-            cook_params['retweeter_username'] = \
+            bake_params['retweeter_username'] = \
                 request_data['retweeterUsername']
 
         start_time = time.time()
-        cook_result = cook_tweet(**cook_params)
+        bake_result = bake_tweet(**bake_params)
         end_time = time.time()
         process_time_ms = int((end_time - start_time) * 1000)
-        if not cook_result:
+        if not bake_result:
             return make_response(500, '后端生成图片发生错误，请联系管理员检查日志')
         else:
+            logger.info(f'[{request_data["taskId"]}] '
+                        f'烤图任务完成，输出文件：{filename}')
             result_url = image_url_prefix + filename
             return make_response(
                 message='OK',
@@ -84,15 +86,15 @@ class GenerateImage(Resource):
             )
 
 
-@cooker_api.route('/check')
+@oven_api.route('/check')
 class GenerateImage(Resource):
-    @cooker_api.expect(check_model, validate=True)
-    @cooker_api.doc("CheckResponse", model=check_response_model)
+    @oven_api.expect(check_model, validate=True)
+    @oven_api.doc("CheckResponse", model=check_response_model)
     def post(self):
         request_base_data = request.json
         request_data = request_base_data['data']
-        logger.info(f'从 {request_base_data["forwardFrom"]} '
-                    f'收到检查tid任务 {request_data["taskId"]} ')
+        logger.info(f'[{request_data["taskId"]}] '
+                    f'从 {request_base_data["forwardFrom"]} 收到检查tid任务')
         url = request_data['imageUrl']
 
         start_time = time.time()
@@ -101,12 +103,13 @@ class GenerateImage(Resource):
                 url, config.TID_CODE_POS_X, config.TID_CODE_POS_Y,
                 config.TID_CODE_WIDTH, config.TID_CODE_HEIGHT)
             message = 'OK'
+            logger.info(f'[{request_data["taskId"]}] 检查tid任务完成（{tid}）。')
         except ValueError as e:
-            logger.warning(f'二维码解码失败：{e}')
+            logger.warning(f'[{request_data["taskId"]}] 二维码解码失败：{e}')
             tid = -1
             message = '没有找到有效的tid二维码'
         except Exception as e:
-            logger.error(f'发生了错误：{e}')
+            logger.error(f'[{request_data["taskId"]}] 发生了错误：{e}')
             logger.error(format_exc())
             return make_response(500, '检查tid失败，请联系管理员检查日志')
 

@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_restplus import Resource, Api
-from cooker import tweet_page_bp
-from api import cooker_api
+from oven import tweet_page_bp
+from api import oven_api
 
 import logging
 import sys
@@ -18,7 +18,7 @@ if config.APP_LOG_FILE:
 app.logger.setLevel(logging.getLevelName(config.LOG_LEVEL))
 
 app.register_blueprint(tweet_page_bp, url_prefix='/internal')
-api.add_namespace(cooker_api, path='/api')
+api.add_namespace(oven_api, path='/api')
 
 
 @app.after_request
