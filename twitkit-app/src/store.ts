@@ -1,28 +1,33 @@
-import { Twitter } from './twitter'
+import { Context, Logger } from 'koishi-core'
+import { Twitter, db_twitter, db_translation, convert } from './twitter'
 import * as utils from './utils'
 import axios from 'axios'
+import { promises } from 'dns'
 
-const host:string = "http://localhost"
+let host: string
+let logger: Logger
+let orig: string
 
 async function rest(url: string, data?: any): Promise<any> {
-    const res = await axios.post(host + url, new utils.request(data))
-    try {
-        const resp: utils.response = res.data
-        if (!resp.code) {
-            return false
-        }
-        if (resp.data) return resp.data
-    } catch (e) {
-        return false
+    logger.debug("POST " + url)
+    logger.debug(data)
+    const res = await axios.post<utils.response>(host + url, new utils.request(data))
+    if (res.status !== 200) {
+        logger.error("Internet error: %d", res.status)
+        return null
     }
-    return true
+    if (res.data.code === 0) {
+        logger.debug("Return %d: %s", res.data.code, res.data.msg)
+        logger.debug(res.data.data)
+        if (typeof res.data.data === "undefined") return true
+        return res.data.data
+    } else {
+        logger.warn("Error %d: %s", res.data.code, res.data.msg)
+        return null
+    }
 }
 
-function getTask(tid: number): Promise<Twitter> {
-    return rest("/api/db/task/get", tid)
-}
-
-function setKV(key: string, value: string): Promise<boolean> {
+function setKV(key: string, value: string): Promise<void> {
     return rest("/api/db/kv/set", { key: value })
 }
 
@@ -36,26 +41,39 @@ async function getKV(key): Promise<any> {
     return null
 }
 
-async function get(twi: number): Promise<Twitter> {
-    return
+function get(tid: number): Promise<db_twitter> {
+    return rest("/api/db/task/get", { tid })
 }
 
-function comment(twi: number, comment: string): Promise<void> {
-    return
+async function getTask(tid: number): Promise<Twitter> {
+    const dbtw = await get(tid)
+    return convert(dbtw, null, orig)
 }
 
-function trans(twi: number, trans: string, img: string): Promise<void> {
-    return
+function comment(tid: number, comment: string): Promise<void> {
+    return rest("/api/db/task/comment", { tid, comment })
+}
+
+function trans(tid: number, trans: string, img: string): Promise<void> {
+    // const res: { twitter: db_twitter, translation: db_translation} = await 
+    return rest("/api/db/task/translate", { tid, img, trans })
+    // return convert(res.twitter, res.translation, orig)
 }
 
 async function getTodo(): Promise<number> {
     const v = parseInt(await getKV("todo"))
     if (!isNaN(v)) return v
-    return NaN
+    return 0
 }
 
-function setTodo(twi: number): Promise<boolean> {
+function setTodo(twi: number): Promise<void> {
     return setKV("todo", twi.toString())
+}
+
+async function setTwid(twid: string): Promise<void> {
+    await setKV("twid", twid)
+    orig = twid
+    return
 }
 
 async function getCatch(): Promise<number> {
@@ -64,41 +82,88 @@ async function getCatch(): Promise<number> {
     return NaN
 }
 
-function getlast(): Promise<Twitter> {
-    return
+async function getLast(): Promise<Twitter> {
+    const res: { twitter: db_twitter, translation: db_translation} = await rest("/api/db/task/last", { withTranslation: true })
+    return convert(res.twitter, res.translation, orig)
 }
 
-function list(twi: number): Promise<Twitter[]> {
-    return
+async function getActualLast(): Promise<Twitter> {
+    const dbtw:db_twitter = await rest("/api/db/task/actuallast")
+    return convert(dbtw, null, orig)
 }
 
-function hide(twi: number[]): Promise<void> {
-    return
+function deleteTask(tid: number): Promise<boolean> {
+    return rest("/api/db/task/delete", { tid })
+}
+
+async function list(twi?: number): Promise<Twitter[]> {
+    const todo: number = twi || await getTodo()
+    const list: { twitter: db_twitter, translation: db_translation }[] = await rest("/api/db/task/list", { "tid": todo })
+    logger.debug("Got %d Twitter", list.length)
+    let result: Twitter[] = [];
+    for (let i of list) {
+        try {
+            result.push(convert(i.twitter, i.translation, orig))
+            logger.debug("tid %d: %s", i.twitter.tid, i.twitter.comment || i.translation.translation || i.twitter.content)
+        } catch (e) {
+            logger.warn("convent twitter error: " + e)
+        }
+    }
+    return result
+}
+
+async function hide(tid: number): Promise<void> {
+    const tw = await get(tid)
+    if (tw.hided) return rest("/api/db/task/visible", { tid })
+    return rest("/api/db/task/hide", { tid })
+}
+
+async function hideAll() {
+    const todo: Twitter[] = await list()
+    for (const i of todo) if (i.published) rest("/api/db/task/hide", { tid: i.id })
+}
+
+function setPublish(tid: number): Promise<void> {
+    return rest("/api/db/task/published", { tid })
+}
+
+function setUnpublish(tid: number): Promise<void> {
+    return rest("/api/db/task/unpublished", { tid })
 }
 
 function getlastTrans(): Promise<number> {
     return
 }
 
-function getallTrans(twi: number): Promise<number[]> {
-    return
+function getallTrans(tid: number): Promise<any> {
+    return rest("/api/db/task/translations", { tid })
 }
 
-function undo(twi: number): Promise<void> {
-    return
+async function undo(tid: number): Promise<Twitter> {
+    const res: { twitter: db_twitter, translation: db_translation} = await rest("/api/db/task/rollback", { tid })
+    return convert(res.twitter, res.translation, orig)
+}
+
+async function init(ctx: Context, Host: string) {
+    logger = ctx.logger("app:translator")
+    host = Host || "http://localhost"
+    orig = await getKV("twid")
+    logger.debug("store client ready")
 }
 
 export default {
-    get,
+    init,
+    getTask,
     comment,
     trans,
     getTodo,
     setTodo,
-    getCatch,
-    getlast,
+    setTwid,
+    getLast,
+    setPublish,
+    setUnpublish,
     list,
     hide,
-    getlastTrans,
-    getallTrans,
+    hideAll,
     undo
 }

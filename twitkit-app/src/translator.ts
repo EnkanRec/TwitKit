@@ -18,13 +18,12 @@ class response { // oven return
 async function get(tw: Twitter): Promise<string> {
     logger.debug("Tid: %d", tw.id)
     let res = await axios.post<response>(host + "/api/oven/bake", new utils.request({
-        taskId: "",
+        taskId: utils.genUuid(),
         tid: tw.id,
         origText: tw.content,
         transText: tw.trans,
         media: tw.media,
-        avatar: tw.user ? tw.user.image : "",
-        displayName: tw.user ? tw.user.name : "",
+        username: tw.user.id || tw.user.name,
         postDate: tw.postDate
     }))
     if (res.status !== 200) {

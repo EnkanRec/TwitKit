@@ -1,4 +1,5 @@
 module.exports = {
+  logLevel: 3,
   type: "ws",
   server: "ws://localhost:6700",
   selfId: 2663971093,
@@ -6,6 +7,10 @@ module.exports = {
   commandPrefix: '#',
   plugins: [
     ["twitkit-app", {
+      host: {
+        translator: "http://localhost",
+        store: "http://localhost"
+      },
       prefix: '#',// 快捷指令前缀
       ispro: false, // 是否发图（考虑ctx.sender.canSendImage）
       cut: 8,     // 消息预览截断长度

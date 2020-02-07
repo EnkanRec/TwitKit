@@ -3,7 +3,9 @@ import { Twitter } from './twitter'
 import store from './store'
 import translator from './translator'
 
-export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefix: '#' }) {
+export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefix: '#', host: {} }) {
+    translator.init(ctx, argv.host.translator)
+    store.init(ctx, argv.host.store)
     ctx.middleware((meta, next) => {
         if (meta.message.startsWith(argv.prefix)) {
             const msg = meta.message.slice(argv.prefix.length)
@@ -60,7 +62,7 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
                 }
                 return false
             } else {
-                let tw: Twitter = await store.get(twi)
+                let tw: Twitter = await store.getTask(twi)
                 if (!tw) {
                     return meta.$send("找不到 " + id)
                 }
@@ -143,7 +145,7 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
         .action(async ({ meta }, id) => {
             let twi = parseInt(id)
             if (isNaN(twi)) {
-                twi = await store.getCatch()
+                twi = (await store.getLast()).id
             }
             store.setTodo(twi)
             return meta.$send("")
@@ -153,16 +155,15 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
     ctx.command('hide [id]')
         .action(async ({ meta }, id) => {
             const twi = parseInt(id)
-            let arr: number[] = []
-            if (isNaN(twi)) {
-                const list: any[] = await store.list(twi)
-                for (const i of list) if (i.published) arr.push(i.id)
-                store.hide(arr)
+            if (!isNaN(twi)) {
+                store.hide(twi)
+                return meta.$send("已经隐藏推文 " + argv.prefix + id)
+            } else if (id.length === 0) {
+                store.hideAll()
+                ctx.runCommand("list", meta)
             } else {
-                arr.push(twi)
+                return meta.$send("找不到 " + id)
             }
-            store.hide(arr)
-            return meta.$send("已经隐藏以下推文： " + argv.prefix + arr.join(" " + argv.prefix))
         })
         .usage("隐藏某个推，id为空时，隐藏所有已烤的推")
 
@@ -170,7 +171,7 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
         .action(async ({ meta }, id, comment) => {
             let twi = parseInt(id)
             if (isNaN(twi)) {
-                twi = (await store.getlast()).id
+                twi = (await store.getLast()).id
                 comment = id + " " + comment
             }
             store.comment(twi, comment)
@@ -178,18 +179,15 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
         })
         .usage("为某个推添加注释，id为空时，加到最近的推")
 
-    ctx.command('undo [id] [rid]')
-        .action(async ({ meta }, id, rid) => {
+    ctx.command('undo [id]')
+        .action(async ({ meta }, id) => {
             let twi = parseInt(id)
             if (isNaN(twi)) {
-                twi = await store.getlastTrans()
+                // twi = await store.getLastTrans()
+                return meta.$send("找不到推文： " + argv.prefix + id)
             }
-            const trans: any[] = await store.getallTrans(twi)
-            if (trans.length < 2) return meta.$send("无可撤销")
-            store.undo(trans[trans.length - 1].rid)
-
-            let msg:string = "已撤销修改，现在" + argv.prefix + twi + "的翻译是：\n"
-            msg += argv.ispro ? ("[CQ:image,file=" + trans[trans.length - 2].img + "]") : (trans[trans.length - 2].img)
+            const tw = await store.undo(twi)
+            let msg:string = "已撤销修改，现在" + argv.prefix + twi + "的翻译是：\n" + tw.trans
             return meta.$send(msg)
         })
         .usage("撤销某个推的翻译修改，id为空时，撤销最近修改过的翻译，不会撤销初始翻译")
