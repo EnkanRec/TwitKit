@@ -4,6 +4,7 @@ import { parse } from 'url'
 import * as utils from './utils'
 import { Twitter } from './twitter'
 import store from './store'
+import translator from './translator'
 
 let logger: Logger
 
@@ -40,13 +41,18 @@ function Twitter2msg(tw: Twitter, argv = { ispro: true, prefix: '#' }): string {
     return msg
 }
 
-function rss2msg(tw: rss, argv = { ispro: true, prefix: '#' }): string {
+async function rss2msg(tw: rss, argv = { ispro: true, prefix: '#' }): Promise<string> {
     let msg: string = "【" + tw.author + "】"
     if (tw.title) msg += tw.title
     msg += "\n----------------\n内容：" + tw.content
     if (tw.media) {
         msg += "\n媒体："
-        for (const img of tw.media) msg += argv.ispro ? "[CQ:image,file=" + img + "]" : img
+        if (!tw.tid) tw.tid = []
+        for (const img of tw.media) {
+            msg += argv.ispro ? "[CQ:image,file=" + img + "]" : img
+            // const tid: number = await translator.check(img)
+            // if (tid) tw.tid.push(tid)
+        }
     }
     if (tw.url) msg += "\n原链接：" + tw.url
     if (tw.tid && tw.tid.length) msg += "\n识别到本条发布包含" + tw.tid.length + "条烤推结果："
@@ -111,7 +117,7 @@ export default function (ctx: Context, argv: any = { target: {}, ispro: true, po
                             logger.warn("Parse rss data error: " + e)
                             return
                         }
-                        const msg: string = rss2msg(rdata, argv)
+                        const msg: string = await rss2msg(rdata, argv)
                         sendmsg(ctx, argv.target, msg)
                         logger.info("Update notice done")
                         break
