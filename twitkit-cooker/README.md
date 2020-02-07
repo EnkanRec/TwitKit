@@ -1,4 +1,4 @@
-# Twitkit-Cooker
+# Twitkit-Oven
 
 ## 环境准备
 
@@ -9,7 +9,7 @@
 
 以下步骤以在Ubuntu 18.04的环境下为例。
 
-1. Cooker使用wkhtmltopdf的`wkhtmltoimage`从网页生成图片，可用以下命令安装：
+1. Oven使用wkhtmltopdf的`wkhtmltoimage`从网页生成图片，可用以下命令安装：
     ```
     apt install wkhtmltopdf
     ```
@@ -40,12 +40,12 @@
 
 ## 配置文件说明
 
-Cooker从`config.py`中的变量读入配置。变量名和说明如下。
+Oven从`config.py`中的变量读入配置。变量名和说明如下。
 
 ### 渲染设置
 
 * `VIEWPORT_WIDTH`：视口宽度。96PPI时，一个像素等于一个真实像素。即例如设为480的话，96PPI时出图为480px。
-* `DEFAULT_PPI`：默认PPI（Pixels Per Inch）。如果Cooker的API调用的时候没有指定PPI，会用这里的值。
+* `DEFAULT_PPI`：默认PPI（Pixels Per Inch）。如果Oven的API调用的时候没有指定PPI，会用这里的值。
 * `ZH_FONT`：中文字体。假如按上面的步骤安装了Source Han Sans的TTC，这里填写`Source Han Sans SC`。
 * `JA_FONT`：日文字体。假如按上面的步骤安装了Source Han Sans的TTC，这里填写`Source Han Sans`。
 
@@ -63,7 +63,7 @@ Cooker从`config.py`中的变量读入配置。变量名和说明如下。
 * `INT_BASE_URL`：内部URL前缀，在`wkhtmltoimage`访问内部生成的推文页面时用。如果Gunicorn配置里改了端口号，这里要相应修改。
 
 ### 日志设置
-* `LOG_LEVEL`：日志等级。Cooker里只用到`INFO`和`DEBUG`这两个等级。
+* `LOG_LEVEL`：日志等级。Oven里只用到`INFO`和`DEBUG`这两个等级。
 * `APP_LOG_FILE`：日志文件路径。设None、False或者空字串不输出日志文件。
 
 
@@ -88,7 +88,7 @@ gunicorn -c gunicorn_config.py app:app
 
 ### 提交烤图任务
 
-接口地址：`/api/cooker/cook`
+接口地址：`/api/oven/bake`
 
 请求和返回报文均为标准JSON格式
 
@@ -184,7 +184,7 @@ gunicorn -c gunicorn_config.py app:app
 
 ### 查询图片对应tid
 
-接口地址：`/api/cooker/check`
+接口地址：`/api/oven/check`
 
 请求和返回报文均为标准JSON格式
 

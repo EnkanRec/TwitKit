@@ -18,6 +18,6 @@
 
 封装成微服务的数据库组件
 
-### twitkit-cooker
+### twitkit-oven
 
 基于wkhtmltoimage的烤图组件

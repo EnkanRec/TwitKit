@@ -1,7 +1,7 @@
 from flask_restplus import fields, Namespace
 import config
 
-cooker_api = Namespace('api', description='烤推出图API')
+oven_api = Namespace('api', description='烤推出图API')
 
 base_fields = {
     'forwardFrom': fields.String(
@@ -15,7 +15,7 @@ base_fields = {
         example='2020-01-29T14:23:23.233+08:00')
 }
 
-cook_data_model = cooker_api.model('cookDataModel', {
+bake_data_model = oven_api.model('bakeDataModel', {
     'taskId': fields.String(
         required=True,
         description='一个UUID，是一个任务的上下文唯一标识符',
@@ -55,13 +55,13 @@ cook_data_model = cooker_api.model('cookDataModel', {
         example=144)
 })
 
-cook_fields = base_fields.copy()
-cook_fields['data'] = fields.Nested(
-    cook_data_model, description='请求数据', required=True)
+bake_fields = base_fields.copy()
+bake_fields['data'] = fields.Nested(
+    bake_data_model, description='请求数据', required=True)
 
-cook_model = cooker_api.model('cookRequestModel', cook_fields)
+bake_model = oven_api.model('bakeRequestModel', bake_fields)
 
-check_data_model = cooker_api.model('checkDataModel', {
+check_data_model = oven_api.model('checkDataModel', {
     'taskId': fields.String(
         required=True,
         description='一个UUID，是一个任务的上下文唯一标识符',
@@ -77,9 +77,9 @@ check_fields = base_fields.copy()
 check_fields['data'] = fields.Nested(
     check_data_model, description='请求数据', required=True)
 
-check_model = cooker_api.model('checkRequestModel', check_fields)
+check_model = oven_api.model('checkRequestModel', check_fields)
 
-cook_response_model = cooker_api.model('cookResponseModel', {
+bake_response_model = oven_api.model('bakeResponseModel', {
     'code': fields.Integer(description='返回码，0为成功，其他情况另外注明',
                            required=True),
     'message': fields.String(description='备注消息', required=True),
@@ -87,7 +87,7 @@ cook_response_model = cooker_api.model('cookResponseModel', {
     'resultUrl': fields.String(description='输出图片URL')
 })
 
-check_response_model = cooker_api.model('checkResponseModel', {
+check_response_model = oven_api.model('checkResponseModel', {
     'code': fields.Integer(description='返回码，0为成功，其他情况另外注明',
                            required=True),
     'message': fields.String(description='备注消息', required=True),
