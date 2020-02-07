@@ -130,6 +130,24 @@ public class TaskController {
     }
 
     /**
+     * 设置推文任务为已经发布
+     */
+    @ResponseBody
+    @RequestMapping(value = "/published", method = RequestMethod.POST)
+    public StandardResponse publishTask(@Valid TidForm form) {
+        return StandardResponse.ok(this.service.setPublished(form.getTid()));
+    }
+
+    /**
+     * 设置推文任务为未发布
+     */
+    @ResponseBody
+    @RequestMapping(value = "/unpublished", method = RequestMethod.POST)
+    public StandardResponse unpublishedTask(@Valid TidForm form) {
+        return StandardResponse.ok(this.service.setUnpublished(form.getTid()));
+    }
+
+    /**
      * 进行一次翻译
      */
     @ResponseBody

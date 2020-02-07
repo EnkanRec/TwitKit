@@ -464,6 +464,133 @@
 	```
 
 
+### 接口：设置推文为已发布
+
+- 接口功能
+	+ 接收来自http的请求，将推文设置为已经发布完毕
+
+- 接口协议
+	+ 接口形式: REST API
+	+ 接口地址: /api/db/task/published
+	+ Request [POST]
+	
+	|名称|格式|必传|备注|
+   |:--|:--|:--|:--|
+   |forwardFrom|string|Y|一个字符串，标定是哪个服务调用了此接口，如`twitkit-app`|
+   |timestamp|string|Y|请求发出时间戳，ISO8601格式，标准样例`2020-01-29T14:23:23.233+08:00`|
+   |data|dict|Y|一个字典，包含请求参数，参数见《Request.data》小节|
+
+   + Request.data
+	
+	|名称|格式|必传|备注|
+   |:--|:--|:--|:--|
+   |tid|int|Y|整型数，推文的tid|
+
+   + Response
+
+   |名称|格式|备注|
+   |:--|:--|:--|
+   |code|int|返回码，0成功，其它情况失败，并在msg里附带失败原因的备注|
+   |msg|string|备注信息，用来储存异常信息等|
+   |data|dict|回显更新完毕的推文。如果tid在库中无法找到推文，则为**null**。如果找得到则是对应原推文入库后的数据结构|
+
+
+- 样例
+	+ Request [POST]
+	
+	```json
+	{
+	  "forwardFrom": "twitkit-app",
+	  "timestamp": "2020-01-29T14:40:00.000+08:00",
+	  "data": {"tid":1001}
+	}
+	```
+	
+	+ Response
+	
+	```json
+	{
+	    "code": 0,
+	    "message": "OK",
+	    "timestamp": "2020-02-04T23:32:24.312+08:00",
+	    "data": {
+	        "tid": 1001,
+	        "url": "https://gitlab.com/EnkanRec/koishi-plugin-twitkit/issues/1",
+	        "content": "マギアレコードの新魔法少女「南津　涼子」のキャラデザを担当させていただきました！どうぞよろしくお願いします✨",
+	        "media": "[\"https://pbs.twimg.com/media/EPcgk0JUUAE3NLt?format=jpg&name=orig\"]",
+	        "published": true,
+	        "hided": false,
+	        "comment": "小淋雨可爱",
+	        "newdate": "2020-02-04T13:15:36.000+0800",
+	        "updatetime": "2020-02-04T13:15:36.000+0800"
+	    }
+	}
+	```
+
+### 接口：设置推文为未发布
+
+- 接口功能
+	+ 接收来自http的请求，将推文设置为尚为发布（入库推文默认是未发布状态，此操作一般用来回滚发布动作）
+
+- 接口协议
+	+ 接口形式: REST API
+	+ 接口地址: /api/db/task/unpublished
+	+ Request [POST]
+	
+	|名称|格式|必传|备注|
+   |:--|:--|:--|:--|
+   |forwardFrom|string|Y|一个字符串，标定是哪个服务调用了此接口，如`twitkit-app`|
+   |timestamp|string|Y|请求发出时间戳，ISO8601格式，标准样例`2020-01-29T14:23:23.233+08:00`|
+   |data|dict|Y|一个字典，包含请求参数，参数见《Request.data》小节|
+
+   + Request.data
+	
+	|名称|格式|必传|备注|
+   |:--|:--|:--|:--|
+   |tid|int|Y|整型数，推文的tid|
+
+   + Response
+
+   |名称|格式|备注|
+   |:--|:--|:--|
+   |code|int|返回码，0成功，其它情况失败，并在msg里附带失败原因的备注|
+   |msg|string|备注信息，用来储存异常信息等|
+   |data|dict|回显更新完毕的推文。如果tid在库中无法找到推文，则为**null**。如果找得到则是对应原推文入库后的数据结构|
+
+
+- 样例
+	+ Request [POST]
+	
+	```json
+	{
+	  "forwardFrom": "twitkit-app",
+	  "timestamp": "2020-01-29T14:40:00.000+08:00",
+	  "data": {"tid":1001}
+	}
+	```
+	
+	+ Response
+	
+	```json
+	{
+	    "code": 0,
+	    "message": "OK",
+	    "timestamp": "2020-02-04T23:32:24.312+08:00",
+	    "data": {
+	        "tid": 1001,
+	        "url": "https://gitlab.com/EnkanRec/koishi-plugin-twitkit/issues/1",
+	        "content": "マギアレコードの新魔法少女「南津　涼子」のキャラデザを担当させていただきました！どうぞよろしくお願いします✨",
+	        "media": "[\"https://pbs.twimg.com/media/EPcgk0JUUAE3NLt?format=jpg&name=orig\"]",
+	        "published": false,
+	        "hided": false,
+	        "comment": "小淋雨可爱",
+	        "newdate": "2020-02-04T13:15:36.000+0800",
+	        "updatetime": "2020-02-04T13:15:36.000+0800"
+	    }
+	}
+	```
+
+
 ### 接口：拉取最后一条推文（和翻译）（忽略隐藏）
 
 - 接口功能

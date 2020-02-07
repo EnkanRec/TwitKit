@@ -245,6 +245,36 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional
     @Override
+    public EnkanTaskEntity setPublished(Integer tid) {
+        Optional<EnkanTaskEntity> chosenOne = this.taskRepository.findById(tid);
+        if (chosenOne.isPresent()) {
+            EnkanTaskEntity existed = chosenOne.get();
+            existed.setPublished(true);
+            this.taskRepository.save(existed);
+            return existed;
+        } else {
+            log.warn("try to set a task published, but tid not mapped any record in DB: " + tid.toString());
+            return null;
+        }
+    }
+
+    @Transactional
+    @Override
+    public EnkanTaskEntity setUnpublished(Integer tid) {
+        Optional<EnkanTaskEntity> chosenOne = this.taskRepository.findById(tid);
+        if (chosenOne.isPresent()) {
+            EnkanTaskEntity existed = chosenOne.get();
+            existed.setPublished(false);
+            this.taskRepository.save(existed);
+            return existed;
+        } else {
+            log.warn("try to reset a task unpublished, but tid not mapped any record in DB: " + tid.toString());
+            return null;
+        }
+    }
+
+    @Transactional
+    @Override
     public Integer removeAllTranslations(Integer tid) {
         log.warn("Remove all translations for tid: " + tid);
         return this.translateRepository.bulkDeleteByTid(tid);
