@@ -34,5 +34,7 @@ public interface KVConfigService {
 
     Map<String, String> getAll(String namespace);
 
+    void clearNamespace(String namespace);
+
     Map<String, String> getAll();
 }

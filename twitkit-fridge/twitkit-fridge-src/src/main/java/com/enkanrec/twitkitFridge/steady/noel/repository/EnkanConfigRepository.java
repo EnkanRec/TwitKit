@@ -20,4 +20,6 @@ public interface EnkanConfigRepository extends JpaRepository<EnkanConfigEntity, 
     List<EnkanConfigEntity> findAllByNamespaceAndConfigKey(String namespace, String key);
 
     List<EnkanConfigEntity> findAllByNamespace(String namespace);
+
+    void deleteAllByNamespace(String namespace);
 }

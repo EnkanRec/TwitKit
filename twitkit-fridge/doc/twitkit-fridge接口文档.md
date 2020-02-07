@@ -1,74 +1,6 @@
 # twitkit-fridge接口文档
 
 
-### 接口：多条入库
-
-- 接口功能
-	+ 接收来自http的请求，把复数条待入库数据入库，写**任务表**
-
-- 接口协议
-	+ 接口形式: REST API
-	+ 接口地址: /api/db/task/add
-	+ Request [POST]
-	
-	|名称|格式|必传|备注|
-   |:--|:--|:--|:--|
-   |forwardFrom|string|Y|一个字符串，标定是哪个服务调用了此接口，如`twitkit-stargazer`|
-   |timestamp|string|Y|请求发出时间戳，ISO8601格式，标准样例`2020-01-29T14:23:23.233+08:00`|
-   |data|list|Y|一个列表，里面每个元素是一个字典，每个字典是一条要入库的数据，数据结构见下文《Request.data》小节|
-
-	+ Request.data
-	
-	|名称|格式|必传|备注|
-   |:--|:--|:--|:--|
-   |taskId|string|Y|一个UUID，是一个任务的上下文唯一标识符|
-   |url|string|Y|唯一标定一条推文的URL地址|
-   |newdate|datetime|Y|推文时间戳|
-   |content|string|Y|推文原文内容|
-   |media|string|N|推文媒体内容|
-   
-	+ Response
-
-   |名称|格式|备注|
-   |:--|:--|:--|
-   |code|int|返回码，0成功，其它情况失败，并在msg里附带失败原因的备注|
-   |msg|string|备注信息，用来储存异常信息等|
-   |data|dict|结果是一个字典，key是taskId，value是一个整数，代表入库完毕生成的自增id。如果一个taskId对应的推文(以url为唯一键)已经入库过，返回null|
-
-
-- 样例
-	+ Request [POST]
-	
-	```json
-	{
-	  "forwardFrom": "twitkit-stargazer",
-	  "timestamp": "2020-01-29T14:40:00.000+08:00",
-	  "data": [
-	     {
-	       "taskId": "c1e7d037-65c8-4d67-b97d-86dec62f9aba",
-	       "url": "https://twitter.com/magireco/status/1222068063551533062",
-	       "newdate": "2020-01-29T14:38:23.233+08:00",
-	       "content": "环彩羽和七海八千代结婚了",
-	       "media": "[\"https://pbs.twimg.com/media/EPReDT2VAAELlfm\"]"
-	     }
-	  ]
-	}
-	```
-
-	+ Response
-	
-	```json
-	{
-	  "code": 0,
-	  "msg": "",
-	  "data": {
-	    "c1e7d037-65c8-4d67-b97d-86dec62f9aba": 1001,
-	    "c1e7d037-65c8-4d67-b97d-aaaabbbbcccc": null
-	  }
-	}
-	```
-
-
 ### 接口：设置表set
 
 - 接口功能
@@ -230,7 +162,6 @@
 	        },
 	        "translation": {
 	            "zzid": 3,
-	            "tid": 1001,
 	            "version": 1,
 	            "translation": "翻译222",
 	            "img": "http://2",
@@ -305,7 +236,6 @@
 	            },
 	            "translation": {
 	                "zzid": 3,
-	                "tid": 1001,
 	                "version": 1,
 	                "translation": "翻译222",
 	                "img": "http://2",
@@ -327,7 +257,6 @@
 	            },
 	            "translation": {
 	                "zzid": 6,
-	                "tid": 1002,
 	                "version": 2,
 	                "translation": "BBB3",
 	                "img": "b33",

@@ -124,6 +124,12 @@ public class KVConfigServiceImpl implements KVConfigService {
 
     @Transactional
     @Override
+    public void clearNamespace(String namespace) {
+        this.repository.deleteAllByNamespace(namespace);
+    }
+
+    @Transactional
+    @Override
     public Map<String, String> getAll() {
         Map<String, String> result = new HashMap<>();
         List<EnkanConfigEntity> allConfig = repository.findAll();
