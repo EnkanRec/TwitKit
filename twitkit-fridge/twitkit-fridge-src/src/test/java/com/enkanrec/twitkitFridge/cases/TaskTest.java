@@ -240,5 +240,32 @@ public class TaskTest {
         Assert.assertNull(back);
     }
 
+    @Transactional
+    @Test
+    public void setHideAndVisible() throws Exception {
+        Map<String, Object> queryData = new HashMap<>();
+        queryData.put("tid", 1003);
+        Map<String, Object> back = helper.apiPost("/hide", queryData, Map.class);
+        Assert.assertTrue((Boolean) back.get("hided"));
 
+        Map<String, Object> twitterL = helper.apiPost("/last", null, Map.class);
+        Assert.assertEquals(1002, twitterL.get("tid"));
+        Assert.assertEquals("URL_2", twitterL.get("url"));
+        Assert.assertEquals("内容2🍒", twitterL.get("content"));
+        Assert.assertEquals("[\"media_2\"]", twitterL.get("media"));
+
+        back = helper.apiPost("/visible", queryData, Map.class);
+        Assert.assertFalse((Boolean) back.get("hided"));
+
+        twitterL = helper.apiPost("/last", null, Map.class);
+        Assert.assertEquals(1003, twitterL.get("tid"));
+        Assert.assertEquals("URL_3", twitterL.get("url"));
+
+        queryData = new HashMap<>();
+        queryData.put("tid", 555);
+        back = helper.apiPost("/hide", queryData, Map.class);
+        Assert.assertNull(back);
+        back = helper.apiPost("/visible", queryData, Map.class);
+        Assert.assertNull(back);
+    }
 }
