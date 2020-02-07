@@ -1,4 +1,4 @@
-import { Context, Logger } from 'koishi-core'
+import { Context, Logger, MessageType } from 'koishi-core'
 import * as http from 'http'
 import { parse } from 'url'
 import * as utils from './utils'
@@ -22,7 +22,7 @@ class rss {
             || typeof Data.content === "undefined"
             || typeof Data.author === "undefined"
             || typeof Data.postDate !== "undefined"
-            && !utils.varifyDatetime(Data.postDate)
+            && !utils.verifyDatetime(Data.postDate)
         ) throw "param lost"
         return Data
     }
@@ -57,19 +57,11 @@ function rss2msg(tw: rss, argv = { ispro: true, prefix: '#' }): string {
     return msg
 }
 
-function sendmsg(ctx: Context, target: any = { discuss: [], private: [], group: [] }, msg: string, tid: number = null): void {
+function sendmsg(ctx: Context, target: any = { discuss: [], private: [], group: [] }, msg: string): void {
     logger.debug("msg: " + msg)
-    for (const j of target.discuss) {
-        ctx.sender.sendDiscussMsgAsync(j, msg)
-        logger.debug("tid: %d, target: D_%d send", tid, j)
-    }
-    for (const j of target.private) {
-        ctx.sender.sendPrivateMsgAsync(j, msg)
-        logger.debug("tid: %d, target: P_%d send", tid, j)
-    }
-    for (const j of target.group) {
-        ctx.sender.sendGroupMsgAsync(j, msg)
-        logger.debug("tid: %d, target: G_%d send", tid, j)
+    for (const i in target) for (const j of target[i]) {
+        ctx.sender.sendMsgAsync(<MessageType>i, j, msg)
+        logger.debug("send message to: %s_%d", i, j)
     }
 }
 
@@ -104,7 +96,7 @@ export default function (ctx: Context, argv: any = { target: {}, ispro: true, po
                             const tw: Twitter = await store.get(data.data[i])
                             logger.debug("[" + tw.user.name + "]" + tw.content)
                             const msg: string = Twitter2msg(tw, argv)
-                            sendmsg(ctx, argv.target, msg, data.data[i])
+                            sendmsg(ctx, argv.target, msg)
                         } else {
                             logger.debug("Event %s, no update", i)
                         }
