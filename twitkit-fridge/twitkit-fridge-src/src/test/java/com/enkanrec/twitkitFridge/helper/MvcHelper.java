@@ -36,7 +36,7 @@ public class MvcHelper {
         this.mvc = mvc;
     }
 
-    public  <T> T apiPost(String uri, Object data, Class<T> returnHint) throws Exception {
+    public <T> T apiPost(String uri, Object data, Class<T> returnHint) throws Exception {
         String postData;
         if (data != null) {
             if (data instanceof Map || data instanceof List) {
@@ -63,7 +63,6 @@ public class MvcHelper {
         Assert.assertNotNull(resp);
         Assert.assertEquals(StandardResponse.CODE_SUCCESS, resp.getCode());
         Assert.assertEquals(StandardResponse.MESSAGE_SUCCESS, resp.getMessage());
-        Assert.assertNotNull(resp.getData());
         return (T) resp.getData();
     }
 }

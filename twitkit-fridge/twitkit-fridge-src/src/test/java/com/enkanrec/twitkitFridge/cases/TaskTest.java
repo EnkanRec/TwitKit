@@ -221,4 +221,24 @@ public class TaskTest {
         Assert.assertEquals("翻译A2", ((Map) translations.get(1)).get("translation"));
         Assert.assertEquals("[img1]", ((Map) translations.get(2)).get("img"));
     }
+
+    @Transactional
+    @Test
+    public void setPublishedAndUnpublished() throws Exception {
+        Map<String, Object> queryData = new HashMap<>();
+        queryData.put("tid", 1001);
+        Map<String, Object> back = helper.apiPost("/published", queryData, Map.class);
+        Assert.assertTrue((Boolean) back.get("published"));
+        back = helper.apiPost("/unpublished", queryData, Map.class);
+        Assert.assertFalse((Boolean) back.get("published"));
+
+        queryData = new HashMap<>();
+        queryData.put("tid", 555);
+        back = helper.apiPost("/published", queryData, Map.class);
+        Assert.assertNull(back);
+        back = helper.apiPost("/unpublished", queryData, Map.class);
+        Assert.assertNull(back);
+    }
+
+
 }
