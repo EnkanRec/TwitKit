@@ -6,6 +6,7 @@ package com.enkanrec.twitkitFridge.service.kvConfig;
 
 import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanConfigEntity;
 import com.enkanrec.twitkitFridge.steady.noel.repository.EnkanConfigRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.util.Map;
  * Class : KVConfigServiceImpl
  * Usage : 公共键值对配置仓库的交互逻辑
  */
+@Slf4j
 @Service
 public class KVConfigServiceImpl implements KVConfigService {
 
@@ -31,7 +33,7 @@ public class KVConfigServiceImpl implements KVConfigService {
 
     @Transactional
     @Override
-    public void setOneDefault(String key, String value) {
+    public void setOneDefault(String key, String value) throws Exception {
         this.setOne(KEY_NAMESPACE_DEFAULT, key, value);
     }
 
@@ -43,7 +45,7 @@ public class KVConfigServiceImpl implements KVConfigService {
 
     @Transactional
     @Override
-    public void setManyDefault(Map<String, Object> configs) {
+    public void setManyDefault(Map<String, Object> configs) throws Exception {
         this.setMany(KEY_NAMESPACE_DEFAULT, configs);
     }
 
@@ -55,7 +57,12 @@ public class KVConfigServiceImpl implements KVConfigService {
 
     @Transactional
     @Override
-    public void setOne(String namespace, String key, String value) {
+    public void setOne(String namespace, String key, String value) throws Exception {
+        if (namespace.contains("#") || key.contains("#")) {
+            String exKey = String.format("Set config with `#` in namespace or key: [%s][%s]", namespace, key);
+            log.error(exKey);
+            throw new Exception(exKey);
+        }
         EnkanConfigEntity ece = this.repository.findByNamespaceAndConfigKey(namespace, key);
         if (ece == null) {
             EnkanConfigEntity nObj = new EnkanConfigEntity();
@@ -82,7 +89,7 @@ public class KVConfigServiceImpl implements KVConfigService {
 
     @Transactional
     @Override
-    public void setMany(String namespace, Map<String, Object> configs) {
+    public void setMany(String namespace, Map<String, Object> configs) throws Exception {
         for (Map.Entry<String, Object> kvp : configs.entrySet()) {
             Object val = kvp.getValue();
             if (val != null) {
@@ -117,10 +124,24 @@ public class KVConfigServiceImpl implements KVConfigService {
 
     @Transactional
     @Override
+    public void clearNamespace(String namespace) {
+        this.repository.deleteAllByNamespace(namespace);
+    }
+
+    @Transactional
+    @Override
     public Map<String, String> getAll() {
         Map<String, String> result = new HashMap<>();
         List<EnkanConfigEntity> allConfig = repository.findAll();
-        allConfig.forEach(c -> result.put(c.getConfigKey(), c.getConfigValue()));
+        allConfig.forEach(c -> {
+            String namespace = c.getNamespace();
+            if (namespace.equals(KEY_NAMESPACE_DEFAULT)) {
+                result.put(c.getConfigKey(), c.getConfigValue());
+            } else {
+                result.put(namespace + "#" + c.getConfigKey(), c.getConfigValue());
+            }
+
+        });
         return result;
     }
 }

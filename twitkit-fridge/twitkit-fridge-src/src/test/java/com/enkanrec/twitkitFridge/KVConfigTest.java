@@ -4,34 +4,32 @@
  */
 package com.enkanrec.twitkitFridge;
 
-import com.enkanrec.twitkitFridge.api.response.StandardResponse;
-import com.enkanrec.twitkitFridge.util.JsonUtil;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.enkanrec.twitkitFridge.helper.MvcHelper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.RequestBuilder;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Class : KVConfigTest
  * Usage :
  */
+@SuppressWarnings("all")
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @WebAppConfiguration
@@ -43,32 +41,40 @@ public class KVConfigTest {
     @Autowired
     private WebApplicationContext ctx;
 
-    private MockMvc mvc;
+    private MvcHelper helper;
 
     @Before
     public void setUp() {
-        this.mvc = MockMvcBuilders.webAppContextSetup(ctx).build();
+        this.helper = new MvcHelper(BASE_URL, MockMvcBuilders.webAppContextSetup(ctx).build());
     }
 
+    @Transactional
     @Test
-    public void GetAll() throws Exception {
-        RequestBuilder request = MockMvcRequestBuilders.post(BASE_URL + "/getall")
-                .param("forwardFrom", "tester")
-                .param("timestamp", "2020-01-29T14:40:00.000+08:00");
-        MvcResult future = this.mvc
-                .perform(request)
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andReturn();
-        MockHttpServletResponse result = future.getResponse();
-        String cnt = result.getContentAsString(StandardCharsets.UTF_8);
-        StandardResponse resp = JsonUtil.Mapper.readValue(cnt, new TypeReference<StandardResponse>() {});
-        Assert.assertNotNull(resp);
-        Assert.assertEquals(StandardResponse.CODE_SUCCESS, resp.getCode());
-        Assert.assertEquals(StandardResponse.MESSAGE_SUCCESS, resp.getMessage());
-        Assert.assertNotNull(resp.getData());
-        Map<String, Object> respData = (Map<String, Object>) resp.getData();
-        Assert.assertEquals("already", respData.get("test.existed"));
-        Assert.assertEquals("中文＋Emoji❤", respData.get("test.existed.2"));
+    public void getAll() throws Exception {
+        Map<String, Object> respData = helper.apiPost("/getall", null, Map.class);
+        Assert.assertEquals("iroha", respData.get("test.default.yachiyo.love"));
+        Assert.assertEquals("五十铃怜", respData.get("test.default.rika"));
+        Assert.assertEquals("❤①+123AB\uF8FF", respData.get("___TEST_MB4___#test.mb4.emoji"));
         Assert.assertNull(respData.get("test.not.exist.one"));
+    }
+
+    @Transactional
+    @Test
+    public void setDefaultAndGet() throws Exception {
+        String currentTs = ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        Map<String, String> data = new HashMap<>();
+        data.put("test.currentTsStr", currentTs);
+        data.put("test.mb4", "❤①+123AB");
+        String respData = helper.apiPost("/set", data, String.class);
+        Assert.assertEquals("", respData);
+
+        List<String> data2 = new ArrayList<>();
+        data2.add("test.currentTsStr");
+        data2.add("test.not.exist.SetDefaultAndGet");
+        data2.add("test.mb4");
+        Map respData2 = helper.apiPost("/get", data2, Map.class);
+        Assert.assertEquals(currentTs, respData2.get("test.currentTsStr"));
+        Assert.assertNull(respData2.get("test.not.exist.SetDefaultAndGet"));
+        Assert.assertEquals("❤①+123AB\uF8FF", respData2.get("test.mb4"));
     }
 }

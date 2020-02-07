@@ -2,6 +2,7 @@ BEGIN;
 
 DROP TABLE IF EXISTS enkan_config;
 DROP TABLE IF EXISTS enkan_task;
+DROP TABLE IF EXISTS enkan_translate;
 
 CREATE TABLE `enkan_config` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -36,7 +37,7 @@ CREATE TABLE `enkan_translate` (
   `tid` int(11) NOT NULL COMMENT '推文id',
   `version` int(11) NOT NULL DEFAULT '0' COMMENT '版本号',
   `translation` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '翻译内容',
-  `img` varchar(2047) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '烤推机生成的图地址\n\n\n',
+  `img` varchar(2047) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '烤推机生成的图地址',
   `newdate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`zzid`),

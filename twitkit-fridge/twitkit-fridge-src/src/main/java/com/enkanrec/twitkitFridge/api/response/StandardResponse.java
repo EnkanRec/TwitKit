@@ -59,4 +59,8 @@ public class StandardResponse implements Serializable {
     public static StandardResponse exception(String message) {
         return new StandardResponse(CODE_EXCEPTION, message);
     }
+
+    public static StandardResponse exception(Throwable ex) {
+        return new StandardResponse(CODE_EXCEPTION, ex.getMessage());
+    }
 }

@@ -6,6 +6,7 @@ package com.enkanrec.twitkitFridge.api;
 
 import com.enkanrec.twitkitFridge.api.form.BaseFridgeForm;
 import com.enkanrec.twitkitFridge.api.form.JsonDataFridgeForm;
+import com.enkanrec.twitkitFridge.api.form.NamespaceForm;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.service.kvConfig.KVConfigService;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,8 +48,12 @@ public class KVConfigController {
     @RequestMapping(value = "/set", method = RequestMethod.POST)
     public StandardResponse setKVConfigsByDefaultNamespace(@Valid JsonDataFridgeForm form) {
         Map params = form.asMap();
-        this.service.setManyDefault(params);
-        return StandardResponse.ok("");
+        try {
+            this.service.setManyDefault(params);
+            return StandardResponse.ok("");
+        } catch (Exception e) {
+            return StandardResponse.exception(e.getMessage());
+        }
     }
 
     /**
@@ -60,5 +65,15 @@ public class KVConfigController {
         List params = form.asList();
         Map result = this.service.getManyDefault(params);
         return StandardResponse.ok(result);
+    }
+
+    /**
+     * 清空一个命名空间下的所有配置项
+     */
+    @ResponseBody
+    @RequestMapping(value = "/clear", method = RequestMethod.POST)
+    public StandardResponse clearConfigOfNamespace(@Valid NamespaceForm form) {
+        this.service.clearNamespace(form.getNamespace());
+        return StandardResponse.ok();
     }
 }
