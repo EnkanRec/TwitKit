@@ -2,7 +2,7 @@
  * Author : Rinka
  * Date   : 2020/2/3
  */
-package com.enkanrec.twitkitFridge.cases;
+package com.enkanrec.twitkitFridge;
 
 import com.enkanrec.twitkitFridge.helper.MvcHelper;
 import org.junit.Assert;

@@ -2,7 +2,7 @@
  * Author : Rinka
  * Date   : 2020/2/7
  */
-package com.enkanrec.twitkitFridge.cases;
+package com.enkanrec.twitkitFridge;
 
 import com.enkanrec.twitkitFridge.helper.MvcHelper;
 import org.junit.Assert;
@@ -420,7 +420,7 @@ public class TaskTest {
 
         Integer alreadyTid;
         Map alreadyTwitter, otherTwitter;
-        if (inTid22 == inTid1 || inTid22 == inTid2) {
+        if (inTid22.equals(inTid1) || inTid22.equals(inTid2)) {
             alreadyTid = inTid22;
             alreadyTwitter = twitter22Raw;
             otherTwitter = twitter23Raw;
