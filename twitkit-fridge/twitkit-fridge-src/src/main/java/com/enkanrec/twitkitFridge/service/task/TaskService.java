@@ -5,7 +5,7 @@
 package com.enkanrec.twitkitFridge.service.task;
 
 import com.enkanrec.twitkitFridge.api.form.TaskCreationForm;
-import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTaskEntity;
+import com.enkanrec.twitkitFridge.steady.yui.entity.EnkanTaskEntity;
 
 import java.util.List;
 

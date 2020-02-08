@@ -2,7 +2,7 @@
  * Author : Rinka
  * Date   : 2020/2/2
  */
-package com.enkanrec.twitkitFridge.api;
+package com.enkanrec.twitkitFridge.api.rest;
 
 import com.enkanrec.twitkitFridge.api.form.*;
 import com.enkanrec.twitkitFridge.api.response.AffectedCountResponse;
