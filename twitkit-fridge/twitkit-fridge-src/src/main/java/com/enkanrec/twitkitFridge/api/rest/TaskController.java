@@ -48,7 +48,7 @@ public class TaskController {
     @ResponseBody
     @RequestMapping(value = "/bulk", method = RequestMethod.POST)
     public StandardResponse bulkTask(@Valid JsonDataFridgeForm form) throws Exception {
-        List<TaskCreationForm> taskCreationForms = JsonUtil.parseRaw(form.getData(), new TypeReference<List<TaskCreationForm>>() {});
+        List<TaskCreationForm> taskCreationForms = JsonUtil.parseRaw(form.getData().toString(), new TypeReference<List<TaskCreationForm>>() {});
         return StandardResponse.ok(this.service.addTaskByBulk(taskCreationForms));
     }
 

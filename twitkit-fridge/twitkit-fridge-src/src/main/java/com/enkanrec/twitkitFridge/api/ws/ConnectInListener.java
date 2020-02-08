@@ -7,12 +7,14 @@ package com.enkanrec.twitkitFridge.api.ws;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * Class : ConnectInListener
  * Usage :
  */
 @Slf4j
+@Component
 public class ConnectInListener implements ConnectListener {
 
     @Override

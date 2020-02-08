@@ -4,10 +4,12 @@
  */
 package com.enkanrec.twitkitFridge.api.form;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
@@ -35,6 +37,20 @@ public class BaseFridgeForm implements Serializable {
     @Setter
     @NotNull
     private String timestamp;
+
+    /**
+     * WebSocket模式下的命令所在模块名
+     */
+    @Getter
+    @Setter
+    private String of = null;
+
+    /**
+     * WebSocket模式下的命令参数
+     */
+    @Getter
+    @Setter
+    private String command = null;
 
     public void setForwardFrom(String forwardFrom) {
         log.info(String.format("Request form built, forward from: %s", forwardFrom));
