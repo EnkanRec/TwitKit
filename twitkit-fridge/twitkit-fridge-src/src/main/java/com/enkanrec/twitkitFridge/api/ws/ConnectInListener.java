@@ -19,5 +19,6 @@ public class ConnectInListener implements ConnectListener {
     public void onConnect(SocketIOClient client) {
         log.info(String.format("A client connected to Fridge-Server: %s (%s | %s)",
                 client.getSessionId(), client.getRemoteAddress().toString(), client.getTransport().getValue()));
+        WSClientPool.add(client.getSessionId().toString(), client);
     }
 }

@@ -17,6 +17,7 @@ public class DisconnectOutListener implements DisconnectListener {
 
     @Override
     public void onDisconnect(SocketIOClient client) {
-        log.info("A participant disconnected from Seele-Server: " + client.getSessionId());
+        log.info("A participant disconnected from Fridge-Server: " + client.getSessionId());
+        WSClientPool.remove(client.getSessionId().toString());
     }
 }

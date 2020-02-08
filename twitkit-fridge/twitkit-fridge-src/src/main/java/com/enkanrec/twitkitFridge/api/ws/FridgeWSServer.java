@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 /**
  * Class : FridgeWSServer
@@ -45,5 +46,11 @@ public class FridgeWSServer {
         } else {
             log.info("`EnableWebSocket` is false, providing service by REST only");
         }
+    }
+
+    @PreDestroy
+    public void disposing() {
+        log.info("WS server is disposing");
+        WSClientPool.clearAndDisconnect();
     }
 }
