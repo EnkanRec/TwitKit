@@ -2,7 +2,7 @@
  * Author : Rinka
  * Date   : 2020/2/4
  */
-package com.enkanrec.twitkitFridge.steady.noel.entity;
+package com.enkanrec.twitkitFridge.steady.yui.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.ToString;
@@ -17,7 +17,7 @@ import java.util.Objects;
  */
 @Entity
 @ToString(exclude = {"task"})
-@Table(name = "enkan_translate", schema = "Noel")
+@Table(name = "enkan_translate", schema = "yui")
 public class EnkanTranslateEntity {
     private int zzid;
     private int version;

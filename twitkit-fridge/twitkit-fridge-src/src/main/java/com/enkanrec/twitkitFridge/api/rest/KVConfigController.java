@@ -2,7 +2,7 @@
  * Author : Rinka
  * Date   : 2020/1/30
  */
-package com.enkanrec.twitkitFridge.api;
+package com.enkanrec.twitkitFridge.api.rest;
 
 import com.enkanrec.twitkitFridge.api.form.BaseFridgeForm;
 import com.enkanrec.twitkitFridge.api.form.JsonDataFridgeForm;

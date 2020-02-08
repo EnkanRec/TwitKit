@@ -4,8 +4,8 @@
  */
 package com.enkanrec.twitkitFridge.service.kvConfig;
 
-import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanConfigEntity;
-import com.enkanrec.twitkitFridge.steady.noel.repository.EnkanConfigRepository;
+import com.enkanrec.twitkitFridge.steady.yui.entity.EnkanConfigEntity;
+import com.enkanrec.twitkitFridge.steady.yui.repository.EnkanConfigRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

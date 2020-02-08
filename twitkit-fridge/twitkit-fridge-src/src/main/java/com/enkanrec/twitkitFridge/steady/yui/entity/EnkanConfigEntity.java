@@ -2,7 +2,7 @@
  * Author : Rinka
  * Date   : 2020/2/3
  */
-package com.enkanrec.twitkitFridge.steady.noel.entity;
+package com.enkanrec.twitkitFridge.steady.yui.entity;
 
 import lombok.ToString;
 
@@ -16,7 +16,7 @@ import java.util.Objects;
  */
 @Entity
 @ToString
-@Table(name = "enkan_config", schema = "Noel")
+@Table(name = "enkan_config", schema = "yui")
 public class EnkanConfigEntity {
     private int id;
     private String namespace;

@@ -2,16 +2,15 @@
  * Author : Rinka
  * Date   : 2020/2/4
  */
-package com.enkanrec.twitkitFridge.steady.noel.repository;
+package com.enkanrec.twitkitFridge.steady.yui.repository;
 
-import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTaskEntity;
-import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTranslateEntity;
+import com.enkanrec.twitkitFridge.steady.yui.entity.EnkanTaskEntity;
+import com.enkanrec.twitkitFridge.steady.yui.entity.EnkanTranslateEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
 import java.util.List;
 
 /**

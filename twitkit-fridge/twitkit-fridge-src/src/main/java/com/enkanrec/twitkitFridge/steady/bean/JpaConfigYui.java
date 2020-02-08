@@ -24,20 +24,20 @@ import javax.sql.DataSource;
 import java.util.Map;
 
 /**
- * Class : JpaConfigNoel
- * Usage : Noel数据库的数据源配置项
+ * Class : JpaConfigYui
+ * Usage : Yui数据库的数据源配置项
  */
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-        entityManagerFactoryRef = "entityManagerFactoryNoel",
-        transactionManagerRef = "transactionManagerNoel",
-        basePackages = {"com.enkanrec.twitkitFridge.steady.noel.repository"})
-public class JpaConfigNoel {
+        entityManagerFactoryRef = "entityManagerFactoryYui",
+        transactionManagerRef = "transactionManagerYui",
+        basePackages = {"com.enkanrec.twitkitFridge.steady.yui.repository"})
+public class JpaConfigYui {
 
     @Autowired
-    @Qualifier("noelDataSource")
-    private DataSource noelDataSource;
+    @Qualifier("yuiDataSource")
+    private DataSource yuiDataSource;
 
     @Autowired
     private JpaProperties jpaProperties;
@@ -46,18 +46,18 @@ public class JpaConfigNoel {
     private HibernateProperties hibernateProperties;
 
     @Primary
-    @Bean(name = "entityManagerNoel")
+    @Bean(name = "entityManagerYui")
     public EntityManager entityManager(EntityManagerFactoryBuilder builder) {
-        return entityManagerFactoryNoel(builder).getObject().createEntityManager();
+        return entityManagerFactoryYui(builder).getObject().createEntityManager();
     }
 
     @Primary
-    @Bean(name = "entityManagerFactoryNoel")
-    public LocalContainerEntityManagerFactoryBean entityManagerFactoryNoel(EntityManagerFactoryBuilder builder) {
+    @Bean(name = "entityManagerFactoryYui")
+    public LocalContainerEntityManagerFactoryBean entityManagerFactoryYui(EntityManagerFactoryBuilder builder) {
         return builder
-                .dataSource(noelDataSource)
-                .packages("com.enkanrec.twitkitFridge.steady.noel.entity")
-                .persistenceUnit("noelPersistenceUnit")
+                .dataSource(yuiDataSource)
+                .packages("com.enkanrec.twitkitFridge.steady.yui.entity")
+                .persistenceUnit("yuiPersistenceUnit")
                 .properties(getVendorProperties())
                 .build();
     }
@@ -67,8 +67,8 @@ public class JpaConfigNoel {
     }
 
     @Primary
-    @Bean(name = "transactionManagerNoel")
-    public PlatformTransactionManager transactionManagerNoel(EntityManagerFactoryBuilder builder) {
-        return new JpaTransactionManager(entityManagerFactoryNoel(builder).getObject());
+    @Bean(name = "transactionManagerYui")
+    public PlatformTransactionManager transactionManagerYui(EntityManagerFactoryBuilder builder) {
+        return new JpaTransactionManager(entityManagerFactoryYui(builder).getObject());
     }
 }

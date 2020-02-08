@@ -5,10 +5,10 @@
 package com.enkanrec.twitkitFridge.service.task;
 
 import com.enkanrec.twitkitFridge.api.form.TaskCreationForm;
-import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTaskEntity;
-import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanTranslateEntity;
-import com.enkanrec.twitkitFridge.steady.noel.repository.EnkanTaskRepository;
-import com.enkanrec.twitkitFridge.steady.noel.repository.EnkanTranslateRepository;
+import com.enkanrec.twitkitFridge.steady.yui.entity.EnkanTaskEntity;
+import com.enkanrec.twitkitFridge.steady.yui.entity.EnkanTranslateEntity;
+import com.enkanrec.twitkitFridge.steady.yui.repository.EnkanTaskRepository;
+import com.enkanrec.twitkitFridge.steady.yui.repository.EnkanTranslateRepository;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -34,7 +34,7 @@ public class TaskServiceImpl implements TaskService {
 
     private final EnkanTranslateRepository translateRepository;
 
-    @PersistenceContext(unitName = "entityManagerFactoryNoel")
+    @PersistenceContext(unitName = "entityManagerFactoryYui")
     private EntityManager entityManager;
 
     public TaskServiceImpl(EnkanTaskRepository taskRepository,

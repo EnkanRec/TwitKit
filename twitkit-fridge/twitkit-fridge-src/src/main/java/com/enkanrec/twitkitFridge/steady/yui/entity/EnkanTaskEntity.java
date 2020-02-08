@@ -2,12 +2,10 @@
  * Author : Rinka
  * Date   : 2020/2/4
  */
-package com.enkanrec.twitkitFridge.steady.noel.entity;
+package com.enkanrec.twitkitFridge.steady.yui.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.ToString;
-import org.hibernate.annotations.ResultCheckStyle;
-import org.hibernate.annotations.SQLInsert;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -20,7 +18,7 @@ import java.util.Objects;
  */
 @Entity
 @ToString(exclude = {"translations"})
-@Table(name = "enkan_task", schema = "Noel")
+@Table(name = "enkan_task", schema = "yui")
 public class EnkanTaskEntity {
     private int tid;
     private String url;

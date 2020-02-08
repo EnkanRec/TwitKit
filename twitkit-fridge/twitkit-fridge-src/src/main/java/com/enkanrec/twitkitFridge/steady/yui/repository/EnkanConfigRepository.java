@@ -2,9 +2,9 @@
  * Author : Rinka
  * Date   : 2020/1/30
  */
-package com.enkanrec.twitkitFridge.steady.noel.repository;
+package com.enkanrec.twitkitFridge.steady.yui.repository;
 
-import com.enkanrec.twitkitFridge.steady.noel.entity.EnkanConfigEntity;
+import com.enkanrec.twitkitFridge.steady.yui.entity.EnkanConfigEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
