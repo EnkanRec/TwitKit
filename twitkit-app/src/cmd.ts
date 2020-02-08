@@ -91,9 +91,6 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
     ctx.command('list [id]')
         .action(async ({ meta }, id) => {
             let twi = parseInt(id)
-            if (isNaN(twi)) {
-                twi = await store.getTodo()
-            }
             const list: any[] = await store.list(twi)
             let msg:string
             if (list.length) {
@@ -123,9 +120,6 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
     ctx.command('list-detail [id]')
         .action(async ({ meta }, id) => {
             let twi = parseInt(id)
-            if (isNaN(twi)) {
-                twi = await store.getTodo()
-            }
             const list: any[] = await store.list(twi)
             let msg:string
             for (const i of list) if (i.trans) {
@@ -181,9 +175,8 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
 
     ctx.command('undo [id]')
         .action(async ({ meta }, id) => {
-            let twi = parseInt(id)
+            let twi = id.length ? parseInt(id) : store.getLastTrans()
             if (isNaN(twi)) {
-                // twi = await store.getLastTrans()
                 return meta.$send("找不到推文： " + argv.prefix + id)
             }
             const tw = await store.undo(twi)

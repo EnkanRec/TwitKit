@@ -2,12 +2,18 @@ import { Context, Logger } from 'koishi-core'
 import { Twitter, db_twitter, db_translation, convert } from './twitter'
 import * as utils from './utils'
 import axios from 'axios'
-import { promises } from 'dns'
 
 let host: string
 let logger: Logger
 let orig: string
+let lastTrans: number
 
+/**
+ * 统一包装请求，处理通用错误
+ * @param url api路由
+ * @param data api数据
+ * @returns error ? null : data || true
+ */
 async function rest(url: string, data?: any): Promise<any> {
     logger.debug("POST " + url)
     logger.debug(data)
@@ -27,81 +33,163 @@ async function rest(url: string, data?: any): Promise<any> {
     }
 }
 
+/**
+ * 更新设置
+ * @param key 目标设置项
+ * @param value 值
+ */
 function setKV(key: string, value: string): Promise<void> {
     return rest("/api/db/kv/set", { key: value })
 }
 
+/**
+ * 获取多个设置
+ * @param keys 所有目标设置
+ * @returns value[]
+ */
 function getKVs(keys: string[]): Promise<any> {
     return rest("/api/db/kv/get", keys)
 }
 
+/**
+ * 获取单个设置
+ * @param key 目标设置项
+ * @returns error ? null : value
+ */
 async function getKV(key): Promise<any> {
     const data: string[] = await getKVs([key])
     if (key in data) return data[key]
     return null
 }
 
-function get(tid: number): Promise<db_twitter> {
-    return rest("/api/db/task/get", { tid })
+/**
+ * 获取单条推文及翻译，以数据库结构
+ * @param tid 推文id
+ * @returns { db_twitter, db_translation }
+ */
+async function get(tid: number): Promise<{ twitter: db_twitter, translation: db_translation }> {
+    const ret = await rest("/api/db/task/get", { tid })
+    if (!ret) return null
+    return ret
 }
 
+/**
+ * 获取单条推文及翻译
+ * @param tid 推文id
+ * @returns Twitter
+ */
 async function getTask(tid: number): Promise<Twitter> {
-    const dbtw = await get(tid)
-    return convert(dbtw, null, orig)
+    const res: { twitter: db_twitter, translation: db_translation } = await get(tid)
+    return convert(res.twitter, res.translation, orig)
 }
 
+/**
+ * 更新推文注释
+ * @param tid 推文id
+ * @param comment 注释
+ */
 function comment(tid: number, comment: string): Promise<void> {
     return rest("/api/db/task/comment", { tid, comment })
 }
 
+/**
+ * 更新推文翻译
+ * @param tid 推文id
+ * @param trans 翻译
+ * @param img 烤推机输出图片地址
+ */
 function trans(tid: number, trans: string, img: string): Promise<void> {
-    // const res: { twitter: db_twitter, translation: db_translation} = await 
+    lastTrans = tid
+    // const res: { twitter: db_twitter, translation: db_translation } = await 
     return rest("/api/db/task/translate", { tid, img, trans })
     // return convert(res.twitter, res.translation, orig)
 }
 
+/**
+ * 获取任务队列头
+ * @returns todo || 0
+ */
 async function getTodo(): Promise<number> {
     const v = parseInt(await getKV("todo"))
     if (!isNaN(v)) return v
     return 0
 }
 
-function setTodo(twi: number): Promise<void> {
-    return setKV("todo", twi.toString())
+/**
+ * 设置队列头
+ * @param tid 推文id 
+ */
+function setTodo(tid: number): Promise<void> {
+    return setKV("todo", tid.toString())
 }
 
+/**
+ * 设置监视的Twitter账号id，但不影响监视器行为
+ * 仅需部署时设置一次
+ * 用于确定推文类型（发表/转发）
+ * @param twid Twitter ID
+ */
 async function setTwid(twid: string): Promise<void> {
     await setKV("twid", twid)
     orig = twid
     return
 }
 
+/**
+ * 获取上一次监视到的烤推发布的推文id
+ * @returns catched tid
+ * 暂未启用
+ */
 async function getCatch(): Promise<number> {
     const v = parseInt(await getKV("catch"))
     if (!isNaN(v)) return v
     return NaN
 }
 
+/**
+ * 获取最新一条推文及翻译
+ * 不包括隐藏的推
+ * @returns newest tid
+ */
 async function getLast(): Promise<Twitter> {
-    const res: { twitter: db_twitter, translation: db_translation} = await rest("/api/db/task/last", { withTranslation: true })
+    const res: { twitter: db_twitter, translation: db_translation } = await rest("/api/db/task/last", { withTranslation: true })
     return convert(res.twitter, res.translation, orig)
 }
 
+/**
+ * 获取最新一条推文
+ * 包括隐藏的推
+ * @returns newest tid
+ * 暂未启用
+ */
 async function getActualLast(): Promise<Twitter> {
     const dbtw:db_twitter = await rest("/api/db/task/actuallast")
     return convert(dbtw, null, orig)
 }
 
+/**
+ * 删除推文
+ * @param tid 要删除的推文id
+ * @returns 删除成功 ? true : false
+ * 暂未启用 
+ */
 function deleteTask(tid: number): Promise<boolean> {
     return rest("/api/db/task/delete", { tid })
 }
 
-async function list(twi?: number): Promise<Twitter[]> {
-    const todo: number = twi || await getTodo()
+/**
+ * 列出队列里的推文及翻译
+ * 不包括隐藏的推文
+ * 格式错误的推文被忽略
+ * @param tid 队列头tid
+ * @returns Twitter[]
+ */
+async function list(tid?: number): Promise<Twitter[]> {
+    const todo: number = isNaN(tid) ? await getTodo() : tid
     const list: { twitter: db_twitter, translation: db_translation }[] = await rest("/api/db/task/list", { "tid": todo })
     logger.debug("Got %d Twitter", list.length)
     let result: Twitter[] = [];
-    for (let i of list) {
+    for (const i of list) {
         try {
             result.push(convert(i.twitter, i.translation, orig))
             logger.debug("tid %d: %s", i.twitter.tid, i.twitter.comment || i.translation.translation || i.twitter.content)
@@ -112,42 +200,77 @@ async function list(twi?: number): Promise<Twitter[]> {
     return result
 }
 
+/**
+ * 隐藏或显示推文
+ * 若推文是隐藏的，则显示它
+ * 若推文未隐藏，则隐藏它
+ * @param tid 推文id
+ */
 async function hide(tid: number): Promise<void> {
-    const tw = await get(tid)
+    const tw = (await get(tid)).twitter
     if (tw.hided) return rest("/api/db/task/visible", { tid })
     return rest("/api/db/task/hide", { tid })
 }
 
+/**
+ * 隐藏队列里所有已发布的推文
+ */
 async function hideAll() {
+    // const list: { twitter: db_twitter, translation: db_translation }[] = await rest("/api/db/task/list", { "tid": todo })
+    // for (const i of list) if (i.twitter.published) rest("/api/db/task/hide", { tid: i.id })
     const todo: Twitter[] = await list()
     for (const i of todo) if (i.published) rest("/api/db/task/hide", { tid: i.id })
 }
 
+/**
+ * 设置推文状态为已发布
+ * @param tid 推文id
+ */
 function setPublish(tid: number): Promise<void> {
     return rest("/api/db/task/published", { tid })
 }
 
+/**
+ * 设置推文状态为未发布
+ * @param tid 推文id
+ */
 function setUnpublish(tid: number): Promise<void> {
     return rest("/api/db/task/unpublished", { tid })
 }
 
-function getlastTrans(): Promise<number> {
-    return
+/**
+ * 获取最后修改翻译的推文id
+ * 仅使用运行时（内存）储存，重启应用丢失
+ * @returns 最后一次翻译的推文id
+ */
+function getLastTrans(): number {
+    return lastTrans
 }
 
+/**
+ * 获取某条推文的全部翻译版本
+ * 因为db有undo实现了所以不再需要
+ * @param tid 推文id
+ * 暂未使用
+ */
 function getallTrans(tid: number): Promise<any> {
     return rest("/api/db/task/translations", { tid })
 }
 
+/**
+ * 撤销一条推文的翻译修改
+ * @param tid 推文id
+ * @returns 推文及当前翻译
+ */
 async function undo(tid: number): Promise<Twitter> {
-    const res: { twitter: db_twitter, translation: db_translation} = await rest("/api/db/task/rollback", { tid })
+    const res: { twitter: db_twitter, translation: db_translation } = await rest("/api/db/task/rollback", { tid })
     return convert(res.twitter, res.translation, orig)
 }
 
 async function init(ctx: Context, Host: string) {
-    logger = ctx.logger("app:translator")
-    host = Host || "http://localhost"
-    orig = await getKV("twid")
+    logger = ctx.logger("app:translator") // 初始化logger
+    host = Host || "http://localhost"     // 初始化DB的Host
+    orig = await getKV("twid")            // 初始化监视Twitter用户ID
     logger.debug("store client ready")
 }
 
@@ -165,5 +288,6 @@ export default {
     list,
     hide,
     hideAll,
+    getLastTrans,
     undo
 }
