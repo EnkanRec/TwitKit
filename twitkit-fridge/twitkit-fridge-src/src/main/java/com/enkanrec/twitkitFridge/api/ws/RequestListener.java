@@ -8,6 +8,7 @@ import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.enkanrec.twitkitFridge.api.form.BaseFridgeForm;
+import com.enkanrec.twitkitFridge.api.form.JsonDataFridgeForm;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.api.rest.KVConfigController;
 import com.enkanrec.twitkitFridge.api.rest.TaskController;
@@ -18,9 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -35,6 +38,44 @@ public class RequestListener implements DataListener<String> {
     private KVConfigController kvConfigController;
     @Autowired
     private TaskController taskController;
+
+    HashMap<String, Method> methodMap = new HashMap<>();
+    HashMap<Method, Class> formClassMap = new HashMap<>();
+
+    @PostConstruct
+    void init() {
+        // method for request
+        Method[] methods = KVConfigController.class.getMethods();
+        for (Method method : methods) {
+            RequestMapping ano = method.getAnnotation(RequestMapping.class);
+            if (ano != null) {
+                String[] rm = ano.value();
+                for (String rmUri : rm) {
+                    methodMap.put("kv&" + rmUri, method);
+                }
+            }
+        }
+        methods = TaskController.class.getMethods();
+        for (Method method : methods) {
+            RequestMapping ano = method.getAnnotation(RequestMapping.class);
+            if (ano != null) {
+                String[] rm = ano.value();
+                for (String rmUri : rm) {
+                    methodMap.put("task&" + rmUri, method);
+                }
+            }
+        }
+        // web form
+        for (Method chosenMethod : methodMap.values()) {
+            Parameter[] ps = chosenMethod.getParameters();
+            for (Parameter p : ps) {
+                Class formType = (Class) p.getParameterizedType();
+                if (BaseFridgeForm.class.isAssignableFrom(formType)) {
+                    formClassMap.put(chosenMethod, formType);
+                }
+            }
+        }
+    }
 
     // TODO
     @Override
@@ -94,8 +135,10 @@ public class RequestListener implements DataListener<String> {
             }
         }
         if (chosenForm != null) {
-            Object form = JsonUtil.Mapper.readValue(data, chosenForm);
-            Object resp = chosenMethod.invoke(chosenController, form);
+            Object formIns = chosenForm.newInstance();
+            Method parseMethod = JsonDataFridgeForm.class.getMethod("fromRawString", String.class);
+            parseMethod.invoke(formIns, data);
+            Object resp = chosenMethod.invoke(chosenController, formIns);
             log.error(resp.toString());
         } else {
             log.error("cannot map any form type");

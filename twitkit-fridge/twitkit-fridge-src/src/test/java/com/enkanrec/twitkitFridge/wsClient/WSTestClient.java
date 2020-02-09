@@ -33,11 +33,6 @@ import java.util.Map;
 public class WSTestClient {
 
     public static void main(String[] args) throws Exception {
-        String s = "{\"data\":{\"tid\":1001},\"of\":\"task\",\"forwardFrom\":\"tester.socketIO\",\"command\":\"get\",\"timestamp\":\"2020-02-08T20:06:29.901+08:00\"}";
-        Object m= JsonUtil.Mapper
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .readValue(s, JsonDataFridgeForm.class);
-
         WSTestClient wsc = new WSTestClient();
         wsc.integrations();
     }

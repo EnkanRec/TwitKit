@@ -99,6 +99,27 @@ public class JsonDataFridgeForm extends BaseFridgeForm {
 
     protected void afterSetData() { }
 
+    public void fromRawString(String jStr) throws Exception {
+        Map rawMap = JsonUtil.parse(jStr, Map.class);
+        this.setForwardFrom((String) rawMap.get("forwardFrom"));
+        this.setTimestamp((String) rawMap.get("timestamp"));
+        this.setCommand((String) rawMap.get("command"));
+        this.setOf((String) rawMap.get("of"));
+        Object rawData = rawMap.get("data");
+        if (rawData instanceof Map) {
+            this.autoDecodeType = JsonDataType.Map;
+            this.mappedData = (Map) rawData;
+            if (this.getClass() != JsonDataFridgeForm.class) {
+                this.autoDispatchMappedDataField();
+            }
+        } else if (rawData instanceof List) {
+            this.autoDecodeType = JsonDataType.List;
+            this.listedData = this.dataToList();
+        } else  {
+            this.setData(rawData.toString());
+        }
+    }
+
     public static enum JsonDataType {
         Map,
         List,
