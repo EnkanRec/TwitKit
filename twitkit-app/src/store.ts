@@ -206,10 +206,11 @@ async function list(tid?: number): Promise<Twitter[]> {
  * 若推文未隐藏，则隐藏它
  * @param tid 推文id
  */
-async function hide(tid: number): Promise<void> {
-    const tw = (await get(tid)).twitter
-    if (tw.hided) return rest("/api/db/task/visible", { tid })
-    return rest("/api/db/task/hide", { tid })
+async function hide(tid: number): Promise<boolean> {
+    let tw = (await get(tid)).twitter
+    if (tw.hided) tw = await rest("/api/db/task/visible", { tid })
+    else tw = await rest("/api/db/task/hide", { tid })
+    return tw ? tw.hided : null
 }
 
 /**

@@ -15,6 +15,7 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
                 const twi = r[1]
                 const act = r[2]
                 const trans = r[3]
+                logger.debug("Recv a commend with tid=%d act=%s", twi, act)
                 switch (act) {
                     case "":
                         return ctx.runCommand('translate', meta, [twi, trans])
@@ -29,22 +30,21 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
                     case "+":
                         return ctx.runCommand('comment', meta, [twi, trans])
                     default:
+                        logger.debug("But match nothing.")
                         return next()
                 }
             } else {
-                switch (msg[0]) {
-                    case undefined:
+                logger.debug("Recv a commend without tid; " + msg)
+                switch (msg) {
+                    case "":
                     case "~":
-                        if (msg[1] === '~') 
-                            return ctx.runCommand('list-detail', meta)
-                        else
-                            return ctx.runCommand('list', meta)
+                        return ctx.runCommand('list', meta)
+                    case "~~":
+                        return ctx.runCommand('list-detail', meta)
                     case "/":
                         return ctx.runCommand('current', meta)
                     case "-":
                         return ctx.runCommand('hide', meta)
-                    case "+":
-                        return ctx.runCommand('comment', meta, ["", msg.slice(1)])
                     case "?":
                         return meta.$send("快捷命令使用帮助: " + argv.prefix + "[id][cmd]\n"
                                         + "id: 任务id\n"
@@ -58,6 +58,9 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
                                         + "详细帮助参考bot指令help"
                         )
                     default:
+                        if (msg[0] === "+")
+                            return ctx.runCommand('comment', meta, ["", msg.slice(1)])
+                        logger.debug("But match nothing.")
                         return next()
                 }
             }
@@ -68,26 +71,33 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
     ctx.command('translate <id> [trans...]')
         .action(async ({ meta }, id, trans) => {
             const twi = parseInt(id)
+            trans = trans.trim()
             if (isNaN(twi)) {
                 if (/^https?:\/\/(((www\.)?twitter\.com)|(t\.co))\//.test(id)) {
+                    logger.debug("translate with url=%s trans=%s", id, trans)
                     const img = await translator.getByUrl(id, trans)
                     if (!img) return meta.$send("请求失败")
                     return meta.$send(img + (argv.ispro ? "\n[CQ:image,file=" + img + "]" : ""))
                 }
-                return false
+                logger.warn("Bad translate id: " + id)
+                return meta.$send("找不到 " + id)
             } else {
                 let tw: Twitter = await store.getTask(twi)
                 if (!tw) {
+                    logger.warn("Twitter %d not found", twi)
                     return meta.$send("找不到 " + id)
                 }
                 if (trans) {
                     tw.trans = trans
                     tw.img = await translator.get(tw)
                     store.trans(twi, trans, tw.img)
+                    logger.debug("update translation: " + trans)
                 }
                 if (tw.trans) {
+                    logger.debug("Show translation: " + tw.img)
                     return meta.$send(tw.img + (argv.ispro ? "\n[CQ:image,file=" + tw.img + "]" : ""))
                 } else {
+                    logger.debug("Show raw Twitter: " + tw.content)
                     let msg: string = "【" + tw.user.name + "】" + tw.type
                                     + "\n----------------\n"
                                     + "内容: " + tw.content
@@ -105,6 +115,7 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
     ctx.command('list [id]')
         .action(async ({ meta }, id) => {
             const twi = id.length ? parseInt(id) : await store.getTodo()
+            logger.debug("show list from %d", twi)
             const list: any[] = await store.list(twi)
             let msg:string
             if (list && list.length) {
@@ -124,7 +135,9 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
                 msg += "\n--------共" + list.length + "条--------\n"
                     + "发送#推特ID以获取详细信息\n"
                     + "发送" + argv.prefix + twi + "~~以批量获取嵌字结果"
+                logger.debug("Found %d Twitters", list.length)
             } else {
+                logger.debug("But nothing found")
                 msg = "列表为空"
             }
             return meta.$send(msg)
@@ -134,6 +147,7 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
     ctx.command('list-detail [id]')
         .action(async ({ meta }, id) => {
             const twi = id.length ? parseInt(id) : await store.getTodo()
+            logger.debug("show translation from %d", twi)
             const list = await store.list(twi)
             let msg:string
             for (const i of list) if (i.trans) {
@@ -144,6 +158,7 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
                 msg = "从" + argv.prefix + twi + "到现在的已烤推特如下: " + msg
             } else {
                 msg = "列表为空"
+                logger.debug("But nothing found")
             }
             return meta.$send(msg)
         })
@@ -154,9 +169,11 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
             const todo = store.getTodo()
             let twi = id.length ? parseInt(id) : await store.getLastTid()
             if (isNaN(twi)) {
+                logger.warn("Set todo with wrong id: " + id)
                 return meta.$send("设置队列头失败")
             }
             store.setTodo(twi)
+            logger.debug("change todo from %d to %d", todo, twi)
             return meta.$send(
                 "修改前的快速搜索ID为 " + argv.prefix + await todo + "\n"
                 + argv.prefix + twi + " 已被保存为快速搜索ID\n"
@@ -170,12 +187,18 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
         .action(async ({ meta }, id) => {
             const twi = parseInt(id)
             if (!isNaN(twi)) {
-                store.hide(twi)
+                const hide = await store.hide(twi)
+                if (hide === null) {
+                    logger.warn("hide %s fail", id)
+                    return meta.$send("隐藏失败")
+                }
                 return meta.$send("已经隐藏推文 " + argv.prefix + id)
             } else if (id.length === 0) {
+                logger.debug("hide all published Twitters in queue")
                 store.hideAll()
                 ctx.runCommand("list", meta)
             } else {
+                logger.warn("hide nothing")
                 return meta.$send("找不到 " + id)
             }
         })
@@ -186,14 +209,19 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
             let twi = parseInt(id)
             if (isNaN(twi)) twi = await store.getLastTid()
             if (isNaN(twi)) {
+                logger.debug("comment nothing")
                 return meta.$send("没有可用任务")
             } else {
+                logger.debug("Id as part of comment")
                 comment = id + " " + comment
             }
+            comment = comment.trim()
             const tw = await store.comment(twi, comment)
             if (tw) {
+                logger.warn("comment %d : %s", twi, comment)
                 return meta.$send("已在 " + argv.prefix + twi + "上添加了备注: " + tw.comment)
             } else {
+                logger.warn("comment %d fail", twi)
                 meta.$send("找不到: " + twi)
             }
         })
@@ -203,17 +231,25 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
         .action(async ({ meta }, id) => {
             const twi = id.length ? parseInt(id) : store.getLastTrans()
             if (isNaN(twi)) {
-                return meta.$send("找不到推文:  " + argv.prefix + id)
+                logger.debug("Nothing to undo")
+                return meta.$send("找不到推文: " + argv.prefix + id)
             }
             const tw = await store.undo(twi)
-            let msg:string = "已撤销修改，现在" + argv.prefix + twi + "的翻译是: \n" + tw.trans
-            return meta.$send(msg)
+            if (tw) {
+                logger.debug("undo translate: %d", tw)
+                let msg:string = "已撤销修改，现在" + argv.prefix + twi + "的翻译是: \n" + tw.trans
+                return meta.$send(msg)
+            } else {
+                logger.warn("Twitter %d notfound", twi)
+                return meta.$send("找不到推文: " + argv.prefix + id)
+            }
         })
         .usage("撤销某个推的翻译修改，id为空时，撤销最近修改过的翻译，不会撤销初始翻译")
 
     ctx.command('set-twid <twid>')
         .action(async ({ meta }, twid) => {
             await store.setTwid(twid)
+            logger.debug("update Twitter ID: " + twid)
             return meta.$send("更新推主ID成功")
         })
 }
