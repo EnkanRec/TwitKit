@@ -6,6 +6,7 @@ import axios from 'axios'
 let host: string
 let logger: Logger
 let orig: string
+let todo: number = 0
 let lastTrans: number
 
 /**
@@ -109,10 +110,8 @@ function trans(tid: number, trans: string, img: string): Promise<void> {
  * 获取任务队列头
  * @returns todo || 0
  */
-async function getTodo(): Promise<number> {
-    const v = parseInt(await getKV("todo"))
-    if (!isNaN(v)) return v
-    return 0
+function getTodo(): number {
+    return todo
 }
 
 /**
@@ -120,6 +119,7 @@ async function getTodo(): Promise<number> {
  * @param tid 推文id 
  */
 function setTodo(tid: number): Promise<void> {
+    todo = tid
     return setKV("todo", tid.toString())
 }
 
@@ -185,7 +185,7 @@ function deleteTask(tid: number): Promise<boolean> {
  * @returns Twitter[]
  */
 async function list(tid?: number): Promise<Twitter[]> {
-    const todo: number = isNaN(tid) ? await getTodo() : tid
+    const todo: number = isNaN(tid) ? getTodo() : tid
     const list: { twitter: db_twitter, translation: db_translation }[] = await rest("/api/db/task/list", { "tid": todo })
     logger.debug("Got %d Twitter", list.length)
     let result: Twitter[] = [];
@@ -272,6 +272,7 @@ async function init(ctx: Context, Host: string) {
     logger = ctx.logger("app:translator") // 初始化logger
     host = Host || "http://localhost"     // 初始化DB的Host
     orig = await getKV("twid")            // 初始化监视Twitter用户ID
+    todo = parseInt(await getKV("todo")) || 0
     logger.debug("store client ready")
 }
 

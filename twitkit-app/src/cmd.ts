@@ -114,7 +114,7 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
 
     ctx.command('list [id]')
         .action(async ({ meta }, id) => {
-            const twi = id.length ? parseInt(id) : await store.getTodo()
+            const twi = id.length ? parseInt(id) : store.getTodo()
             logger.debug("show list from %d", twi)
             const list: any[] = await store.list(twi)
             let msg:string
@@ -146,7 +146,7 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
 
     ctx.command('list-detail [id]')
         .action(async ({ meta }, id) => {
-            const twi = id.length ? parseInt(id) : await store.getTodo()
+            const twi = id.length ? parseInt(id) : store.getTodo()
             logger.debug("show translation from %d", twi)
             const list = await store.list(twi)
             let msg:string
@@ -175,7 +175,7 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
             store.setTodo(twi)
             logger.debug("change todo from %d to %d", todo, twi)
             return meta.$send(
-                "修改前的快速搜索ID为 " + argv.prefix + await todo + "\n"
+                "修改前的快速搜索ID为 " + argv.prefix + todo + "\n"
                 + argv.prefix + twi + " 已被保存为快速搜索ID\n"
                 + "可直接发送" + argv.prefix + "~或" + argv.prefix + "~~\n"
                 + "效果等价于" + argv.prefix + twi + "~与" + argv.prefix + twi + "~~\n"
