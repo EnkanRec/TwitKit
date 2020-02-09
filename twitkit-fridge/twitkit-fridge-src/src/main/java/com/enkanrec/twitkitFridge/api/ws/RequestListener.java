@@ -97,7 +97,7 @@ public class RequestListener implements DataListener<String> {
             Map baseForm = JsonUtil.parse(data, Map.class);
             String useController = (String) baseForm.get("of");
             String useMethod = (String) baseForm.get("command");
-            String requestId = UUID.randomUUID().toString();
+            String requestId = "WS_" + UUID.randomUUID().toString();
             MDC.put(LOG_KEY_REQUEST_ID, requestId);
             log.info(String.format("Client request[RequestID:%s SessionID:%s]: Controller:%s UriMethod:%s", requestId, client.getSessionId(), useController, useMethod));
             Object chosenController;
