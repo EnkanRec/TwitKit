@@ -272,8 +272,9 @@ async function init(ctx: Context, Host: string) {
     logger = ctx.logger("app:translator") // 初始化logger
     host = Host || "http://localhost"     // 初始化DB的Host
     orig = await getKV("twid")            // 初始化监视Twitter用户ID
-    todo = parseInt(await getKV("todo")) || 0
-    logger.debug("store client ready")
+    todo = parseInt(await getKV("todo")) || 0 // 初始化队列头
+    if (orig) return logger.debug("store client ready")
+    return logger.error("init DB fail")
 }
 
 export default {

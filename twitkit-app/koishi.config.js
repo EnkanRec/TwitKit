@@ -6,13 +6,13 @@ module.exports = {
   nickname: '呐',
   commandPrefix: '#',
   plugins: [
-    ["twitkit-app", {
+    [".", {
       host: {
         translator: "http://localhost",
         store: "http://localhost"
       },
       prefix: '#',// 快捷指令前缀
-      ispro: false, // 是否发图（考虑ctx.sender.canSendImage）
+      ispro: false, // 是否发图
       cut: 8,     // 消息预览截断长度
       port: 1551, // 监视器推送端口
       target: {   // 监视器更新推送目标
@@ -21,14 +21,5 @@ module.exports = {
         group: []
       }
     }],
-  ],
-  // database: {
-  //   mysql: {
-  //     host: 'localhost',
-  //     port: 3306,
-  //     user: 'qqbot',
-  //     password: 'qqbot',
-  //     database: 'qqbot',
-  //   },
-  // },
+  ]
 }
