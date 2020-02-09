@@ -32,30 +32,31 @@ class rss {
 function Twitter2msg(tw: Twitter, argv = { ispro: true, prefix: '#' }): string {
     let msg: string = "【" + tw.user.name + "】" + tw.type
         + "\n----------------\n"
-        + "内容：" + tw.content
+        + "内容: " + tw.content
     if (tw.media) {
-        msg += "\n媒体："
+        msg += "\n媒体: "
         for (const img of tw.media) msg += argv.ispro ? "[CQ:image,file=" + img + "]" : img
     }
-    msg += "\n原链接：" + tw.url + "\n快速嵌字发送：" + argv.prefix + tw.id + " 译文"
+    msg += "\n原链接: " + tw.url + "\n快速嵌字发送: " + argv.prefix + tw.id + " 译文"
     return msg
 }
 
 async function rss2msg(tw: rss, argv = { ispro: true, prefix: '#' }): Promise<string> {
     let msg: string = "【" + tw.author + "】"
     if (tw.title) msg += tw.title
-    msg += "\n----------------\n内容：" + tw.content
+    msg += "\n----------------\n内容: " + tw.content
     if (tw.media) {
-        msg += "\n媒体："
+        msg += "\n媒体: "
         if (!tw.tid) tw.tid = []
         for (const img of tw.media) {
             msg += argv.ispro ? "[CQ:image,file=" + img + "]" : img
+            // 检查是否为烤推发布；未启用
             // const tid: number = await translator.check(img)
             // if (tid) tw.tid.push(tid)
         }
     }
-    if (tw.url) msg += "\n原链接：" + tw.url
-    if (tw.tid && tw.tid.length) msg += "\n识别到本条发布包含" + tw.tid.length + "条烤推结果："
+    if (tw.url) msg += "\n原链接: " + tw.url
+    if (tw.tid && tw.tid.length) msg += "\n识别到本条发布包含" + tw.tid.length + "条烤推结果: "
         + tw.tid.join(', ') + "\n - 发送#-批量隐藏已发推特"
         + "\n- 发送" + argv.prefix + "~核对记录的推文是否全部发布"
         + "\n- 发送" + argv.prefix + "/将快速搜索起始位置更新为即将到来的下一条推特"

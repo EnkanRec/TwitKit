@@ -10,7 +10,7 @@ export {
 
 export async function apply (ctx: Context, argv?: config) {
     const Logger = ctx.logger("info")
-    if (await ctx.sender.canSendImage() === false) argv.ispro = false
+    if (argv.ispro && await ctx.sender.canSendImage() === false) argv.ispro = false
     Logger.debug("apply plugin watcher")
     ctx.plugin(watcher, argv)
     Logger.debug("apply plugin cmd")

@@ -80,7 +80,7 @@ async function get(tid: number): Promise<{ twitter: db_twitter, translation: db_
  */
 async function getTask(tid: number): Promise<Twitter> {
     const res: { twitter: db_twitter, translation: db_translation } = await get(tid)
-    return convert(res.twitter, res.translation, orig)
+    return res ? convert(res.twitter, res.translation, orig) : null
 }
 
 /**
@@ -88,7 +88,7 @@ async function getTask(tid: number): Promise<Twitter> {
  * @param tid 推文id
  * @param comment 注释
  */
-function comment(tid: number, comment: string): Promise<void> {
+function comment(tid: number, comment: string): Promise<db_twitter> {
     return rest("/api/db/task/comment", { tid, comment })
 }
 
@@ -151,9 +151,9 @@ async function getCatch(): Promise<number> {
  * 不包括隐藏的推
  * @returns newest tid
  */
-async function getLast(): Promise<Twitter> {
+async function getLastTid(): Promise<number> {
     const res: { twitter: db_twitter, translation: db_translation } = await rest("/api/db/task/last", { withTranslation: true })
-    return convert(res.twitter, res.translation, orig)
+    return res ? res.twitter.tid : null
 }
 
 /**
@@ -282,7 +282,7 @@ export default {
     getTodo,
     setTodo,
     setTwid,
-    getLast,
+    getLastTid,
     setPublish,
     setUnpublish,
     list,
