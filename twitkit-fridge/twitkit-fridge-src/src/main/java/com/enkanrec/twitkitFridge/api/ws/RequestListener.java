@@ -12,8 +12,8 @@ import com.enkanrec.twitkitFridge.api.form.JsonDataFridgeForm;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.api.rest.KVConfigController;
 import com.enkanrec.twitkitFridge.api.rest.TaskController;
+import com.enkanrec.twitkitFridge.monitor.WebSocketMonitor;
 import com.enkanrec.twitkitFridge.util.JsonUtil;
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +30,7 @@ import java.util.Map;
  * Class : RequestListener
  * Usage :
  */
+@SuppressWarnings("all")
 @Slf4j
 @Component
 public class RequestListener implements DataListener<String> {
@@ -39,11 +40,16 @@ public class RequestListener implements DataListener<String> {
     @Autowired
     private TaskController taskController;
 
-    HashMap<String, Method> methodMap = new HashMap<>();
-    HashMap<Method, Class> formClassMap = new HashMap<>();
+    @Autowired
+    private WebSocketMonitor monitor;
+
+    Map<String, Method> methodAccessMap;
+    Map<Method, Class> formClassAccessMap;
 
     @PostConstruct
     void init() {
+        Map<String, Method> methodMap = new HashMap<>();
+        Map<Method, Class> formClassMap = new HashMap<>();
         // method for request
         Method[] methods = KVConfigController.class.getMethods();
         for (Method method : methods) {
@@ -61,7 +67,7 @@ public class RequestListener implements DataListener<String> {
             if (ano != null) {
                 String[] rm = ano.value();
                 for (String rmUri : rm) {
-                    methodMap.put("task&" + rmUri, method);
+                    methodMap.put("task&" + rmUri.substring(1), method);
                 }
             }
         }
@@ -75,22 +81,25 @@ public class RequestListener implements DataListener<String> {
                 }
             }
         }
+        // unmodify the mapping
+        this.formClassAccessMap = Collections.unmodifiableMap(formClassMap);
+        this.methodAccessMap = Collections.unmodifiableMap(methodMap);
     }
 
-    // TODO
     @Override
     public void onData(SocketIOClient client, String data, AckRequest ackSender) throws Exception {
+        long beginTs = System.currentTimeMillis();
         Map baseForm = JsonUtil.parse(data, Map.class);
         String useController = (String) baseForm.get("of");
         String useMethod = (String) baseForm.get("command");
         log.info(String.format("Client request[%s]: %s %s", client.getSessionId(), useController, useMethod));
-        Class controllerClazz;
+        Object chosenController;
         switch (useController) {
             case "kv":
-                controllerClazz = KVConfigController.class;
+                chosenController = this.kvConfigController;
                 break;
             case "task":
-                controllerClazz = TaskController.class;
+                chosenController = this.taskController;
                 break;
             default:
                 String hint = "unsupported controller in `of`: " + useController;
@@ -98,50 +107,31 @@ public class RequestListener implements DataListener<String> {
                 client.sendEvent(FridgeWSServer.RESPONSE_EVT, StandardResponse.exception(hint));
                 return;
         }
-        String normalizedUseMethod = "/" + useMethod;
-        Method[] methods = controllerClazz.getMethods();
-        Method chosenMethod = null;
-        for (Method method : methods) {
-            RequestMapping ano = method.getAnnotation(RequestMapping.class);
-            if (ano != null) {
-                String[] rm = ano.value();
-                for (String rmUri : rm) {
-                    if (rmUri.equals(normalizedUseMethod)) {
-                        chosenMethod = method;
-                        break;
-                    }
-                }
-                if (chosenMethod != null) {
-                    break;
-                }
-            } else {
-                System.out.println(" >>> " + method.toString());
-            }
-        }
-        Object chosenController = null;
-        if (controllerClazz.equals(TaskController.class)) {
-            chosenController = this.taskController;
-        } else if (controllerClazz.equals(KVConfigController.class)) {
-            chosenController = this.kvConfigController;
-        }
-
-        Parameter[] ps = chosenMethod.getParameters();
-        Class chosenForm = null;
-        for (Parameter p : ps) {
-            Class formType = (Class) p.getParameterizedType();
-            if (BaseFridgeForm.class.isAssignableFrom(formType)) {
-                chosenForm = formType;
-                break;
-            }
-        }
-        if (chosenForm != null) {
+        String methodKey = useController + "&" + useMethod;
+        Method chosenMethod = this.methodAccessMap.get(methodKey);
+        if (chosenMethod != null) {
+            Class chosenForm = this.formClassAccessMap.get(chosenMethod);
             Object formIns = chosenForm.newInstance();
             Method parseMethod = JsonDataFridgeForm.class.getMethod("fromRawString", String.class);
             parseMethod.invoke(formIns, data);
-            Object resp = chosenMethod.invoke(chosenController, formIns);
-            log.error(resp.toString());
+            try {
+                Object resp = chosenMethod.invoke(chosenController, formIns);
+                String handlerName = chosenController.getClass().getSimpleName() + "." + chosenMethod.getName();
+                log.info(String.format("ws request handled [%s], prepare to emit.", handlerName));
+                client.sendEvent(FridgeWSServer.RESPONSE_EVT, resp);
+                String code = String.valueOf(((StandardResponse) resp).getCode());
+                this.monitor.responseTimeInMs.labels(handlerName, "/" + useMethod, code)
+                        .observe(System.currentTimeMillis() - beginTs);
+            } catch (Exception invEx) {
+                String hint = "exception at invoke: " + invEx.getMessage();
+                log.warn(hint);
+                client.sendEvent(FridgeWSServer.RESPONSE_EVT, StandardResponse.exception(hint));
+                this.monitor.exceptionCounter.inc();
+            }
         } else {
-            log.error("cannot map any form type");
+            String hint = "unsupported method: " + methodKey;
+            log.warn(hint);
+            client.sendEvent(FridgeWSServer.RESPONSE_EVT, StandardResponse.exception(hint));
             return;
         }
     }
