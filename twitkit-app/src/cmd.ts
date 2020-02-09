@@ -252,4 +252,5 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
             logger.debug("update Twitter ID: " + twid)
             return meta.$send("更新推主ID成功")
         })
+        .usage("设置推主ID，用于确识别转推，只用设置一次")
 }
