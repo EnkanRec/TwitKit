@@ -1,0 +1,26 @@
+{
+  "name": "koishi-plugin-twitkit-app",
+  "version": "0.0.1",
+  "description": "Twitter translator tools plugin for koishi",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.com:EnkanRec/koishi-plugin-twitkit.git"
+  },
+  "keywords": [
+    "qqbot",
+    "koishi-plugin",
+    "translator-tools"
+  ],
+  "author": "MisakaHonoka",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^13.5.1",
+    "axios": "^0.19.2",
+    "koishi-core": "^1.6.0",
+    "koishi-utils": "^1.0.2"
+  }
+}
