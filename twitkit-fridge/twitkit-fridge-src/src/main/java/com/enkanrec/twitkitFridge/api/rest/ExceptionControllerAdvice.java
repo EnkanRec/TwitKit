@@ -5,9 +5,11 @@
 package com.enkanrec.twitkitFridge.api.rest;
 
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
+import com.enkanrec.twitkitFridge.monitor.InterceptorMonitor;
 import com.enkanrec.twitkitFridge.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -24,6 +26,9 @@ import java.util.Map;
 @ControllerAdvice
 public class ExceptionControllerAdvice {
 
+    @Autowired
+    private InterceptorMonitor monitor;
+
     /**
      * 捕获全部异常
      */
@@ -32,10 +37,13 @@ public class ExceptionControllerAdvice {
     public StandardResponse exceptionHandler(HttpServletRequest request, Exception e) {
         StandardResponse sr = new StandardResponse();
         Map<String, String> hint = new HashMap<>();
+        String method = request.getMethod();
+        String path = request.getPathInfo();
         hint.put("msg", e.getMessage());
-        hint.put("path", request.getPathInfo());
-        hint.put("method", request.getMethod());
+        hint.put("path", path);
+        hint.put("method", method);
         String formatted;
+        this.monitor.exceptionCounter.labels(method, path).inc();
         try {
             formatted = JsonUtil.Mapper.writeValueAsString(hint);
         } catch (JsonProcessingException ex) {
