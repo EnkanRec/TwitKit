@@ -4,7 +4,6 @@
  */
 package com.enkanrec.twitkitFridge.util;
 
-import com.enkanrec.twitkitFridge.api.form.TaskCreationForm;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -91,43 +90,4 @@ public class JsonUtil {
         }
         return value;
     }
-
-//    public static Map<String, Object> jsonToMap(JSONObject json) throws JSONException {
-//        Map<String, Object> retMap = new HashMap<>();
-//
-//        if (json != null) {
-//            retMap = toMap(json);
-//        }
-//        return retMap;
-//    }
-
-//    public static Map<String, Object> toMap(JSONObject object) throws JSONException {
-//        Map<String, Object> map = new HashMap<>();
-//        for (Map.Entry<String, Object> kvp : object.entrySet()) {
-//            String key = kvp.getKey();
-//            Object value = kvp.getValue();
-//
-//            if (value instanceof JSONArray) {
-//                value = toList((JSONArray) value);
-//            } else if (value instanceof JSONObject) {
-//                value = toMap((JSONObject) value);
-//            }
-//            map.put(key, value);
-//        }
-//        return map;
-//    }
-//
-//    public static List<Object> toList(JSONArray array) throws JSONException {
-//        List<Object> list = new ArrayList<>();
-//        for (int i = 0; i < array.size(); i++) {
-//            Object value = array.get(i);
-//            if (value instanceof JSONArray) {
-//                value = toList((JSONArray) value);
-//            } else if (value instanceof JSONObject) {
-//                value = toMap((JSONObject) value);
-//            }
-//            list.add(value);
-//        }
-//        return list;
-//    }
 }
