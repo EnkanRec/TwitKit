@@ -27,7 +27,7 @@ public class MonitorInterceptor implements HandlerInterceptor {
     private static final String REQ_PARAM_TIMING = "__inject_cost_timing";
     private static final String REQ_REQUEST_ID = "__inject_request_id";
 
-    private static final String LOG_KEY_REQUEST_ID = "requestId";
+    public static final String LOG_KEY_REQUEST_ID = "requestId";
 
     @Autowired
     private InterceptorMonitor monitor;
@@ -38,10 +38,6 @@ public class MonitorInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         request.setAttribute(REQ_PARAM_TIMING, System.currentTimeMillis());
-        String requestId = UUID.randomUUID().toString();
-        request.setAttribute(REQ_REQUEST_ID, requestId);
-        MDC.put(LOG_KEY_REQUEST_ID, requestId);
-        log.info(String.format("Request id generated: %s -> path: %s", requestId, request.getRequestURI()));
         return true;
     }
 
@@ -60,7 +56,7 @@ public class MonitorInterceptor implements HandlerInterceptor {
         this.monitor.responseTimeInMs.labels(request.getMethod(), handlerLabel, request.getRequestURI(), Integer.toString(response.getStatus()))
                 .observe(completedTime);
         String requestId = MDC.get(LOG_KEY_REQUEST_ID);
+        log.info(String.format("Request id is removed: %s, path: %s", requestId, request.getRequestURI()));
         MDC.remove(LOG_KEY_REQUEST_ID);
-        log.info("Request id is removed: " + requestId);
     }
 }
