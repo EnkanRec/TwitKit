@@ -63,7 +63,7 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 * `INT_BASE_URL`：内部URL前缀，在`wkhtmltoimage`访问内部生成的推文页面时用。如果Gunicorn配置里改了端口号，这里要相应修改。
 
 ### 日志设置
-* `LOG_LEVEL`：日志等级。Oven里只用到`INFO`和`DEBUG`这两个等级。
+* `LOG_LEVEL`：日志等级。例如`INFO`、`DEBUG`。
 * `APP_LOG_FILE`：日志文件路径。设None、False或者空字串不输出日志文件。
 
 

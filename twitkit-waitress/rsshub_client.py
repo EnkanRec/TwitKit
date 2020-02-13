@@ -26,7 +26,7 @@ def extract_content_media(content):
         content.replace(match[0], '')
     content = re.sub('<br>', '\n', content, flags=re.IGNORECASE)
     content = re.sub('<.*?>', '', content)
-    return content, media_list
+    return content.strip(), media_list
 
 
 def get_new_feed(feed_url):

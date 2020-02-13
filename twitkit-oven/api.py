@@ -105,11 +105,11 @@ class GenerateImage(Resource):
             message = 'OK'
             logger.info(f'[{request_data["taskId"]}] 检查tid任务完成（{tid}）。')
         except ValueError as e:
-            logger.warning(f'[{request_data["taskId"]}] 二维码解码失败：{e}')
+            logger.debug(f'[{request_data["taskId"]}] 二维码解码失败：{e}')
             tid = -1
             message = '没有找到有效的tid二维码'
         except Exception as e:
-            logger.error(f'[{request_data["taskId"]}] 发生了错误：{e}')
+            logger.error(f'[{request_data["taskId"]}] 检查tid时发生了错误：{e}')
             logger.error(format_exc())
             return make_response(500, '检查tid失败，请联系管理员检查日志')
 
