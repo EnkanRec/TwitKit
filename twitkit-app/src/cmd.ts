@@ -10,13 +10,15 @@ export default function (ctx: Context, argv: any) {
     ctx.middleware((meta, next) => {
         if (meta.message.startsWith(argv.prefix)) {
             const msg = meta.message.slice(argv.prefix.length)
-            const r = /^(d+)(~|~~|\/)?\s*(.*)$/.exec(msg)
+            const r = /^(\d+)(~~|[^\d\s])?\s*(.*)$/.exec(msg)
             if (r && r[1]) {
                 const twi = r[1]
                 const act = r[2]
                 const trans = r[3]
                 logger.debug("Recv a commend with tid=%d act=%s", twi, act)
+                if (trans) logger.debug("trans=" + trans)
                 switch (act) {
+                    case undefined:
                     case "":
                         return ctx.runCommand('translate', meta, [twi, trans])
                     case "~":
@@ -150,7 +152,7 @@ export default function (ctx: Context, argv: any) {
             logger.debug("show translation from %d", twi)
             const list = await store.list(twi)
             let msg:string = ""
-            for (const i of list) if (i.trans) {
+            if (list) for (const i of list) if (i.trans) {
                 msg += "\n" + argv.prefix + i.id + "\n"
                 msg += argv.ispro ? "[CQ:image,file=" + i.img + "]" : i.img
             }
@@ -167,8 +169,9 @@ export default function (ctx: Context, argv: any) {
     ctx.command('current [id]')
         .action(async ({ meta }, id) => {
             const todo = store.getTodo()
-            let twi = id ? parseInt(id) : await store.getLastTid()
-            if (isNaN(twi)) {
+            logger.debug("Old todo: " + todo)
+            const twi = id ? parseInt(id) : await store.getLastTid()
+            if (twi === null || isNaN(twi)) {
                 logger.warn("Set todo with wrong id: " + id)
                 return meta.$send("设置队列头失败")
             }
@@ -192,23 +195,20 @@ export default function (ctx: Context, argv: any) {
                     logger.warn("hide %s fail", id)
                     return meta.$send("隐藏失败")
                 }
-                return meta.$send("已经隐藏推文 " + argv.prefix + id)
-            } else if (id.length === 0) {
+                return meta.$send("已经" + (hide ? "隐藏" : "显示") + "推文 " + argv.prefix + id)
+            } else {
                 logger.debug("hide all published Twitters in queue")
                 store.hideAll()
                 ctx.runCommand("list", meta)
-            } else {
-                logger.warn("hide nothing")
-                return meta.$send("找不到 " + id)
             }
         })
-        .usage("隐藏某个推，id为空时，隐藏所有已烤的推")
+        .usage("隐藏或显示某个推，id为空时，隐藏所有已烤的推")
 
     ctx.command('comment [id] [comment...]')
         .action(async ({ meta }, id, comment) => {
             let twi = parseInt(id)
             if (isNaN(twi)) twi = await store.getLastTid()
-            if (isNaN(twi)) {
+            if (twi === null || isNaN(twi)) {
                 logger.debug("comment nothing")
                 return meta.$send("没有可用任务")
             } else {
@@ -230,7 +230,7 @@ export default function (ctx: Context, argv: any) {
     ctx.command('undo [id]')
         .action(async ({ meta }, id) => {
             const twi = id ? parseInt(id) : store.getLastTrans()
-            if (isNaN(twi)) {
+            if (twi === null || isNaN(twi)) {
                 logger.debug("Nothing to undo")
                 return meta.$send("找不到推文: " + argv.prefix + id)
             }
