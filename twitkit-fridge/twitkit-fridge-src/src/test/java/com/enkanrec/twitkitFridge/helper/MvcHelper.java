@@ -8,6 +8,7 @@ import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.util.JsonUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.Assert;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -19,6 +20,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,23 +38,17 @@ public class MvcHelper {
         this.mvc = mvc;
     }
 
-    public <T> T apiPost(String uri, Object data, Class<T> returnHint) throws Exception {
-        String postData;
-        if (data != null) {
-            if (data instanceof Map || data instanceof List) {
-                postData = JsonUtil.dumps(data);
-            } else {
-                postData = data.toString();
-            }
-        } else {
-            postData = null;
+    public <T> T apiPost(String uri, Object postData, Class<T> returnHint) throws Exception {
+        Map<String, Object> jsonData = new HashMap<>();
+        jsonData.put("forwardFrom", "tester");
+        jsonData.put("timestamp", ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+        if (postData != null) {
+            jsonData.put("data", postData);
         }
+        String jString = JsonUtil.dumps(jsonData);
         RequestBuilder request = MockMvcRequestBuilders.post(this.baseUrl + uri)
-                .param("forwardFrom", "tester")
-                .param("timestamp", ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
-        if (data != null) {
-            ((MockHttpServletRequestBuilder) request).param("data", postData);
-        }
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jString);
         MvcResult future = this.mvc
                 .perform(request)
                 .andExpect(MockMvcResultMatchers.status().isOk())

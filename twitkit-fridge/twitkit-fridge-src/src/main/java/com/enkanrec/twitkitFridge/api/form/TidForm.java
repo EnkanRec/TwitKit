@@ -15,9 +15,9 @@ import javax.validation.constraints.NotNull;
  * Usage :
  */
 @Data
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
-public class TidForm extends JsonDataFridgeForm {
+@ToString
+@EqualsAndHashCode
+public class TidForm {
 
     /**
      * 任务id

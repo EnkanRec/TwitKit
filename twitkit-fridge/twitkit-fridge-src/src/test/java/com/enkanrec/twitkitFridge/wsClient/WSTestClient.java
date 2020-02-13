@@ -4,21 +4,15 @@
  */
 package com.enkanrec.twitkitFridge.wsClient;
 
-import com.enkanrec.twitkitFridge.api.form.BaseFridgeForm;
-import com.enkanrec.twitkitFridge.api.form.JsonDataFridgeForm;
-import com.enkanrec.twitkitFridge.api.form.TidForm;
 import com.enkanrec.twitkitFridge.api.ws.FridgeWSServer;
 import com.enkanrec.twitkitFridge.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import io.socket.client.IO;
 import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
 import io.socket.engineio.client.transports.Polling;
 import io.socket.engineio.client.transports.WebSocket;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.URISyntaxException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;

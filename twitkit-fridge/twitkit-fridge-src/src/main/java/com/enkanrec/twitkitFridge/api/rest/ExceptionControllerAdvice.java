@@ -39,6 +39,12 @@ public class ExceptionControllerAdvice {
         Map<String, String> hint = new HashMap<>();
         String method = request.getMethod();
         String path = request.getPathInfo();
+        if (method == null) {
+            method = "null";
+        }
+        if (path == null) {
+            path = "null";
+        }
         hint.put("msg", e.getMessage());
         hint.put("path", path);
         hint.put("method", method);

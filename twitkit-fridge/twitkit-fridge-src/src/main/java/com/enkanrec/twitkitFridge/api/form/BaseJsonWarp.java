@@ -1,6 +1,6 @@
 /*
  * Author : Rinka
- * Date   : 2020/1/30
+ * Date   : 2020/2/13
  */
 package com.enkanrec.twitkitFridge.api.form;
 
@@ -17,14 +17,13 @@ import java.io.Serializable;
 import java.util.UUID;
 
 /**
- * Class : BaseFridgeForm
- * Usage : 标准请求格式
+ * Class : BaseJsonWarp
+ * Usage :
  */
-@Deprecated
 @Slf4j
 @ToString
 @EqualsAndHashCode
-public class BaseFridgeForm implements Serializable {
+public class BaseJsonWarp<InnerTy> implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -61,6 +60,10 @@ public class BaseFridgeForm implements Serializable {
     @Getter
     @Setter
     private String command = null;
+
+    @Getter
+    @Setter
+    private InnerTy data;
 
     public void setTaskId(String requestId) {
         this.taskId = requestId;

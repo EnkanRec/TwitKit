@@ -19,6 +19,7 @@ import java.util.Map;
  * Class : JsonDataFridgeForm
  * Usage : 标准请求体表单。表单会自动解开data字段成Map和List组合的Json结构体
  */
+@Deprecated
 @Slf4j
 @ToString
 @EqualsAndHashCode(callSuper = true)
