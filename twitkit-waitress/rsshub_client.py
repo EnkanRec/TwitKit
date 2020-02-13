@@ -50,7 +50,7 @@ def get_new_feed(feed_url):
             media_list=media_list,
             url=url,
             pub_date=pub_date))
-    return ret
+    return ret[::-1]
 
 
 def get_new_tweets(username):
