@@ -114,7 +114,7 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
 
     ctx.command('list [id]')
         .action(async ({ meta }, id) => {
-            const twi = id.length ? parseInt(id) : store.getTodo()
+            const twi = id ? parseInt(id) : store.getTodo()
             logger.debug("show list from %d", twi)
             const list: any[] = await store.list(twi)
             let msg:string
@@ -146,10 +146,10 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
 
     ctx.command('list-detail [id]')
         .action(async ({ meta }, id) => {
-            const twi = id.length ? parseInt(id) : store.getTodo()
+            const twi = id ? parseInt(id) : store.getTodo()
             logger.debug("show translation from %d", twi)
             const list = await store.list(twi)
-            let msg:string
+            let msg:string = ""
             for (const i of list) if (i.trans) {
                 msg += "\n" + argv.prefix + i.id + "\n"
                 msg += argv.ispro ? "[CQ:image,file=" + i.img + "]" : i.img
@@ -167,7 +167,7 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
     ctx.command('current [id]')
         .action(async ({ meta }, id) => {
             const todo = store.getTodo()
-            let twi = id.length ? parseInt(id) : await store.getLastTid()
+            let twi = id ? parseInt(id) : await store.getLastTid()
             if (isNaN(twi)) {
                 logger.warn("Set todo with wrong id: " + id)
                 return meta.$send("设置队列头失败")
@@ -229,7 +229,7 @@ export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefi
 
     ctx.command('undo [id]')
         .action(async ({ meta }, id) => {
-            const twi = id.length ? parseInt(id) : store.getLastTrans()
+            const twi = id ? parseInt(id) : store.getLastTrans()
             if (isNaN(twi)) {
                 logger.debug("Nothing to undo")
                 return meta.$send("找不到推文: " + argv.prefix + id)

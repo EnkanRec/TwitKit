@@ -54,12 +54,12 @@ export function convert(dbtw: db_twitter, dbtr?: db_translation, orig?: string):
         postDate: dbtw.updatetime,
         comment: dbtw.comment,
         trans: dbtr ? dbtr.translation : undefined,
-        img: dbtr.img,
+        img: dbtr ? dbtr.img : undefined,
         user: {
             id: twURL2user(dbtw.url)
         }
     }
     if (orig && tw.user.id !== orig) tw.type = "转发"
-    if (tw.id && tw.url && tw.content) throw "broken Twitter data format"
+    if (!(tw.id && tw.url && tw.content)) throw "broken Twitter data format"
     return tw
 }
