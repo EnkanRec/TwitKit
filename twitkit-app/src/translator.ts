@@ -18,7 +18,7 @@ class response { // oven return
 async function get(tw: Twitter): Promise<string> {
     logger.debug("Tid: %d", tw.id)
     let res = await axios.post<response>(host + "/api/oven/bake", new utils.request({
-        taskId: utils.genUuid(),
+        // taskId: utils.genUuid(),
         tid: tw.id,
         origText: tw.content,
         transText: tw.trans,
@@ -46,7 +46,7 @@ async function getByUrl(url: string, trans: string): Promise<string> {
 
 async function check(url: string): Promise<number> {
     let res = await axios.post<response>(host + "/api/oven/check", new utils.request({
-        uuid: utils.genUuid(),
+        // uuid: utils.genUuid(),
         imageUrl: url
     }))
     if (res.status !== 200) {

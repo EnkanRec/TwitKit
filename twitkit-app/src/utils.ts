@@ -46,11 +46,13 @@ export function verifyDatetime(str: string): boolean {
 export class request {
     forwardFrom: string
     timestamp: ISO8601
+    taskId: uuid
     data: any
 
     constructor (Data: any, Forward?: string, Time?: ISO8601) {
         this.forwardFrom = Forward || "twitkit-app"
         this.timestamp = verifyDatetime(Time) ? Time : new Date().toISOString()
+        this.taskId = genUuid()
         this.data = Data
     }
 
