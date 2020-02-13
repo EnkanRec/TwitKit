@@ -8,7 +8,6 @@ import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.enkanrec.twitkitFridge.api.form.BaseJsonWarp;
-import com.enkanrec.twitkitFridge.api.form.JsonDataFridgeForm;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.api.rest.KVConfigController;
 import com.enkanrec.twitkitFridge.api.rest.TaskController;

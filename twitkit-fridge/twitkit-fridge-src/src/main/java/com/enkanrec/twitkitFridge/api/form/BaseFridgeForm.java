@@ -20,6 +20,7 @@ import java.util.UUID;
  * Class : BaseFridgeForm
  * Usage : 标准请求格式
  */
+@Deprecated
 @Slf4j
 @ToString
 @EqualsAndHashCode
