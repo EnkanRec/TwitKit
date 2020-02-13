@@ -7,22 +7,25 @@ package com.enkanrec.twitkitFridge.api.ws;
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.listener.DataListener;
-import com.enkanrec.twitkitFridge.api.form.BaseFridgeForm;
+import com.enkanrec.twitkitFridge.api.form.BaseJsonWarp;
 import com.enkanrec.twitkitFridge.api.form.JsonDataFridgeForm;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.api.rest.KVConfigController;
 import com.enkanrec.twitkitFridge.api.rest.TaskController;
 import com.enkanrec.twitkitFridge.monitor.WebSocketMonitor;
 import com.enkanrec.twitkitFridge.util.JsonUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,12 +51,12 @@ public class RequestListener implements DataListener<String> {
     private WebSocketMonitor monitor;
 
     Map<String, Method> methodAccessMap;
-    Map<Method, Class> formClassAccessMap;
+    Map<Method, Type> formClassAccessMap;
 
     @PostConstruct
     void init() {
         Map<String, Method> methodMap = new HashMap<>();
-        Map<Method, Class> formClassMap = new HashMap<>();
+        Map<Method, Type> formClassMap = new HashMap<>();
         // method for request
         Method[] methods = KVConfigController.class.getMethods();
         for (Method method : methods) {
@@ -79,9 +82,12 @@ public class RequestListener implements DataListener<String> {
         for (Method chosenMethod : methodMap.values()) {
             Parameter[] ps = chosenMethod.getParameters();
             for (Parameter p : ps) {
-                Class formType = (Class) p.getParameterizedType();
-                if (BaseFridgeForm.class.isAssignableFrom(formType)) {
+                Type formType = p.getParameterizedType();
+                if (formType.getClass().equals(ParameterizedTypeImpl.class)) {
+                    Class formClazz = ((ParameterizedTypeImpl) formType).getRawType();
                     formClassMap.put(chosenMethod, formType);
+                } else {
+                    log.warn("ignore method with RAW USE of BaseJsonWarp: " + chosenMethod.toString());
                 }
             }
         }
@@ -117,12 +123,16 @@ public class RequestListener implements DataListener<String> {
             String methodKey = useController + "&" + useMethod;
             Method chosenMethod = this.methodAccessMap.get(methodKey);
             if (chosenMethod != null) {
-                Class chosenForm = this.formClassAccessMap.get(chosenMethod);
-                Object formIns = chosenForm.newInstance();
-                Method parseMethod = JsonDataFridgeForm.class.getMethod("fromRawString", String.class);
-                parseMethod.invoke(formIns, data);
+                Type chosenForm = this.formClassAccessMap.get(chosenMethod);
+                ParameterizedTypeImpl formType = (ParameterizedTypeImpl) chosenForm;
+                BaseJsonWarp dataWarp = JsonUtil.Mapper.readValue(data, new TypeReference<BaseJsonWarp>() {
+                    @Override
+                    public Type getType() {
+                        return formType;
+                    }
+                });
                 try {
-                    Object resp = chosenMethod.invoke(chosenController, formIns);
+                    Object resp = chosenMethod.invoke(chosenController, dataWarp);
                     String handlerName = chosenController.getClass().getSimpleName() + "." + chosenMethod.getName();
                     log.info(String.format("ws request handled [%s], prepare to emit.", handlerName));
                     client.sendEvent(FridgeWSServer.RESPONSE_EVT, resp);
@@ -141,8 +151,7 @@ public class RequestListener implements DataListener<String> {
                 client.sendEvent(FridgeWSServer.RESPONSE_EVT, StandardResponse.exception(hint));
                 return;
             }
-        }
-        finally {
+        } finally {
             MDC.remove(LOG_KEY_REQUEST_ID);
         }
     }

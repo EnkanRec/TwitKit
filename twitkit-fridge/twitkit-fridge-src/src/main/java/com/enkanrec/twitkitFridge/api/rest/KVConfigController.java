@@ -4,15 +4,11 @@
  */
 package com.enkanrec.twitkitFridge.api.rest;
 
-import com.enkanrec.twitkitFridge.api.form.BaseFridgeForm;
-import com.enkanrec.twitkitFridge.api.form.JsonDataFridgeForm;
+import com.enkanrec.twitkitFridge.api.form.BaseJsonWarp;
 import com.enkanrec.twitkitFridge.api.form.NamespaceForm;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.service.kvConfig.KVConfigService;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -37,7 +33,7 @@ public class KVConfigController {
      */
     @ResponseBody
     @RequestMapping(value = "/getall", method = RequestMethod.POST)
-    public StandardResponse getAllKVConfigs(@Valid BaseFridgeForm form) {
+    public StandardResponse getAllKVConfigs(@Valid @RequestBody BaseJsonWarp<Object> form) {
         return StandardResponse.ok(this.service.getAll());
     }
 
@@ -46,14 +42,9 @@ public class KVConfigController {
      */
     @ResponseBody
     @RequestMapping(value = "/set", method = RequestMethod.POST)
-    public StandardResponse setKVConfigsByDefaultNamespace(@Valid JsonDataFridgeForm form) {
-        Map params = form.asMap();
-        try {
-            this.service.setManyDefault(params);
-            return StandardResponse.ok("");
-        } catch (Exception e) {
-            return StandardResponse.exception(e.getMessage());
-        }
+    public StandardResponse setKVConfigsByDefaultNamespace(@Valid @RequestBody BaseJsonWarp<Map<String, Object>> form) throws Exception {
+        this.service.setManyDefault(form.getData());
+        return StandardResponse.ok("");
     }
 
     /**
@@ -61,8 +52,8 @@ public class KVConfigController {
      */
     @ResponseBody
     @RequestMapping(value = "/get", method = RequestMethod.POST)
-    public StandardResponse getKVConfigsByDefaultNamespace(@Valid JsonDataFridgeForm form) {
-        List params = form.asList();
+    public StandardResponse getKVConfigsByDefaultNamespace(@Valid @RequestBody BaseJsonWarp<List<String>> form) {
+        List params = form.getData();
         Map result = this.service.getManyDefault(params);
         return StandardResponse.ok(result);
     }
@@ -72,8 +63,8 @@ public class KVConfigController {
      */
     @ResponseBody
     @RequestMapping(value = "/clear", method = RequestMethod.POST)
-    public StandardResponse clearConfigOfNamespace(@Valid NamespaceForm form) {
-        this.service.clearNamespace(form.getNamespace());
+    public StandardResponse clearConfigOfNamespace(@Valid @RequestBody BaseJsonWarp<NamespaceForm> form) {
+        this.service.clearNamespace(form.getData().getNamespace());
         return StandardResponse.ok();
     }
 }

@@ -8,12 +8,7 @@ import com.enkanrec.twitkitFridge.api.form.*;
 import com.enkanrec.twitkitFridge.api.response.AffectedCountResponse;
 import com.enkanrec.twitkitFridge.api.response.StandardResponse;
 import com.enkanrec.twitkitFridge.service.task.TaskService;
-import com.enkanrec.twitkitFridge.util.JsonUtil;
-import com.fasterxml.jackson.core.type.TypeReference;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -38,17 +33,18 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public StandardResponse createTask(@Valid TaskCreationForm form) {
-        return StandardResponse.ok(this.service.addTask(form.getUrl(), form.getContent(), form.getMedia()));
+    public StandardResponse createTask(@Valid @RequestBody BaseJsonWarp<TaskCreationForm> form) {
+        TaskCreationForm data = form.getData();
+        return StandardResponse.ok(this.service.addTask(data.getUrl(), data.getContent(), data.getMedia()));
     }
 
     /**
-     * 入库一条推文
+     * 入库一批推文
      */
     @ResponseBody
     @RequestMapping(value = "/bulk", method = RequestMethod.POST)
-    public StandardResponse bulkTask(@Valid JsonDataFridgeForm form) throws Exception {
-        List<TaskCreationForm> taskCreationForms = JsonUtil.parseRaw(form.getData().toString(), new TypeReference<List<TaskCreationForm>>() {});
+    public StandardResponse bulkTask(@Valid @RequestBody BaseJsonWarp<List<TaskCreationForm>> form) {
+        List<TaskCreationForm> taskCreationForms = form.getData();
         return StandardResponse.ok(this.service.addTaskByBulk(taskCreationForms));
     }
 
@@ -57,8 +53,8 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
-    public StandardResponse removeTask(@Valid TidForm form) {
-        return StandardResponse.ok(this.service.removeTask(form.getTid()));
+    public StandardResponse removeTask(@Valid @RequestBody BaseJsonWarp<TidForm> form) {
+        return StandardResponse.ok(this.service.removeTask(form.getData().getTid()));
     }
 
     /**
@@ -66,8 +62,8 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/get", method = RequestMethod.POST)
-    public StandardResponse getTask(@Valid TidForm form) {
-        return StandardResponse.ok(this.service.getOneWithTranslation(form.getTid()));
+    public StandardResponse getTask(@Valid @RequestBody BaseJsonWarp<TidForm> form) {
+        return StandardResponse.ok(this.service.getOneWithTranslation(form.getData().getTid()));
     }
 
     /**
@@ -75,8 +71,8 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/list", method = RequestMethod.POST)
-    public StandardResponse listTask(@Valid TidForm form) {
-        return StandardResponse.ok(this.service.getManyFromTidWithTranslation(form.getTid()));
+    public StandardResponse listTask(@Valid @RequestBody BaseJsonWarp<TidForm> form) {
+        return StandardResponse.ok(this.service.getManyFromTidWithTranslation(form.getData().getTid()));
     }
 
     /**
@@ -84,8 +80,8 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/last", method = RequestMethod.POST)
-    public StandardResponse getLastTask(@Valid JsonDataFridgeForm form) {
-        Map<String, Object> param = form.getMappedData();
+    public StandardResponse getLastTask(@Valid @RequestBody BaseJsonWarp<Map<String, Object>> form) {
+        Map<String, Object> param = form.getData();
         if (param != null && (Boolean) param.getOrDefault("withTranslation", false)) {
             return StandardResponse.ok(this.service.getOneLatestOfVisibleWithTranslation());
         } else {
@@ -98,7 +94,7 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/actuallast", method = RequestMethod.POST)
-    public StandardResponse getActualLastTask(@Valid BaseFridgeForm form) {
+    public StandardResponse getActualLastTask(@Valid @RequestBody BaseJsonWarp<Object> form) {
         return StandardResponse.ok(this.service.getOneLatest());
     }
 
@@ -107,8 +103,9 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/comment", method = RequestMethod.POST)
-    public StandardResponse commentTask(@Valid CommentForm form) {
-        return StandardResponse.ok(this.service.updateComment(form.getTid(), form.getComment()));
+    public StandardResponse commentTask(@Valid @RequestBody BaseJsonWarp<CommentForm> form) {
+        CommentForm data = form.getData();
+        return StandardResponse.ok(this.service.updateComment(data.getTid(), data.getComment()));
     }
 
     /**
@@ -116,8 +113,8 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/hide", method = RequestMethod.POST)
-    public StandardResponse hideTask(@Valid TidForm form) {
-        return StandardResponse.ok(this.service.hide(form.getTid()));
+    public StandardResponse hideTask(@Valid @RequestBody BaseJsonWarp<TidForm> form) {
+        return StandardResponse.ok(this.service.hide(form.getData().getTid()));
     }
 
     /**
@@ -125,8 +122,8 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/visible", method = RequestMethod.POST)
-    public StandardResponse visibleTask(@Valid TidForm form) {
-        return StandardResponse.ok(this.service.visible(form.getTid()));
+    public StandardResponse visibleTask(@Valid @RequestBody BaseJsonWarp<TidForm> form) {
+        return StandardResponse.ok(this.service.visible(form.getData().getTid()));
     }
 
     /**
@@ -134,8 +131,8 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/published", method = RequestMethod.POST)
-    public StandardResponse publishTask(@Valid TidForm form) {
-        return StandardResponse.ok(this.service.setPublished(form.getTid()));
+    public StandardResponse publishTask(@Valid @RequestBody BaseJsonWarp<TidForm> form) {
+        return StandardResponse.ok(this.service.setPublished(form.getData().getTid()));
     }
 
     /**
@@ -143,8 +140,8 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/unpublished", method = RequestMethod.POST)
-    public StandardResponse unpublishedTask(@Valid TidForm form) {
-        return StandardResponse.ok(this.service.setUnpublished(form.getTid()));
+    public StandardResponse unpublishedTask(@Valid @RequestBody BaseJsonWarp<TidForm> form) {
+        return StandardResponse.ok(this.service.setUnpublished(form.getData().getTid()));
     }
 
     /**
@@ -152,8 +149,9 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/translate", method = RequestMethod.POST)
-    public StandardResponse translateTask(@Valid TranslateForm form) {
-        return StandardResponse.ok(this.service.addTranslation(form.getTid(), form.getTrans(), form.getImg()));
+    public StandardResponse translateTask(@Valid @RequestBody BaseJsonWarp<TranslateForm> form) {
+        TranslateForm data = form.getData();
+        return StandardResponse.ok(this.service.addTranslation(data.getTid(), data.getTrans(), data.getImg()));
     }
 
     /**
@@ -161,8 +159,8 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/translations", method = RequestMethod.POST)
-    public StandardResponse getAllTranslationsForTask(@Valid TidForm form) {
-        return StandardResponse.ok(this.service.getAllTranslation(form.getTid()));
+    public StandardResponse getAllTranslationsForTask(@Valid @RequestBody BaseJsonWarp<TidForm> form) {
+        return StandardResponse.ok(this.service.getAllTranslation(form.getData().getTid()));
     }
 
     /**
@@ -170,8 +168,8 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/rollback", method = RequestMethod.POST)
-    public StandardResponse rollbackTask(@Valid TidForm form) {
-        return StandardResponse.ok(this.service.rollbackTranslation(form.getTid()));
+    public StandardResponse rollbackTask(@Valid @RequestBody BaseJsonWarp<TidForm> form) {
+        return StandardResponse.ok(this.service.rollbackTranslation(form.getData().getTid()));
     }
 
     /**
@@ -179,7 +177,7 @@ public class TaskController {
      */
     @ResponseBody
     @RequestMapping(value = "/reset", method = RequestMethod.POST)
-    public StandardResponse resetTask(@Valid TidForm form) {
-        return AffectedCountResponse.of(this.service.removeAllTranslations(form.getTid()));
+    public StandardResponse resetTask(@Valid @RequestBody BaseJsonWarp<TidForm> form) {
+        return AffectedCountResponse.of(this.service.removeAllTranslations(form.getData().getTid()));
     }
 }
