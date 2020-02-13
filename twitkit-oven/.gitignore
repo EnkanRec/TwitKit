@@ -1,2 +1,5 @@
 config.py
+gunicorn_config.py
+__pycache__
+static/*
 __pycache__

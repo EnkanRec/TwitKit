@@ -24,7 +24,10 @@ api.add_namespace(oven_api, path='/api')
 @app.after_request
 def after_request(response):
     if request.path.startswith('/api'):
-        response_data = json.loads(response.get_data())
+        try:
+            response_data = json.loads(response.get_data())
+        except:
+            return response
         if 'code' not in response_data:
             response_data['code'] = response.status_code
             status_code = 200
