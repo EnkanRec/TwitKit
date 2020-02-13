@@ -18,20 +18,22 @@ let lastTrans: number
 async function rest(url: string, data?: any): Promise<any> {
     logger.debug("POST " + url)
     logger.debug(data)
-    const res = await axios.post<utils.response>(host + url, new utils.request(data))
-    if (res.status !== 200) {
-        logger.error("Internet error: %d", res.status)
-        return null
+    try {
+        const res = await axios.post<utils.response>(host + url, new utils.request(data))
+        if (res.data.code === 0) {
+            logger.debug("Return %d: %s", res.data.code, res.data.msg)
+            logger.debug(res.data.data)
+            if (typeof res.data.data === "undefined") return true
+            return res.data.data
+        } else {
+            logger.warn("Error %d: %s", res.data.code, res.data.msg)
+            return null
+        }
+    } catch (e) {
+        logger.error("Internet error: %d", e.response.status)
+        logger.debug(e.response.data)
     }
-    if (res.data.code === 0) {
-        logger.debug("Return %d: %s", res.data.code, res.data.msg)
-        logger.debug(res.data.data)
-        if (typeof res.data.data === "undefined") return true
-        return res.data.data
-    } else {
-        logger.warn("Error %d: %s", res.data.code, res.data.msg)
-        return null
-    }
+    return null
 }
 
 /**
@@ -59,7 +61,7 @@ function getKVs(keys: string[]): Promise<any> {
  */
 async function getKV(key): Promise<any> {
     const data: string[] = await getKVs([key])
-    if (key in data) return data[key]
+    if (data !== null && key in data) return data[key]
     return null
 }
 
@@ -185,8 +187,9 @@ function deleteTask(tid: number): Promise<boolean> {
  * @returns Twitter[]
  */
 async function list(tid?: number): Promise<Twitter[]> {
-    const todo: number = isNaN(tid) ? getTodo() : tid
+    const todo: number = (tid === null || isNaN(tid)) ? getTodo() : tid
     const list: { twitter: db_twitter, translation: db_translation }[] = await rest("/api/db/task/list", { "tid": todo })
+    if (list === null) return null
     logger.debug("Got %d Twitter", list.length)
     let result: Twitter[] = [];
     for (const i of list) {
@@ -207,7 +210,9 @@ async function list(tid?: number): Promise<Twitter[]> {
  * @param tid 推文id
  */
 async function hide(tid: number): Promise<boolean> {
-    let tw = (await get(tid)).twitter
+    const t = await get(tid)
+    if (!t) return null
+    let tw = t.twitter
     if (tw.hided) tw = await rest("/api/db/task/visible", { tid })
     else tw = await rest("/api/db/task/hide", { tid })
     return tw ? tw.hided : null
@@ -269,9 +274,9 @@ async function undo(tid: number): Promise<Twitter> {
 }
 
 async function init(ctx: Context, Host: string) {
-    logger = ctx.logger("app:translator") // 初始化logger
-    host = Host || "http://localhost"     // 初始化DB的Host
-    orig = await getKV("twid")            // 初始化监视Twitter用户ID
+    logger = ctx.logger("app:store")          // 初始化logger
+    host = Host || "http://localhost"         // 初始化DB的Host
+    orig = await getKV("twid")                // 初始化监视Twitter用户ID
     todo = parseInt(await getKV("todo")) || 0 // 初始化队列头
     if (orig) return logger.debug("store client ready")
     return logger.error("init DB fail")

@@ -29,7 +29,7 @@ class rss {
     }
 }
 
-function Twitter2msg(tw: Twitter, argv = { ispro: true, prefix: '#' }): string {
+function Twitter2msg(tw: Twitter, argv): string {
     let msg: string = "【" + tw.user.name + "】" + tw.type
         + "\n----------------\n"
         + "内容: " + tw.content
@@ -41,7 +41,7 @@ function Twitter2msg(tw: Twitter, argv = { ispro: true, prefix: '#' }): string {
     return msg
 }
 
-async function rss2msg(tw: rss, argv = { ispro: true, prefix: '#' }): Promise<string> {
+async function rss2msg(tw: rss, argv): Promise<string> {
     let msg: string = "【" + tw.author + "】"
     if (tw.title) msg += tw.title
     msg += "\n----------------\n内容: " + tw.content
@@ -64,7 +64,7 @@ async function rss2msg(tw: rss, argv = { ispro: true, prefix: '#' }): Promise<st
     return msg
 }
 
-function sendmsg(ctx: Context, target: any = { discuss: [], private: [], group: [] }, msg: string): void {
+function sendmsg(ctx: Context, target: { discuss: number[], private: number[], group: number[] }, msg: string): void {
     logger.debug("msg: " + msg)
     for (const i in target) for (const j of target[i]) {
         ctx.sender.sendMsgAsync(<MessageType>i, j, msg)
@@ -72,7 +72,7 @@ function sendmsg(ctx: Context, target: any = { discuss: [], private: [], group: 
     }
 }
 
-export default function (ctx: Context, argv: any = { target: {}, ispro: true, port: 1551, prefix: '#' }) {
+export default function (ctx: Context, argv: any) {
     logger = ctx.logger("app:watcher")
     logger.debug("watcher server starting...")
     const server = http.createServer((req, res) => {
