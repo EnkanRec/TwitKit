@@ -18,12 +18,12 @@ if config.APP_LOG_FILE:
 app.logger.setLevel(logging.getLevelName(config.LOG_LEVEL))
 
 app.register_blueprint(tweet_page_bp, url_prefix='/internal')
-api.add_namespace(oven_api, path='/api')
+api.add_namespace(oven_api, path='/api/oven')
 
 
 @app.after_request
 def after_request(response):
-    if request.path.startswith('/api'):
+    if request.path.startswith('/api/oven'):
         try:
             response_data = json.loads(response.get_data())
         except:
