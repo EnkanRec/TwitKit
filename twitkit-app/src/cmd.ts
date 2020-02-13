@@ -3,7 +3,7 @@ import { Twitter } from './twitter'
 import store from './store'
 import translator from './translator'
 
-export default function (ctx: Context, argv: any = { cut : 8, ispro: true, prefix: '#', host: {} }) {
+export default function (ctx: Context, argv: any) {
     translator.init(ctx, argv.host.translator)
     store.init(ctx, argv.host.store)
     let logger = ctx.logger("app:cmd")
