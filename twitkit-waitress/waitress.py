@@ -95,7 +95,7 @@ class Waitress:
                                      'taskId': str(uuid.uuid4())}))
             validate_response(resp)
             tid = json.loads(resp.text)['tid']
-            return 1000 if tid == -1 else tid
+            return None if tid == -1 else tid
         except Exception as e:
             logging.error(f'解析图片tid时出错：{e}')
             return False
