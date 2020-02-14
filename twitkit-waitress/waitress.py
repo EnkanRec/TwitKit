@@ -74,18 +74,19 @@ class Waitress:
             task_id = str(uuid.uuid4())
             logging.info(f'推文更新通知app：{task_id}: {tid}')
             notify_data[task_id] = tid
-        try:
-            resp = requests.post(f'{config.APP_API_ROOT}/app/twitter',
-                                 json=make_request_payload(notify_data))
-            validate_response(resp)
-            logging.info('成功通知APP')
-        except Exception as e:
-            logging.error(f'推文更新通知app失败：{e}')
-            for tid in notify_data.values():
-                del_resp = requests.post(
-                    f'{config.FRIDGE_API_ROOT}/db/task/delete')
-                validate_response(del_resp)
-            logging.info('已回滚')
+        if notify_data:
+            try:
+                resp = requests.post(f'{config.APP_API_ROOT}/app/twitter',
+                                    json=make_request_payload(notify_data))
+                validate_response(resp)
+                logging.info('成功通知APP')
+            except Exception as e:
+                logging.error(f'推文更新通知app失败：{e}')
+                for tid in notify_data.values():
+                    del_resp = requests.post(
+                        f'{config.FRIDGE_API_ROOT}/db/task/delete')
+                    validate_response(del_resp)
+                logging.info('已回滚')
 
     def check_tid(self, image_url):
         try:
