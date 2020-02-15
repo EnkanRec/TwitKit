@@ -8,9 +8,9 @@ export {
     watcher
 }
 
-export async function apply (ctx: Context, argv?: config) {
+export function apply (ctx: Context, argv?: config) {
     const Logger = ctx.logger("info")
-    if (argv.ispro && await ctx.sender.canSendImage() === false) argv.ispro = false
+    // if (argv.ispro && ctx.app.version.coolqEdition !== "pro") argv.ispro = false
     Logger.debug("apply plugin watcher")
     ctx.plugin(watcher, argv)
     Logger.debug("apply plugin cmd")
