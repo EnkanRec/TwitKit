@@ -42,7 +42,7 @@ export function genUuid(): uuid {
  */
 export type ISO8601 = string
 export function verifyDatetime(str: string): boolean {
-    return /\d+-(0\d|1[0-2])-([0-2]\d|3[0-1])T([0-1]\d|2[0-3]):[0-5]\d:[0-5]\d\.\d{3}\+(0\d|1[0-3]):[0,3]0/.test(str)
+    return /\d+-(0\d|1[0-2])-([0-2]\d|3[0-1])T([0-1]\d|2[0-3]):[0-5]\d(:[0-5]\d(\.\d{1,3})?)?(\+(0\d|1[0-3]):[0,3]0)?/.test(str)
 }
 
 export class request {
