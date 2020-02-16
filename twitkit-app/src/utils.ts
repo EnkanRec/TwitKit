@@ -1,13 +1,15 @@
 export class config {
-    host: {                 // 微服务REST域名
+    host?: {                // 微服务REST域名
         translator: string, // 烤推机
         store: string       // DB
     }
-    prefix: string          // 快捷指令前缀
-    ispro: boolean          // 是否发图（考虑ctx.sender.canSendImage）
-    cut: number             // 消息预览截断长度
-    port: number            // 监视器推送端口
-    target: {               // 监视器更新推送目标
+    listen?: number[]       // 允许使用指令的群号
+    private?: boolean       // 是否允许私聊上班
+    prefix?: string         // 快捷指令前缀
+    ispro?: boolean         // 是否发图（考虑ctx.sender.canSendImage）
+    cut?: number            // 消息预览截断长度
+    port?: number           // 监视器推送端口
+    target?: {              // 监视器更新推送目标
         discuss: number[]   // 讨论组
         private: number[]   // 私聊
         group: number[]     // 群
