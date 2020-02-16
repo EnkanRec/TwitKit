@@ -180,7 +180,7 @@ export default function (ctx: Context, argv: config) {
         .action(async ({ meta }, id) => {
             const twi = id ? parseInt(id) : store.getTodo()
             logger.debug("show list from %d", twi)
-            const list: any[] = await store.list(twi)
+            const list: Twitter[] = await store.list(twi)
             let msg:string
             if (list && list.length) {
                 msg = "从" + argv.prefix + twi + "到现在的已烤推特如下: "
@@ -191,14 +191,17 @@ export default function (ctx: Context, argv: config) {
                     if (i.trans) {
                         msg += " 已烤"
                         if (i.comment) msg += "#" + i.comment
-                        else msg += "-" + ((i.trans.length > argv.cut) ? i.trans.substr(0, argv.cut) + "…" : i.trans) // short(i.trans)
+                        else msg += "-" + ((i.trans.length > argv.cut)
+                            ? i.trans.substr(0, argv.cut).replace(/\n/, ' ') + "…" 
+                            : i.trans.replace(/\n/, ' ')
+                        ) // short(i.trans)
                     } else {
                         if (i.comment) msg += "#" + i.comment
                     }
                 }
                 msg += "\n--------共" + list.length + "条--------\n"
-                    + "发送#推特ID以获取详细信息\n"
-                    + "发送" + argv.prefix + twi + "~~以批量获取嵌字结果"
+                    + "发送 " + argv.prefix + "推特ID 以获取详细信息\n"
+                    + "发送 " + argv.prefix + twi + "~~以批量获取嵌字结果"
                 logger.debug("Found %d Twitters", list.length)
             } else {
                 logger.debug("But nothing found")
@@ -243,7 +246,7 @@ export default function (ctx: Context, argv: config) {
                 "修改前的快速搜索ID为 " + argv.prefix + todo + "\n"
                 + argv.prefix + twi + " 已被保存为快速搜索ID\n"
                 + "可直接发送" + argv.prefix + "~或" + argv.prefix + "~~\n"
-                + "效果等价于" + argv.prefix + twi + "~与" + argv.prefix + twi + "~~\n"
+                + "效果等价于" + argv.prefix + twi + "~与" + argv.prefix + twi + "~~"
             )
         })
         .usage("设置队列头，id为空时，设置成最新的id（清空队列）")
@@ -269,13 +272,15 @@ export default function (ctx: Context, argv: config) {
     ctx.command('comment [id] [comment...]')
         .action(async ({ meta }, id, comment) => {
             let twi = parseInt(id)
-            if (isNaN(twi)) twi = await store.getLastTid()
-            if (twi === null || isNaN(twi)) {
-                logger.debug("comment nothing")
-                return meta.$send("没有可用任务")
-            } else {
-                logger.debug("Id as part of comment")
-                comment = id + " " + comment
+            if (isNaN(twi)) {
+                twi = await store.getLastTid()
+                if (twi === null || isNaN(twi)) {
+                    logger.debug("comment nothing")
+                    return meta.$send("没有可用任务")
+                } else {
+                    logger.debug("Id as part of comment")
+                    comment = id + " " + comment
+                }
             }
             comment = comment.trim()
             const tw = await store.comment(twi, comment)
