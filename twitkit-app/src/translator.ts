@@ -23,7 +23,8 @@ async function get(tw: Twitter): Promise<string> {
         origText: tw.content,
         transText: tw.trans,
         media: tw.media,
-        username: tw.user.id || tw.user.name,
+        username: tw.user.id,
+        origUid: tw.user.name,
         postDate: tw.postDate
     }))
     if (res.status !== 200) {

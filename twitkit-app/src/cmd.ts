@@ -1,5 +1,5 @@
 import { Context, Logger, Meta } from 'koishi-core'
-import { Twitter } from './twitter'
+import { Twitter, Twitter2msg } from './twitter'
 import store from './store'
 import translator from './translator'
 import { config } from './utils'
@@ -162,14 +162,7 @@ export default function (ctx: Context, argv: config) {
                     return meta.$send(tw.img + (argv.ispro ? "\n[CQ:image,file=" + tw.img + "]" : ""))
                 } else {
                     logger.debug("Show raw Twitter: " + tw.content)
-                    let msg: string = "【" + tw.user.name + "】" + tw.type
-                                    + "\n----------------\n"
-                                    + "内容: " + tw.content
-                    if (tw.media) {
-                        msg += "\n媒体: "
-                        for (const img of tw.media) msg += argv.ispro ? "[CQ:image,file=" + img + "]" : img
-                    }
-                    msg += "\n原链接: " + tw.url + "\n快速嵌字发送: " + argv.prefix + tw.id + " 译文"
+                    const msg = Twitter2msg(tw, argv)
                     return meta.$send(msg)
                 }
             }
@@ -186,7 +179,7 @@ export default function (ctx: Context, argv: config) {
                 msg = "从" + argv.prefix + twi + "到现在的已烤推特如下: "
                 for (const i of list) {
                     msg += "\n" + argv.prefix + i.id
-                    if (i.type !== "发布") msg += " " + i.type
+                    if (i.type !== "更新") msg += " " + i.type
                     if (i.published) msg += " 已发"
                     if (i.trans) {
                         msg += " 已烤"

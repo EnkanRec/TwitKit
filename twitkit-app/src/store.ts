@@ -42,7 +42,9 @@ async function rest(url: string, data?: any): Promise<any> {
  * @param value 值
  */
 function setKV(key: string, value: string): Promise<void> {
-    return rest("/api/db/kv/set", { key: value })
+    let data: any = {}
+    data[key] = value
+    return rest("/api/db/kv/set", data)
 }
 
 /**
@@ -128,7 +130,7 @@ function setTodo(tid: number): Promise<void> {
 /**
  * 设置监视的Twitter账号id，但不影响监视器行为
  * 仅需部署时设置一次
- * 用于确定推文类型（发表/转发）
+ * 用于确定推文类型（更新/转推）
  * @param twid Twitter ID
  */
 async function setTwid(twid: string): Promise<void> {
