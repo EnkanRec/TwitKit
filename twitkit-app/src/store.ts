@@ -42,7 +42,9 @@ async function rest(url: string, data?: any): Promise<any> {
  * @param value 值
  */
 function setKV(key: string, value: string): Promise<void> {
-    return rest("/api/db/kv/set", { key: value })
+    let data: any = {}
+    data[key] = value
+    return rest("/api/db/kv/set", data)
 }
 
 /**
