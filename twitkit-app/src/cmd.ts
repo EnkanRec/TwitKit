@@ -1,13 +1,74 @@
-import { Context } from 'koishi-core'
+import { Context, Logger, Meta } from 'koishi-core'
 import { Twitter } from './twitter'
 import store from './store'
 import translator from './translator'
+import { config } from './utils'
 
-export default function (ctx: Context, argv: any) {
+let logger: Logger
+let context: Context
+let groups: Array<number[]> = []
+let members: Set<number> = new Set()
+
+async function updateMember(meta?: Meta<"notice">) {
+    if (meta && meta.groupId) {
+        const list = await context.sender.getGroupMemberList(meta.groupId)
+        groups[meta.groupId] = list.map<number>((i) => { return i.userId })
+    } else {
+        for (const i in groups) {
+            const list = await context.sender.getGroupMemberList(parseInt(i))
+            groups[i] = list.map<number>((i) => { return i.userId })
+        }
+    }
+    members.clear()
+    groups.forEach((v) => { v.forEach((i) => { if (i) members.add(i) }) })
+}
+
+export default function (ctx: Context, argv: config) {
     translator.init(ctx, argv.host.translator)
     store.init(ctx, argv.host.store)
-    let logger = ctx.logger("app:cmd")
+    logger = ctx.logger("app:cmd")
+    context = ctx
+    if (argv.listen && argv.listen.length && argv.private) {
+        for (const i of argv.listen) {
+            groups[i] = []
+        }
+        ctx.receiver.on("group-increase", updateMember)
+        ctx.receiver.on("group-decrease", updateMember)
+        ctx.receiver.on("ready", updateMember)
+    }
+    // 中间件判断权限及解析短快捷指令
     ctx.middleware((meta, next) => {
+        if (argv.listen && argv.listen.length) switch (meta.messageType) {
+            case "private":
+                if (!argv.private) {
+                    // 配置不许私聊上班
+                    logger.debug("Ignore private message")
+                    return next()
+                }
+                switch (meta.subType) {
+                    case "friend":
+                        // 好友允许私聊上班
+                        break
+                    case "group":
+                        // 指定群的成员允许临时会话私聊上班
+                        if (members.has(meta.userId)) break
+                    default:
+                        // 其他通通不给私聊上班
+                        logger.debug("Ignore unknown private")
+                        return next()
+                }
+                break
+            case "group":
+                // argv.listen为空则不限制群上班，否则检测是否是允许群
+                if (!argv.listen || meta.groupId && meta.groupId in argv.listen) break
+            case "discuss":
+                // 似乎没有必要讨论组上班
+                // if (!(meta.discussId in groups)) return next()
+                // break
+            default:
+                logger.debug("Ignore illegal source")
+                return next()
+        }
         if (meta.message.startsWith(argv.prefix)) {
             const msg = meta.message.slice(argv.prefix.length)
             const r = /^(\d+)(~~|[^\d\s])?\s*(.*)$/.exec(msg)
@@ -70,6 +131,7 @@ export default function (ctx: Context, argv: any) {
         return next()
     })
 
+    // 命令实现具体功能
     ctx.command('translate <id> [trans...]')
         .action(async ({ meta }, id, trans) => {
             const twi = parseInt(id)
