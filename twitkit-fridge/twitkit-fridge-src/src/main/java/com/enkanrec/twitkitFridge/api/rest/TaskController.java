@@ -49,6 +49,16 @@ public class TaskController {
     }
 
     /**
+     * 带有缓存判定地入库一批推文
+     */
+    @ResponseBody
+    @RequestMapping(value = "/cachebulk", method = RequestMethod.POST)
+    public StandardResponse cachebulkTask(@Valid @RequestBody BaseJsonWarp<List<TaskCreationForm>> form) {
+        List<TaskCreationForm> taskCreationForms = form.getData();
+        return StandardResponse.ok(this.service.addTaskByBulkWithCache(taskCreationForms));
+    }
+
+    /**
      * 删除一条推文任务和她的所有翻译，这个操作不能回滚
      */
     @ResponseBody

@@ -19,6 +19,8 @@ public interface TaskService {
 
     List<TaskServiceImpl.CreateTaskReplay> addTaskByBulk(List<TaskCreationForm> twitters);
 
+    List<TaskServiceImpl.CreateTaskReplay> addTaskByBulkWithCache(List<TaskCreationForm> twitters);
+
     Boolean removeTask(Integer tid);
 
     EnkanTaskEntity getOneLatestOfVisible();
