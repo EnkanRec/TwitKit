@@ -60,7 +60,7 @@ export default function (ctx: Context, argv: config) {
                 break
             case "group":
                 // argv.listen为空则不限制群上班，否则检测是否是允许群
-                if (!argv.listen || meta.groupId && meta.groupId in argv.listen) break
+                if (meta.groupId && ~argv.listen.indexOf(meta.groupId)) break
             case "discuss":
                 // 似乎没有必要讨论组上班
                 // if (!(meta.discussId in groups)) return next()
