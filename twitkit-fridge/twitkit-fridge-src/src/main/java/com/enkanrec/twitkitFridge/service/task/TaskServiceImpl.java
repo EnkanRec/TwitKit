@@ -5,14 +5,20 @@
 package com.enkanrec.twitkitFridge.service.task;
 
 import com.enkanrec.twitkitFridge.api.form.TaskCreationForm;
+import com.enkanrec.twitkitFridge.monitor.BulkMonitor;
 import com.enkanrec.twitkitFridge.steady.yui.entity.EnkanTaskEntity;
 import com.enkanrec.twitkitFridge.steady.yui.entity.EnkanTranslateEntity;
 import com.enkanrec.twitkitFridge.steady.yui.repository.EnkanTaskRepository;
 import com.enkanrec.twitkitFridge.steady.yui.repository.EnkanTranslateRepository;
+import com.google.common.hash.BloomFilter;
+import com.google.common.hash.Funnel;
+import com.google.common.hash.Funnels;
+import com.google.common.hash.PrimitiveSink;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,12 +26,15 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
  * Class : TaskServiceImpl
  * Usage : 烤推任务的交互逻辑
  */
+
 @Slf4j
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -34,13 +43,19 @@ public class TaskServiceImpl implements TaskService {
 
     private final EnkanTranslateRepository translateRepository;
 
+    private final BulkMonitor bulkMonitor;
+
     @PersistenceContext(unitName = "entityManagerFactoryYui")
     private EntityManager entityManager;
 
+    @SuppressWarnings("UnstableApiUsage")
+    private BloomFilter<String> cacheFilter = BloomFilter.create(Funnels.stringFunnel(StandardCharsets.UTF_8), 102400, 0.005);
+
     public TaskServiceImpl(EnkanTaskRepository taskRepository,
-                           EnkanTranslateRepository translateRepository) {
+                           EnkanTranslateRepository translateRepository, BulkMonitor bulkMonitor) {
         this.taskRepository = taskRepository;
         this.translateRepository = translateRepository;
+        this.bulkMonitor = bulkMonitor;
     }
 
     @Transactional
@@ -55,6 +70,32 @@ public class TaskServiceImpl implements TaskService {
         log.info(String.format("Pre-commit twitter [%s]", url));
         EnkanTaskEntity task = this.taskRepository.findByUrl(url);
         return CreateTaskReplay.of(task, affected == 0);
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    @Transactional
+    @Override
+    public List<CreateTaskReplay> addTaskByBulkWithCache(List<TaskCreationForm> twitters) {
+        List<TaskCreationForm> distinctForms = new ArrayList<>();
+        int falsePositiveCount = 0;
+        for (TaskCreationForm tcf : twitters) {
+            String url = tcf.getUrl();
+            if (this.cacheFilter.mightContain(url)) {
+                EnkanTaskEntity testOne = this.taskRepository.findByUrl(url);
+                if (testOne == null) {
+                    distinctForms.add(tcf);
+                    falsePositiveCount++;
+                }
+            } else {
+                this.cacheFilter.put(url);
+                distinctForms.add(tcf);
+            }
+        }
+        List<CreateTaskReplay> results = this.addTaskByBulk(distinctForms);
+        this.bulkMonitor.bloomQueryCounter.inc(twitters.size());
+        this.bulkMonitor.bloomHitCounter.inc(distinctForms.size());
+        this.bulkMonitor.bloomFalsePositiveCounter.inc(falsePositiveCount);
+        return results;
     }
 
     @Transactional
@@ -100,6 +141,8 @@ public class TaskServiceImpl implements TaskService {
         for (EnkanTaskEntity task : tasks) {
             result.add(CreateTaskReplay.of(task, existMap.getOrDefault(task.getUrl(), false)));
         }
+
+        this.bulkMonitor.totalCounter.inc(twitters.size());
         return result;
     }
 

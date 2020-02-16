@@ -11,6 +11,8 @@ module.exports = {
         translator: "http://localhost",
         store: "http://localhost"
       },
+      listen: [949103207],   // 监听命令的群组，留空监听所有人
+      private: true,// 是否允许私聊上班
       prefix: '#',// 快捷指令前缀
       ispro: false, // 是否发图
       cut: 8,     // 消息预览截断长度

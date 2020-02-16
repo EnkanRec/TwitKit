@@ -56,7 +56,8 @@ export function convert(dbtw: db_twitter, dbtr?: db_translation, orig?: string):
         trans: dbtr ? dbtr.translation : undefined,
         img: dbtr ? dbtr.img : undefined,
         user: {
-            id: twURL2user(dbtw.url)
+            id: twURL2user(dbtw.url),
+            name: orig
         }
     }
     if (orig && tw.user.id !== orig) tw.type = "转发"
