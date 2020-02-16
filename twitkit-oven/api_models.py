@@ -12,14 +12,14 @@ base_fields = {
         dt_format='iso8601',
         required=True,
         description='请求发出时间戳，ISO8601格式',
-        example='2020-01-29T14:23:23.233+08:00')
-}
-
-bake_data_model = oven_api.model('bakeDataModel', {
+        example='2020-01-29T14:23:23.233+08:00'),
     'taskId': fields.String(
         required=True,
         description='一个UUID，是一个任务的上下文唯一标识符',
-        example='123e4567-e89b-12d3-a456-426655440000'),
+        example='123e4567-e89b-12d3-a456-426655440000')
+}
+
+bake_data_model = oven_api.model('bakeDataModel', {
     'tid': fields.Integer(
         required=True,
         description='推文ID',
@@ -62,10 +62,6 @@ bake_fields['data'] = fields.Nested(
 bake_model = oven_api.model('bakeRequestModel', bake_fields)
 
 check_data_model = oven_api.model('checkDataModel', {
-    'taskId': fields.String(
-        required=True,
-        description='一个UUID，是一个任务的上下文唯一标识符',
-        example='123e4567-e89b-12d3-a456-426655440000'),
     'imageUrl': fields.String(
         required=True,
         description='要查询tid的图片的URL',

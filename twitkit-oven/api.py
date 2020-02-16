@@ -33,13 +33,14 @@ class GenerateImage(Resource):
     def post(self):
         request_base_data = request.json
         request_data = request_base_data['data']
+        task_id = request_base_data['taskId']
 
         try:
             parsed_post_date = isoparse(request_data['postDate'])
         except ValueError as e:
             return make_response(400, f'日期时间格式有误：{e}')
 
-        logger.info(f'[{request_data["taskId"]}] '
+        logger.info(f'[{task_id}] '
                     f'从 {request_base_data["forwardFrom"]} 收到烤图任务')
         filename = \
             md5(json.dumps(request_data).encode('utf-8')).hexdigest() + '.png'
@@ -76,7 +77,7 @@ class GenerateImage(Resource):
         if not bake_result:
             return make_response(500, '后端生成图片发生错误，请联系管理员检查日志')
         else:
-            logger.info(f'[{request_data["taskId"]}] '
+            logger.info(f'[{task_id}] '
                         f'烤图任务完成，输出文件：{filename}')
             result_url = image_url_prefix + filename
             return make_response(
@@ -93,7 +94,8 @@ class GenerateImage(Resource):
     def post(self):
         request_base_data = request.json
         request_data = request_base_data['data']
-        logger.info(f'[{request_data["taskId"]}] '
+        task_id = request_base_data['taskId']
+        logger.info(f'[{task_id}] '
                     f'从 {request_base_data["forwardFrom"]} 收到检查tid任务')
         url = request_data['imageUrl']
 
@@ -103,13 +105,13 @@ class GenerateImage(Resource):
                 url, config.TID_CODE_POS_X, config.TID_CODE_POS_Y,
                 config.TID_CODE_WIDTH, config.TID_CODE_HEIGHT)
             message = 'OK'
-            logger.info(f'[{request_data["taskId"]}] 检查tid任务完成（{tid}）。')
+            logger.info(f'[{task_id}] 检查tid任务完成（{tid}）。')
         except ValueError as e:
-            logger.debug(f'[{request_data["taskId"]}] 二维码解码失败：{e}')
+            logger.debug(f'[{task_id}] 二维码解码失败：{e}')
             tid = -1
             message = '没有找到有效的tid二维码'
         except Exception as e:
-            logger.error(f'[{request_data["taskId"]}] 检查tid时发生了错误：{e}')
+            logger.error(f'[{task_id}] 检查tid时发生了错误：{e}')
             logger.error(format_exc())
             return make_response(500, '检查tid失败，请联系管理员检查日志')
 

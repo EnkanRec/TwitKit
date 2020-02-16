@@ -19,7 +19,7 @@ tweet_page_bp = Blueprint('internal', __name__, template_folder='template')
 def bake_tweet(
         tid, output_path, username, post_date, retweeter_username=None,
         trans_text="", orig_text="", hashtags=[], media_urls=[],
-        ppi=config.DEFAULT_PPI, transparent=True, smooth=True):
+        ppi=config.DEFAULT_PPI, transparent=False, smooth=True):
 
     post_date_formatted = post_date.strftime(
         '%Y {}!%m {}!%d {} %H:%M:%S (UTC%z)')

@@ -15,6 +15,7 @@ from rsshub_client import get_new_tweets, get_new_bilibili_status
 def make_request_payload(data):
     return {'forwardFrom': 'twitkit-waitress',
             'timestamp': datetime.utcnow().replace(microsecond=0).isoformat() + '.111+00:00',
+            'taskId': str(uuid.uuid4()),
             'data': data}
 
 
@@ -91,9 +92,8 @@ class Waitress:
     def check_tid(self, image_url):
         try:
             resp = requests.post(f'{config.OVEN_API_ROOT}/oven/check',
-                                 json=make_request_payload({
-                                     'imageUrl': image_url,
-                                     'taskId': str(uuid.uuid4())}))
+                                 json=make_request_payload(
+                                     {'imageUrl': image_url}))
             validate_response(resp)
             tid = json.loads(resp.text)['tid']
             return None if tid == -1 else tid
@@ -138,7 +138,6 @@ class Waitress:
 
     def notify_other(self, tid_list, item):
         data = {
-            'taskId': str(uuid.uuid4()),
             'content': item.content,
             'url': item.url,
             'author': '？？？',  # TODO 确定作者
@@ -172,8 +171,10 @@ class Waitress:
                 logging.error('执行Bilibili动态更新时出错：')
                 logging.error(traceback.format_exc())
             elapsed_time = time.time() - start_time
-            time.sleep(max(0, config.UPDATE_INTERVAL - elapsed_time))
-
+            sleep_time = max(1, config.UPDATE_INTERVAL - elapsed_time)
+            logging.debug(f'sleep for {sleep_time}s')
+            time.sleep(sleep_time)
+            logging.debug('sleep finished')
 
 if __name__ == '__main__':
     logging.basicConfig(
