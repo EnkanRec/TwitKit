@@ -2,7 +2,7 @@ import { Context, Logger, MessageType } from 'koishi-core'
 import * as http from 'http'
 import { parse } from 'url'
 import * as utils from './utils'
-import { Twitter } from './twitter'
+import { Twitter, Twitter2msg } from './twitter'
 import store from './store'
 import translator from './translator'
 
@@ -27,18 +27,6 @@ class rss {
         ) throw "param lost"
         return Data
     }
-}
-
-function Twitter2msg(tw: Twitter, argv): string {
-    let msg: string = "【" + tw.user.name + "】" + tw.type
-        + "\n----------------\n"
-        + "内容: " + tw.content
-    if (tw.media) {
-        msg += "\n媒体: "
-        for (const img of tw.media) msg += argv.ispro ? "[CQ:image,file=" + img + "]" : img
-    }
-    msg += "\n原链接: " + tw.url + "\n快速嵌字发送: " + argv.prefix + tw.id + " 译文"
-    return msg
 }
 
 async function rss2msg(tw: rss, argv): Promise<string> {
@@ -72,7 +60,7 @@ function sendmsg(ctx: Context, target: { discuss: number[], private: number[], g
     }
 }
 
-export default function (ctx: Context, argv: any) {
+export default function (ctx: Context, argv: utils.config) {
     logger = ctx.logger("app:watcher")
     logger.debug("watcher server starting...")
     const server = http.createServer((req, res) => {

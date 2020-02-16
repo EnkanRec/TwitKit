@@ -50,7 +50,7 @@ export function convert(dbtw: db_twitter, dbtr?: db_translation, orig?: string):
         content: dbtw.content,
         media: JSON.parse(dbtw.media),
         published: dbtw.published,
-        type: "发布",
+        type: "更新",
         postDate: dbtw.updatetime,
         comment: dbtw.comment,
         trans: dbtr ? dbtr.translation : undefined,
@@ -60,7 +60,20 @@ export function convert(dbtw: db_twitter, dbtr?: db_translation, orig?: string):
             name: orig
         }
     }
-    if (orig && tw.user.id !== orig) tw.type = "转发"
+    if (orig && tw.user.id !== orig) tw.type = "转推"
     if (!(tw.id && tw.url && tw.content)) throw "broken Twitter data format"
     return tw
+}
+
+export function Twitter2msg(tw: Twitter, argv): string {
+    let msg: string = "【" + tw.user.name + "】"
+        + ((tw.type === "更新") ? "更新了" : ("转发了" + tw.user.id + "的推"))
+        + "\n----------------\n"
+        + "内容: " + tw.content
+    if (tw.media) {
+        msg += "\n媒体: "
+        for (const img of tw.media) msg += argv.ispro ? "[CQ:image,file=" + img + "]" : img
+    }
+    msg += "\n原链接: " + tw.url + "\n快速嵌字发送: " + argv.prefix + tw.id + " 译文"
+    return msg
 }
