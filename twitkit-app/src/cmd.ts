@@ -160,7 +160,7 @@ export default function (ctx: Context, argv: config) {
     ctx.command('translate <id> [trans...]')
         .action(async ({ meta }, id, trans) => {
             const twi = parseInt(id)
-            trans = trans.trim()
+            trans = trans.replace(/\[CQ:[^\]]*\]/g, " ").trim()
             if (isNaN(twi)) {
                 if (/^https?:\/\/(((www\.)?twitter\.com)|(t\.co))\//.test(id)) {
                     logger.debug("translate with url=%s trans=%s", id, trans)
@@ -210,8 +210,8 @@ export default function (ctx: Context, argv: config) {
                         msg += " 已烤"
                         if (i.comment) msg += "#" + i.comment
                         else msg += "-" + ((i.trans.length > cmd.cut)
-                            ? i.trans.substr(0, cmd.cut).replace(/\n/, ' ') + "…" 
-                            : i.trans.replace(/\n/, ' ')
+                            ? i.trans.substr(0, cmd.cut).replace(/\n/g, ' ') + "…" 
+                            : i.trans.replace(/\n/g, ' ')
                         ) // short(i.trans)
                     } else {
                         if (i.comment) msg += "#" + i.comment
