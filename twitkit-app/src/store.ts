@@ -1,6 +1,6 @@
 import { Context, Logger } from 'koishi-core'
 import { Twitter, db_twitter, db_translation, convert } from './twitter'
-import * as utils from './utils'
+import { request, response } from './utils'
 import axios from 'axios'
 
 let host: string
@@ -19,7 +19,7 @@ async function rest(url: string, data?: any): Promise<any> {
     logger.debug("POST " + url)
     logger.debug(data)
     try {
-        const res = await axios.post<utils.response>(host + url, new utils.request(data))
+        const res = await axios.post<response>(host + url, new request(data))
         if (res.data.code === 0) {
             logger.debug("Return %d: %s", res.data.code, res.data.msg || "")
             logger.debug(res.data.data)

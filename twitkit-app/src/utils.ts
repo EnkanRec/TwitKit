@@ -89,14 +89,3 @@ export class response {
         return JSON.stringify(this)
     }
 }
-
-export default {
-    config,
-    config_cmd,
-    config_watcher,
-    genUuid,
-    verifyUuid,
-    verifyDatetime,
-    request,
-    response
-}

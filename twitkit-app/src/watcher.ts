@@ -1,7 +1,7 @@
 import { Context, Logger, MessageType } from 'koishi-core'
 import * as http from 'http'
 import { parse } from 'url'
-import * as utils from './utils'
+import { uuid, ISO8601, verifyDatetime, config, config_watcher, request, response } from './utils'
 import { Twitter, Twitter2msg } from './twitter'
 import store from './store'
 import translator from './translator'
@@ -9,27 +9,27 @@ import translator from './translator'
 let logger: Logger
 
 class rss {
-    taskId: utils.uuid
+    taskId: uuid
     tid?: number[]
     title?: string
     content: string
     url?: string
     media?: string[]
     author: string
-    postDate?: utils.ISO8601
+    postDate?: ISO8601
 
     static parse(Data: rss): rss {
         if (typeof Data.taskId === "undefined"
             || typeof Data.content === "undefined"
             || typeof Data.author === "undefined"
             || typeof Data.postDate !== "undefined"
-            && !utils.verifyDatetime(Data.postDate)
+            && !verifyDatetime(Data.postDate)
         ) throw "param lost"
         return Data
     }
 }
 
-async function rss2msg(tw: rss, argv: utils.config): Promise<string> {
+async function rss2msg(tw: rss, argv: config): Promise<string> {
     let msg: string = "【" + tw.author + "】"
     if (tw.title) msg += tw.title
     msg += "\n----------------\n内容: " + tw.content
@@ -60,8 +60,8 @@ function sendmsg(ctx: Context, target: { discuss: number[], private: number[], g
     }
 }
 
-export default function (ctx: Context, argv: utils.config) {
-    const watcher: utils.config_watcher = {
+export default function (ctx: Context, argv: config) {
+    const watcher: config_watcher = {
         port:   argv.watcher.port   || 1551,
         target: {
             discuss: argv.watcher.target.discuss || [],
@@ -80,15 +80,15 @@ export default function (ctx: Context, argv: utils.config) {
             let raw: string = ""
             req.on("data", (chunk) => { raw += chunk })
             req.on("end", async () => {
-                let data: utils.request
+                let data: request
                 logger.debug(raw)
                 try {
-                    data = utils.request.parse(JSON.parse(raw))
+                    data = request.parse(JSON.parse(raw))
                     logger.info("[" + data.forwardFrom + "] " + data.timestamp + " :")
-                    res.end(new utils.response("copy").toString())
+                    res.end(new response("copy").toString())
                 } catch (e) {
                     logger.warn("Parse data error: " + e)
-                    res.end(new utils.response("Data format error", 400).toString())
+                    res.end(new response("Data format error", 400).toString())
                     return
                 }
                 logger.debug(data.data)
@@ -123,7 +123,7 @@ export default function (ctx: Context, argv: utils.config) {
             })
         } else {
             logger.warn("Unknow request: " + pathname)
-            res.end(new utils.response("Not Found", 404).toString())
+            res.end(new response("Not Found", 404).toString())
         }
     })
     try {
