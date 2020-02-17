@@ -10,17 +10,32 @@ let groups: Array<number[]> = []
 let members: Set<number> = new Set()
 
 async function updateMember(meta?: Meta<"notice">) {
-    if (meta && meta.groupId) {
-        const list = await context.sender.getGroupMemberList(meta.groupId)
-        groups[meta.groupId] = list.map<number>((i) => { return i.userId })
+    if (meta && meta.groupId && meta.subType !== "kick_me") {
+        try {
+            const list = await context.sender.getGroupMemberList(meta.groupId)
+            groups[meta.groupId] = list.map<number>((i) => { return i.userId })
+        } catch (e) {
+            logger.warn("get group member fail: %d", meta.groupId)
+            logger.debug(e)
+            groups[meta.groupId] = []
+        }
     } else {
         for (const i in groups) {
-            const list = await context.sender.getGroupMemberList(parseInt(i))
-            groups[i] = list.map<number>((i) => { return i.userId })
+            try {
+                const list = await context.sender.getGroupMemberList(parseInt(i))
+                groups[i] = list.map<number>((i) => { return i.userId })
+            } catch (e) {
+                logger.warn("get group member fail: %d", i)
+                logger.debug(e)
+                groups[i] = []
+            }
         }
     }
     members.clear()
-    groups.forEach((v) => { v.forEach((i) => { if (i) members.add(i) }) })
+    groups.forEach((v) => {
+        for (const i of v) if (i) members.add(i)
+    })
+    logger.debug(members)
 }
 
 export default function (ctx: Context, argv: config) {
@@ -32,9 +47,11 @@ export default function (ctx: Context, argv: config) {
         for (const i of argv.listen) {
             groups[i] = []
         }
-        ctx.receiver.on("group-increase", updateMember)
-        ctx.receiver.on("group-decrease", updateMember)
-        ctx.receiver.on("connect", updateMember)
+        let listen = ctx.app.group(argv.listen[0])
+        for (const i of argv.listen.slice(1)) listen.plus(ctx.app.group(i))
+        listen.receiver.on("group-increase", updateMember)
+        listen.receiver.on("group-decrease", updateMember)
+        listen.receiver.on("connect", updateMember)
     }
     // 中间件判断权限及解析短快捷指令
     ctx.middleware((meta, next) => {
