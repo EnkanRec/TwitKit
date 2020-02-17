@@ -10,7 +10,7 @@ let groups: Array<number[]> = []
 let members: Set<number> = new Set()
 
 async function updateMember(meta?: Meta<"notice">) {
-    if (meta && meta.groupId && meta.subType !== "kick_me") {
+    if (meta && meta.groupId) {
         try {
             const list = await context.sender.getGroupMemberList(meta.groupId)
             groups[meta.groupId] = list.map<number>((i) => { return i.userId })
