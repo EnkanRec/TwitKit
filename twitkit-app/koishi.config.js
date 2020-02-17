@@ -7,6 +7,7 @@ module.exports = {
   commandPrefix: '#',
   plugins: [
     [".", {
+      twid: "magireco", // 监听推主
       host: {
         translator: "http://localhost",
         store: "http://localhost"

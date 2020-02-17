@@ -1,4 +1,5 @@
 export class config {
+    twid: string            // 监视的推特ID
     host?: {                // 微服务REST域名
         translator: string, // 烤推机
         store: string       // DB

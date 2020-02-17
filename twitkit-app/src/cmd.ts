@@ -25,7 +25,7 @@ async function updateMember(meta?: Meta<"notice">) {
 
 export default function (ctx: Context, argv: config) {
     translator.init(ctx, argv.host.translator)
-    store.init(ctx, argv.host.store)
+    store.init(ctx, argv.host.store, argv.twid)
     logger = ctx.logger("app:cmd")
     context = ctx
     if (argv.listen && argv.listen.length && argv.private) {
@@ -34,7 +34,7 @@ export default function (ctx: Context, argv: config) {
         }
         ctx.receiver.on("group-increase", updateMember)
         ctx.receiver.on("group-decrease", updateMember)
-        ctx.receiver.on("ready", updateMember)
+        ctx.receiver.on("connect", updateMember)
     }
     // 中间件判断权限及解析短快捷指令
     ctx.middleware((meta, next) => {
@@ -305,12 +305,4 @@ export default function (ctx: Context, argv: config) {
             }
         })
         .usage("撤销某个推的翻译修改，id为空时，撤销最近修改过的翻译，不会撤销初始翻译")
-
-    ctx.command('set-twid <twid>')
-        .action(async ({ meta }, twid) => {
-            await store.setTwid(twid)
-            logger.debug("update Twitter ID: " + twid)
-            return meta.$send("更新推主ID成功")
-        })
-        .usage("设置推主ID，用于确识别转推，只用设置一次")
 }

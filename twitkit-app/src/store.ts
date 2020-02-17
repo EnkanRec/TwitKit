@@ -128,18 +128,6 @@ function setTodo(tid: number): Promise<void> {
 }
 
 /**
- * 设置监视的Twitter账号id，但不影响监视器行为
- * 仅需部署时设置一次
- * 用于确定推文类型（更新/转推）
- * @param twid Twitter ID
- */
-async function setTwid(twid: string): Promise<void> {
-    await setKV("twid", twid)
-    orig = twid
-    return
-}
-
-/**
  * 获取上一次监视到的烤推发布的推文id
  * @returns catched tid
  * 暂未启用
@@ -275,13 +263,12 @@ async function undo(tid: number): Promise<Twitter> {
     return convert(res.twitter, res.translation, orig)
 }
 
-async function init(ctx: Context, Host: string) {
+async function init(ctx: Context, Host: string, Orig: string) {
     logger = ctx.logger("app:store")          // 初始化logger
     host = Host || "http://localhost"         // 初始化DB的Host
-    orig = await getKV("twid")                // 初始化监视Twitter用户ID
+    orig = Orig                               // 初始化监视Twitter用户ID
     todo = parseInt(await getKV("todo")) || 0 // 初始化队列头
-    if (orig) return logger.debug("store client ready")
-    return logger.error("init DB fail")
+    logger.info("store client ready")
 }
 
 export default {
@@ -291,7 +278,6 @@ export default {
     trans,
     getTodo,
     setTodo,
-    setTwid,
     getLastTid,
     setPublish,
     setUnpublish,
