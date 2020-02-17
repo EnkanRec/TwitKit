@@ -11,6 +11,7 @@ let members: Set<number> = new Set()
 
 async function updateMember(meta?: Meta<"notice">) {
     if (meta && meta.groupId) {
+        if (!(meta.groupId in groups)) return
         try {
             const list = await context.sender.getGroupMemberList(meta.groupId)
             groups[meta.groupId] = list.map<number>((i) => { return i.userId })
@@ -54,11 +55,9 @@ export default function (ctx: Context, argv: config) {
     context = ctx
     if (cmd.group.length && cmd.private) {
         for (const i of cmd.group) groups[i] = []
-        let listen = ctx.app.group(cmd.group[0])
-        for (const i of cmd.group.slice(1)) listen.plus(ctx.app.group(i))
-        listen.receiver.on("group-increase", updateMember)
-        listen.receiver.on("group-decrease", updateMember)
-        listen.receiver.on("connect", updateMember)
+        ctx.receiver.on("group-increase", updateMember)
+        ctx.receiver.on("group-decrease", updateMember)
+        ctx.receiver.on("connect", updateMember)
     }
     // 中间件判断权限及解析短快捷指令
     ctx.middleware((meta, next) => {
