@@ -1,16 +1,24 @@
 export class config {
     twid: string            // 监视的推特ID
-    host?: {                // 微服务REST域名
-        translator: string, // 烤推机
-        store: string       // DB
-    }
-    listen?: number[]       // 允许使用指令的群号
-    private?: boolean       // 是否允许私聊上班
     prefix?: string         // 快捷指令前缀
-    ispro?: boolean         // 是否发图（考虑ctx.sender.canSendImage）
+    ispro?: boolean         // 是否发图
+    cmd?: config_cmd        // 指令模块
+    watcher?: config_watcher// 监听器模块
+}
+
+export class config_cmd {
+    host?: {                // 微服务域名
+        store: string,      // 数据库
+        translator: string  // 烤推机
+    }
+    group?: number[]       // 允许使用指令的群号
+    private?: boolean       // 是否允许私聊指令
     cut?: number            // 消息预览截断长度
-    port?: number           // 监视器推送端口
-    target?: {              // 监视器更新推送目标
+}
+
+export class config_watcher {
+    port?: number           // 接收更新推送端口
+    target?: {              // 更新推送目标
         discuss: number[]   // 讨论组
         private: number[]   // 私聊
         group: number[]     // 群
@@ -84,6 +92,8 @@ export class response {
 
 export default {
     config,
+    config_cmd,
+    config_watcher,
     genUuid,
     verifyUuid,
     verifyDatetime,

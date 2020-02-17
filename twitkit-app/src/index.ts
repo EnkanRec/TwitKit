@@ -10,6 +10,7 @@ export {
 
 export function apply (ctx: Context, argv?: config) {
     // if (argv.ispro && ctx.app.version.coolqEdition !== "pro") argv.ispro = false
+    argv.prefix = argv.prefix || "#"
     ctx.plugin(watcher, argv)
     ctx.plugin(cmd, argv)
 }

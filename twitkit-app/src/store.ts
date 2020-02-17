@@ -265,7 +265,7 @@ async function undo(tid: number): Promise<Twitter> {
 
 async function init(ctx: Context, Host: string, Orig: string) {
     logger = ctx.logger("app:store")          // 初始化logger
-    host = Host || "http://localhost"         // 初始化DB的Host
+    host = Host                               // 初始化DB的Host
     orig = Orig                               // 初始化监视Twitter用户ID
     todo = parseInt(await getKV("todo")) || 0 // 初始化队列头
     logger.info("store client ready")

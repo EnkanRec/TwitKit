@@ -66,7 +66,7 @@ async function check(url: string): Promise<number> {
 
 function init(ctx: Context, Host: string): void {
     logger = ctx.logger("app:translator")
-    host = Host || "http://localhost"
+    host = Host
     logger.info("translator client ready")
 }
 

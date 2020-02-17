@@ -29,7 +29,7 @@ class rss {
     }
 }
 
-async function rss2msg(tw: rss, argv): Promise<string> {
+async function rss2msg(tw: rss, argv: utils.config): Promise<string> {
     let msg: string = "【" + tw.author + "】"
     if (tw.title) msg += tw.title
     msg += "\n----------------\n内容: " + tw.content
@@ -61,6 +61,14 @@ function sendmsg(ctx: Context, target: { discuss: number[], private: number[], g
 }
 
 export default function (ctx: Context, argv: utils.config) {
+    const watcher: utils.config_watcher = {
+        port:   argv.watcher.port   || 1551,
+        target: {
+            discuss: argv.watcher.target.discuss || [],
+            private: argv.watcher.target.private || [],
+            group:   argv.watcher.target.group   || []
+        }
+    }
     logger = ctx.logger("app:watcher")
     logger.debug("watcher server starting...")
     const server = http.createServer((req, res) => {
@@ -91,7 +99,7 @@ export default function (ctx: Context, argv: utils.config) {
                             const tw: Twitter = await store.getTask(data.data[i])
                             logger.debug("[" + tw.user.orig + "]" + tw.content)
                             const msg: string = Twitter2msg(tw, argv)
-                            sendmsg(ctx, argv.target, msg)
+                            sendmsg(ctx, watcher.target, msg)
                         } else {
                             logger.debug("Event %s, no update", i)
                         }
@@ -107,7 +115,7 @@ export default function (ctx: Context, argv: utils.config) {
                             return
                         }
                         const msg: string = await rss2msg(rdata, argv)
-                        sendmsg(ctx, argv.target, msg)
+                        sendmsg(ctx, watcher.target, msg)
                         logger.info("Update notice done")
                         break
                     default:
@@ -119,9 +127,9 @@ export default function (ctx: Context, argv: utils.config) {
         }
     })
     try {
-        server.listen(argv.port);
-        logger.success("Listening watcher on port %d", argv.port)
+        server.listen(watcher.port);
+        logger.success("Listening watcher on port %d", watcher.port)
     } catch (e) {
-        logger.warn("Listen watcher fail on port " + argv.port + ": " + e)
+        logger.warn("Listen watcher fail on port " + watcher.port + ": " + e)
     }
 }
