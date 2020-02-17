@@ -21,7 +21,7 @@ async function rest(url: string, data?: any): Promise<any> {
     try {
         const res = await axios.post<utils.response>(host + url, new utils.request(data))
         if (res.data.code === 0) {
-            logger.debug("Return %d: %s", res.data.code, res.data.msg)
+            logger.debug("Return %d: %s", res.data.code, res.data.msg || "")
             logger.debug(res.data.data)
             if (typeof res.data.data === "undefined") return true
             return res.data.data
@@ -30,8 +30,10 @@ async function rest(url: string, data?: any): Promise<any> {
             return null
         }
     } catch (e) {
-        logger.error("Internet error: %d", e.response.status)
-        logger.debug(e.response.data)
+        if (e.response) {
+            logger.error("Internet error: %d", e.response.status)
+            logger.debug(e.response.data)
+        } else logger.error(e)
     }
     return null
 }
