@@ -11,7 +11,7 @@ export class Twitter {
     trans?: string
     img?:   string
     user: {
-        name?: string,
+        orig?: string,
         id: string
     }
 }
@@ -57,7 +57,7 @@ export function convert(dbtw: db_twitter, dbtr?: db_translation, orig?: string):
         img: dbtr ? dbtr.img : undefined,
         user: {
             id: twURL2user(dbtw.url),
-            name: orig
+            orig: orig
         }
     }
     if (orig && tw.user.id !== orig) tw.type = "转推"
@@ -66,7 +66,7 @@ export function convert(dbtw: db_twitter, dbtr?: db_translation, orig?: string):
 }
 
 export function Twitter2msg(tw: Twitter, argv): string {
-    let msg: string = "【" + tw.user.name + "】"
+    let msg: string = "【" + tw.user.orig + "】"
         + ((tw.type === "更新") ? "更新了" : ("转发了" + tw.user.id + "的推"))
         + "\n----------------\n"
         + "内容: " + tw.content

@@ -89,7 +89,7 @@ export default function (ctx: Context, argv: utils.config) {
                         for (const i in data.data) if (data.data[i]) {
                             logger.debug("Event %s, tid: %d", i, data.data[i])
                             const tw: Twitter = await store.getTask(data.data[i])
-                            logger.debug("[" + tw.user.name + "]" + tw.content)
+                            logger.debug("[" + tw.user.orig + "]" + tw.content)
                             const msg: string = Twitter2msg(tw, argv)
                             sendmsg(ctx, argv.target, msg)
                         } else {
