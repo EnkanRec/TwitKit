@@ -1,6 +1,6 @@
 import { Context, Logger } from 'koishi-core'
 import { Twitter, db_twitter, db_translation, convert } from './twitter'
-import * as utils from './utils'
+import { request, response } from './utils'
 import axios from 'axios'
 
 let host: string
@@ -19,9 +19,9 @@ async function rest(url: string, data?: any): Promise<any> {
     logger.debug("POST " + url)
     logger.debug(data)
     try {
-        const res = await axios.post<utils.response>(host + url, new utils.request(data))
+        const res = await axios.post<response>(host + url, new request(data))
         if (res.data.code === 0) {
-            logger.debug("Return %d: %s", res.data.code, res.data.msg)
+            logger.debug("Return %d: %s", res.data.code, res.data.msg || "")
             logger.debug(res.data.data)
             if (typeof res.data.data === "undefined") return true
             return res.data.data
@@ -30,8 +30,10 @@ async function rest(url: string, data?: any): Promise<any> {
             return null
         }
     } catch (e) {
-        logger.error("Internet error: %d", e.response.status)
-        logger.debug(e.response.data)
+        if (e.response) {
+            logger.error("Internet error: %d", e.response.status)
+            logger.debug(e.response.data)
+        } else logger.error(e)
     }
     return null
 }
@@ -123,18 +125,6 @@ function getTodo(): number {
 function setTodo(tid: number): Promise<void> {
     todo = tid
     return setKV("todo", tid.toString())
-}
-
-/**
- * 设置监视的Twitter账号id，但不影响监视器行为
- * 仅需部署时设置一次
- * 用于确定推文类型（更新/转推）
- * @param twid Twitter ID
- */
-async function setTwid(twid: string): Promise<void> {
-    await setKV("twid", twid)
-    orig = twid
-    return
 }
 
 /**
@@ -273,13 +263,12 @@ async function undo(tid: number): Promise<Twitter> {
     return convert(res.twitter, res.translation, orig)
 }
 
-async function init(ctx: Context, Host: string) {
+async function init(ctx: Context, Host: string, Orig: string) {
     logger = ctx.logger("app:store")          // 初始化logger
-    host = Host || "http://localhost"         // 初始化DB的Host
-    orig = await getKV("twid")                // 初始化监视Twitter用户ID
+    host = Host                               // 初始化DB的Host
+    orig = Orig                               // 初始化监视Twitter用户ID
     todo = parseInt(await getKV("todo")) || 0 // 初始化队列头
-    if (orig) return logger.debug("store client ready")
-    return logger.error("init DB fail")
+    logger.info("store client ready")
 }
 
 export default {
@@ -289,7 +278,6 @@ export default {
     trans,
     getTodo,
     setTodo,
-    setTwid,
     getLastTid,
     setPublish,
     setUnpublish,

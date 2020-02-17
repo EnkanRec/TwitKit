@@ -1,6 +1,6 @@
 import { Context, Logger } from 'koishi-core'
 import { Twitter } from './twitter'
-import * as utils from './utils'
+import { request } from './utils'
 import axios from 'axios'
 
 let host: string
@@ -17,7 +17,7 @@ class response { // oven return
 
 async function get(tw: Twitter): Promise<string> {
     logger.debug("Tid: %d", tw.id)
-    let res = await axios.post<response>(host + "/api/oven/bake", new utils.request({
+    let res = await axios.post<response>(host + "/api/oven/bake", new request({
         // taskId: utils.genUuid(),
         tid: tw.id,
         origText: tw.content,
@@ -46,7 +46,7 @@ async function getByUrl(url: string, trans: string): Promise<string> {
 }
 
 async function check(url: string): Promise<number> {
-    let res = await axios.post<response>(host + "/api/oven/check", new utils.request({
+    let res = await axios.post<response>(host + "/api/oven/check", new request({
         // uuid: utils.genUuid(),
         imageUrl: url
     }))
@@ -66,8 +66,8 @@ async function check(url: string): Promise<number> {
 
 function init(ctx: Context, Host: string): void {
     logger = ctx.logger("app:translator")
-    host = Host || "http://localhost"
-    logger.debug("translator client ready")
+    host = Host
+    logger.info("translator client ready")
 }
 
 export default {

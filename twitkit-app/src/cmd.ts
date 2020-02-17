@@ -2,7 +2,7 @@ import { Context, Logger, Meta } from 'koishi-core'
 import { Twitter, Twitter2msg } from './twitter'
 import store from './store'
 import translator from './translator'
-import { config } from './utils'
+import { config, config_cmd } from './utils'
 
 let logger: Logger
 let context: Context
@@ -11,36 +11,61 @@ let members: Set<number> = new Set()
 
 async function updateMember(meta?: Meta<"notice">) {
     if (meta && meta.groupId) {
-        const list = await context.sender.getGroupMemberList(meta.groupId)
-        groups[meta.groupId] = list.map<number>((i) => { return i.userId })
+        try {
+            const list = await context.sender.getGroupMemberList(meta.groupId)
+            groups[meta.groupId] = list.map<number>((i) => { return i.userId })
+        } catch (e) {
+            logger.warn("get group member fail: %d", meta.groupId)
+            logger.debug(e)
+            groups[meta.groupId] = []
+        }
     } else {
         for (const i in groups) {
-            const list = await context.sender.getGroupMemberList(parseInt(i))
-            groups[i] = list.map<number>((i) => { return i.userId })
+            try {
+                const list = await context.sender.getGroupMemberList(parseInt(i))
+                groups[i] = list.map<number>((i) => { return i.userId })
+            } catch (e) {
+                logger.warn("get group member fail: %d", i)
+                logger.debug(e)
+                groups[i] = []
+            }
         }
     }
     members.clear()
-    groups.forEach((v) => { v.forEach((i) => { if (i) members.add(i) }) })
+    groups.forEach((v) => {
+        for (const i of v) if (i) members.add(i)
+    })
+    logger.debug(members)
 }
 
 export default function (ctx: Context, argv: config) {
-    translator.init(ctx, argv.host.translator)
-    store.init(ctx, argv.host.store)
+    const cmd: config_cmd = {
+        host: {
+            store:      argv.cmd.host.store     || "http://localhost",
+            translator: argv.cmd.host.translator|| "http://localhost"
+        },
+        cut:    argv.cmd.cut    || 8,
+        group:  argv.cmd.group  || [],
+        private:argv.cmd.private|| false
+    }
+    translator.init(ctx, cmd.host.translator)
+    store.init(ctx, cmd.host.store, argv.twid)
     logger = ctx.logger("app:cmd")
     context = ctx
-    if (argv.listen && argv.listen.length && argv.private) {
-        for (const i of argv.listen) {
-            groups[i] = []
-        }
-        ctx.receiver.on("group-increase", updateMember)
-        ctx.receiver.on("group-decrease", updateMember)
-        ctx.receiver.on("ready", updateMember)
+    if (cmd.group.length && cmd.private) {
+        for (const i of cmd.group) groups[i] = []
+        let listen = ctx.app.group(cmd.group[0])
+        for (const i of cmd.group.slice(1)) listen.plus(ctx.app.group(i))
+        listen.receiver.on("group-increase", updateMember)
+        listen.receiver.on("group-decrease", updateMember)
+        listen.receiver.on("connect", updateMember)
     }
     // 中间件判断权限及解析短快捷指令
     ctx.middleware((meta, next) => {
-        if (argv.listen && argv.listen.length) switch (meta.messageType) {
+        // cmd.group为空则不启用过滤器，运行任何来源上班
+        if (cmd.group.length) switch (meta.messageType) {
             case "private":
-                if (!argv.private) {
+                if (!cmd.private) {
                     // 配置不许私聊上班
                     logger.debug("Ignore private message")
                     return next()
@@ -59,11 +84,11 @@ export default function (ctx: Context, argv: config) {
                 }
                 break
             case "group":
-                // argv.listen为空则不限制群上班，否则检测是否是允许群
-                if (meta.groupId && ~argv.listen.indexOf(meta.groupId)) break
+                // 检测是否是允许的群
+                if (meta.groupId && ~cmd.group.indexOf(meta.groupId)) break
             case "discuss":
                 // 似乎没有必要讨论组上班
-                // if (!(meta.discussId in groups)) return next()
+                // if (~cmd.group.indexOf(meta.discussId)) return next()
                 // break
             default:
                 logger.debug("Ignore illegal source")
@@ -135,7 +160,7 @@ export default function (ctx: Context, argv: config) {
     ctx.command('translate <id> [trans...]')
         .action(async ({ meta }, id, trans) => {
             const twi = parseInt(id)
-            trans = trans.trim()
+            trans = trans.replace(/\[CQ:[^\]]*\]/g, " ").trim()
             if (isNaN(twi)) {
                 if (/^https?:\/\/(((www\.)?twitter\.com)|(t\.co))\//.test(id)) {
                     logger.debug("translate with url=%s trans=%s", id, trans)
@@ -184,9 +209,9 @@ export default function (ctx: Context, argv: config) {
                     if (i.trans) {
                         msg += " 已烤"
                         if (i.comment) msg += "#" + i.comment
-                        else msg += "-" + ((i.trans.length > argv.cut)
-                            ? i.trans.substr(0, argv.cut).replace(/\n/, ' ') + "…" 
-                            : i.trans.replace(/\n/, ' ')
+                        else msg += "-" + ((i.trans.length > cmd.cut)
+                            ? i.trans.substr(0, cmd.cut).replace(/\n/g, ' ') + "…" 
+                            : i.trans.replace(/\n/g, ' ')
                         ) // short(i.trans)
                     } else {
                         if (i.comment) msg += "#" + i.comment
@@ -305,12 +330,4 @@ export default function (ctx: Context, argv: config) {
             }
         })
         .usage("撤销某个推的翻译修改，id为空时，撤销最近修改过的翻译，不会撤销初始翻译")
-
-    ctx.command('set-twid <twid>')
-        .action(async ({ meta }, twid) => {
-            await store.setTwid(twid)
-            logger.debug("update Twitter ID: " + twid)
-            return meta.$send("更新推主ID成功")
-        })
-        .usage("设置推主ID，用于确识别转推，只用设置一次")
 }
