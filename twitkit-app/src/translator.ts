@@ -24,7 +24,7 @@ async function get(tw: Twitter): Promise<string> {
         transText: tw.trans,
         media: tw.media,
         username: tw.user.id,
-        origUid: tw.user.name,
+        retweeterUsername: tw.user.orig === tw.user.id ? undefined : tw.user.orig,
         postDate: tw.postDate
     }))
     if (res.status !== 200) {
