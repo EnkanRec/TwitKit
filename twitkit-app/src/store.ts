@@ -62,7 +62,7 @@ function getKVs(keys: string[]): Promise<any> {
  * @returns error ? null : value
  */
 async function getKV(key): Promise<any> {
-    const data: string[] = await getKVs([key])
+    const data = await getKVs([key])
     if (data !== null && key in data) return data[key]
     return null
 }
@@ -185,7 +185,7 @@ async function list(tid?: number): Promise<Twitter[]> {
     for (const i of list) {
         try {
             result.push(convert(i.twitter, i.translation, orig))
-            logger.debug("tid %d: %s", i.twitter.tid, i.twitter.comment || i.translation.translation || i.twitter.content)
+            logger.debug("tid %d: %s", i.twitter.tid, i.twitter.comment || i.translation ? i.translation.translation : i.twitter.content)
         } catch (e) {
             logger.warn("convent twitter error: " + e)
         }
