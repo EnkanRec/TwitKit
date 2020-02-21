@@ -211,11 +211,16 @@ async function hide(tid: number): Promise<boolean> {
 /**
  * 隐藏队列里所有已发布的推文
  */
-async function hideAll() {
-    // const list: { twitter: db_twitter, translation: db_translation }[] = await rest("/api/db/task/list", { "tid": todo })
-    // for (const i of list) if (i.twitter.published) rest("/api/db/task/hide", { tid: i.id })
-    const todo: Twitter[] = await list()
-    for (const i of todo) if (i.published) rest("/api/db/task/hide", { tid: i.id })
+async function hideAll(): Promise<number[]> {
+    const queue: Twitter[] = await list()
+    let res: number[] = []
+    for (const i of queue) {
+        if (i.published) {
+            rest("/api/db/task/hide", { tid: i.id })
+            res.push(i.id)
+        }
+    }
+    return res
 }
 
 /**
