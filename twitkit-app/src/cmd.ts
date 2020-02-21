@@ -237,6 +237,8 @@ export default function (ctx: Context, argv: config) {
             if (list) for (const i of list) if (i.trans) {
                 msg += "\n" + argv.prefix + i.id + "\n"
                 msg += argv.ispro ? "[CQ:image,file=" + i.img + "]" : i.img
+                if (i.media && i.media.length) for (const j of i.media)
+                    msg += argv.ispro ? "[CQ:image,file=" + j + "]" : j
             }
             if (msg.length) {
                 msg = "从" + argv.prefix + twi + "到现在的已烤推特如下: " + msg
