@@ -62,7 +62,7 @@ function getKVs(keys: string[]): Promise<any> {
  * @returns error ? null : value
  */
 async function getKV(key): Promise<any> {
-    const data: string[] = await getKVs([key])
+    const data = await getKVs([key])
     if (data !== null && key in data) return data[key]
     return null
 }
@@ -185,7 +185,7 @@ async function list(tid?: number): Promise<Twitter[]> {
     for (const i of list) {
         try {
             result.push(convert(i.twitter, i.translation, orig))
-            logger.debug("tid %d: %s", i.twitter.tid, i.twitter.comment || i.translation.translation || i.twitter.content)
+            logger.debug("tid %d: %s", i.twitter.tid, i.twitter.comment || i.translation ? i.translation.translation : i.twitter.content)
         } catch (e) {
             logger.warn("convent twitter error: " + e)
         }
@@ -211,11 +211,16 @@ async function hide(tid: number): Promise<boolean> {
 /**
  * 隐藏队列里所有已发布的推文
  */
-async function hideAll() {
-    // const list: { twitter: db_twitter, translation: db_translation }[] = await rest("/api/db/task/list", { "tid": todo })
-    // for (const i of list) if (i.twitter.published) rest("/api/db/task/hide", { tid: i.id })
-    const todo: Twitter[] = await list()
-    for (const i of todo) if (i.published) rest("/api/db/task/hide", { tid: i.id })
+async function hideAll(): Promise<number[]> {
+    const queue: Twitter[] = await list()
+    let res: number[] = []
+    for (const i of queue) {
+        if (i.published) {
+            rest("/api/db/task/hide", { tid: i.id })
+            res.push(i.id)
+        }
+    }
+    return res
 }
 
 /**
