@@ -1,7 +1,7 @@
 import { Context, Logger, MessageType } from 'koishi-core'
 import * as http from 'http'
 import { parse } from 'url'
-import { uuid, ISO8601, verifyDatetime, config, config_watcher, request, response } from './utils'
+import { ISO8601, verifyDatetime, config, config_watcher, request, response } from './utils'
 import { Twitter, Twitter2msg } from './twitter'
 import store from './store'
 import translator from './translator'
@@ -9,7 +9,6 @@ import translator from './translator'
 let logger: Logger
 
 class rss {
-    taskId: uuid
     tid?: number[]
     title?: string
     content: string
@@ -19,8 +18,7 @@ class rss {
     postDate?: ISO8601
 
     static parse(Data: rss): rss {
-        if (typeof Data.taskId === "undefined"
-            || typeof Data.content === "undefined"
+        if (typeof Data.content === "undefined"
             || typeof Data.author === "undefined"
             || typeof Data.postDate !== "undefined"
             && !verifyDatetime(Data.postDate)
@@ -91,6 +89,7 @@ export default function (ctx: Context, argv: config) {
                     res.end(new response("Data format error", 400).toString())
                     return
                 }
+                logger.debug("[" +  new Date().toISOString() + "]" + data.taskId)
                 logger.debug(data.data)
                 switch (r[1]) {
                     case "twitter":
