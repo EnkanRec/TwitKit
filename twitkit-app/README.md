@@ -52,6 +52,7 @@ HTTP method: `POST`
 content-type: `application/json`
 
 body：（均非空）
+
 | 字段 | 类型 | 注释 |
 |:----:|:---:|:----:|
 | forwardFrom | string | 请求来源名 |
