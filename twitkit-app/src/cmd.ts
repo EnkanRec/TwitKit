@@ -288,7 +288,7 @@ export default function (ctx: Context, argv: config) {
                     return meta.$send("队列里没有已发布的推")
                 }
                 logger.debug("hide tasks: " + list.join(", "))
-                return meta.$send("以下推已吧隐藏" + argv.prefix + list.join(", " + argv.prefix))
+                return meta.$send("以下推文已经隐藏" + argv.prefix + list.join(", " + argv.prefix))
             }
         })
         .usage("隐藏或显示某个推，id为空时，隐藏所有已烤的推")
