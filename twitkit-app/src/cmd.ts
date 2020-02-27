@@ -6,36 +6,45 @@ import { config, config_cmd } from './utils'
 
 let logger: Logger
 let context: Context
-let groups: Array<number[]> = []
+let groups: Map<number, number[]> = new Map()
 let members: Set<number> = new Set()
 
 async function updateMember(meta?: Meta<"notice">) {
     if (meta && meta.groupId) {
-        if (!(meta.groupId in groups)) return
+        if (!groups.has(meta.groupId)) return
         try {
             const list = await context.sender.getGroupMemberList(meta.groupId)
-            groups[meta.groupId] = list.map<number>((i) => { return i.userId })
+            groups.set(meta.groupId, list.map<number>((i) => { return i.userId }))
         } catch (e) {
             logger.warn("get group member fail: %d", meta.groupId)
             logger.debug(e)
-            groups[meta.groupId] = []
+            groups.set(meta.groupId, [])
         }
+        members.clear()
+        groups.forEach((v) => {
+            v.forEach((i) => { members.add(i) })
+        })
     } else {
-        for (const i in groups) {
+        members.clear()
+        // groups.forEach(async (v, k) => {
+        // for (const [k] of groups) {
+        let i = groups.keys()
+        let v = i.next()
+        while (!v.done) {
+            const k = v.value
             try {
-                const list = await context.sender.getGroupMemberList(parseInt(i))
-                groups[i] = list.map<number>((i) => { return i.userId })
+                const list = await context.sender.getGroupMemberList(k)
+                groups.set(k, list.map<number>((i) => { return i.userId }))
+                list.forEach((i) => { members.add(i.userId) })
             } catch (e) {
-                logger.warn("get group member fail: %d", i)
+                logger.warn("get group member fail: %d", k)
                 logger.debug(e)
-                groups[i] = []
+                groups.set(k, [])
             }
+            v = i.next()
         }
+        // })
     }
-    members.clear()
-    groups.forEach((v) => {
-        for (const i of v) if (i) members.add(i)
-    })
     logger.debug(members)
 }
 
@@ -54,7 +63,7 @@ export default function (ctx: Context, argv: config) {
     logger = ctx.logger("app:cmd")
     context = ctx
     if (cmd.group.length && cmd.private) {
-        for (const i of cmd.group) groups[i] = []
+        for (const i of cmd.group) groups.set(i, [])
         ctx.receiver.on("group-increase", updateMember)
         ctx.receiver.on("group-decrease", updateMember)
         ctx.receiver.on("connect", updateMember)
