@@ -4,40 +4,15 @@ import store from './store'
 import translator from './translator'
 import { config, config_cmd } from './utils'
 
-let logger: Logger
-let context: Context
-let groups: Array<number[]> = []
+/**
+ * @member Map<群号, 群成员Q号[]>
+ * @description 储存各群群成员，仅用来更新members
+ */
+let groups: Map<number, number[]> = new Map()
+/**
+ * @description 储存允许私聊上班的Q号
+ */
 let members: Set<number> = new Set()
-
-async function updateMember(meta?: Meta<"notice">) {
-    if (meta && meta.groupId) {
-        if (!(meta.groupId in groups)) return
-        try {
-            const list = await context.sender.getGroupMemberList(meta.groupId)
-            groups[meta.groupId] = list.map<number>((i) => { return i.userId })
-        } catch (e) {
-            logger.warn("get group member fail: %d", meta.groupId)
-            logger.debug(e)
-            groups[meta.groupId] = []
-        }
-    } else {
-        for (const i in groups) {
-            try {
-                const list = await context.sender.getGroupMemberList(parseInt(i))
-                groups[i] = list.map<number>((i) => { return i.userId })
-            } catch (e) {
-                logger.warn("get group member fail: %d", i)
-                logger.debug(e)
-                groups[i] = []
-            }
-        }
-    }
-    members.clear()
-    groups.forEach((v) => {
-        for (const i of v) if (i) members.add(i)
-    })
-    logger.debug(members)
-}
 
 export default function (ctx: Context, argv: config) {
     const cmd: config_cmd = {
@@ -47,33 +22,67 @@ export default function (ctx: Context, argv: config) {
         },
         cut:    argv.cmd.cut    || 8,
         group:  argv.cmd.group  || [],
+        friend :argv.cmd.friend || false,
         private:argv.cmd.private|| false
     }
     translator.init(ctx, cmd.host.translator)
     store.init(ctx, cmd.host.store, argv.twid)
-    logger = ctx.logger("app:cmd")
-    context = ctx
+    const logger: Logger = ctx.logger("app:cmd")
+    // 初始化群成员列表
     if (cmd.group.length && cmd.private) {
-        for (const i of cmd.group) groups[i] = []
+        for (const i of cmd.group) groups.set(i, [])
+        const updateMember = async (meta: Meta<"notice">) => {
+            if (meta.groupId && groups.has(meta.groupId)) {
+                try {
+                    const list = await ctx.sender.getGroupMemberList(meta.groupId)
+                    groups.set(meta.groupId, list.map<number>((i) => { return i.userId }))
+                } catch (e) {
+                    logger.warn("get group member fail: %d", meta.groupId)
+                    logger.debug(e)
+                    groups.set(meta.groupId, [])
+                }
+                members.clear()
+                groups.forEach((v) => { v.forEach((i) => { members.add(i) }) })
+                logger.debug(members)
+            }
+        }
+        // 监视群成员变动
         ctx.receiver.on("group-increase", updateMember)
         ctx.receiver.on("group-decrease", updateMember)
-        ctx.receiver.on("connect", updateMember)
+        // 启动时初始化群成员
+        ctx.receiver.on("connect", () => {
+            members.clear()
+            groups.forEach(async (v, k) => { // 由于异步，使用forEach将导致无法输出members的log
+                try {
+                    // 新加入的群getGroupMemberList可能失败
+                    const list = await ctx.sender.getGroupMemberList(k)
+                    groups.set(k, list.map<number>((i) => { return i.userId }))
+                    list.forEach((i) => { members.add(i.userId) })
+                } catch (e) {
+                    logger.warn("get group member fail: %d", k)
+                    logger.debug(e)
+                    groups.set(k, [])
+                }
+            })
+            // logger.debug(members)
+        })
     }
+    console.log(ctx.app.options)
     // 中间件判断权限及解析短快捷指令
     ctx.middleware((meta, next) => {
-        // cmd.group为空则不启用过滤器，运行任何来源上班
-        if (cmd.group.length) switch (meta.messageType) {
+        switch (meta.messageType) {
             case "private":
-                if (!cmd.private) {
-                    // 配置不许私聊上班
-                    logger.debug("Ignore private message")
-                    return next()
-                }
                 switch (meta.subType) {
                     case "friend":
-                        // 好友允许私聊上班
-                        break
+                        // 配置好友私聊上班
+                        if (cmd.friend) break
+                        // 好友不允许上班，继续判断是否是群成员，case穿越
                     case "group":
+                        // 配置不许私聊上班
+                        if (!cmd.private) {
+                            logger.debug("Ignore private message")
+                            return next()
+                        }
                         // 指定群的成员允许临时会话私聊上班
                         if (members.has(meta.userId)) break
                     default:
@@ -82,20 +91,22 @@ export default function (ctx: Context, argv: config) {
                         return next()
                 }
                 break
-            case "group":
-                // 检测是否是允许的群
-                if (meta.groupId && ~cmd.group.indexOf(meta.groupId)) break
             case "discuss":
                 // 似乎没有必要讨论组上班
-                // if (~cmd.group.indexOf(meta.discussId)) return next()
-                // break
+                // if (cmd.group.indexOf(meta.discussId)) break
+                // 讨论组升级成群？
+            case "group":
+                // cmd.group为空则允许所有群上班
+                if (!cmd.group.length) break
+                // 检测是否是允许的群
+                if (meta.groupId && ~cmd.group.indexOf(meta.groupId)) break
             default:
                 logger.debug("Ignore illegal source")
                 return next()
         }
         if (meta.message.startsWith(argv.prefix)) {
             const msg = meta.message.slice(argv.prefix.length)
-            const r = /^(\d+)(~~|[^\d\s])?\s*(.*)$/.exec(msg)
+            const r = /^(\d+)(~~|[^\d\s])?\s*([\s\S]*)$/.exec(msg)
             if (r && r[1]) {
                 const twi = r[1]
                 const act = r[2]
@@ -288,7 +299,7 @@ export default function (ctx: Context, argv: config) {
                     return meta.$send("队列里没有已发布的推")
                 }
                 logger.debug("hide tasks: " + list.join(", "))
-                return meta.$send("以下推已吧隐藏" + argv.prefix + list.join(", " + argv.prefix))
+                return meta.$send("以下推文已经隐藏" + argv.prefix + list.join(", " + argv.prefix))
             }
         })
         .usage("隐藏或显示某个推，id为空时，隐藏所有已烤的推")

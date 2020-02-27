@@ -110,6 +110,7 @@ data: dict （无注明既可空说）其他更新的详细信息
         },
         group: [],      // 监听命令的群组，留空监听所有人
         private: true,  // 是否允许私聊上班
+        friend: true,   // 是否允许好友上班
         cut: 8          // 消息预览截断长度
     },
     watcher: {
