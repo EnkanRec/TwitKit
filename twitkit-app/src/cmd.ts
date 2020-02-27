@@ -95,7 +95,7 @@ export default function (ctx: Context, argv: config) {
         }
         if (meta.message.startsWith(argv.prefix)) {
             const msg = meta.message.slice(argv.prefix.length)
-            const r = /^(\d+)(~~|[^\d\s])?\s*(.*)$/.exec(msg)
+            const r = /^(\d+)(~~|[^\d\s])?\s*([\s\S]*)$/.exec(msg)
             if (r && r[1]) {
                 const twi = r[1]
                 const act = r[2]
