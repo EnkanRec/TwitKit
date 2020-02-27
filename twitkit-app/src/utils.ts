@@ -11,8 +11,9 @@ export class config_cmd {
         store: string,      // 数据库
         translator: string  // 烤推机
     }
-    group?: number[]       // 允许使用指令的群号
+    group?: number[]        // 允许使用指令的群号
     private?: boolean       // 是否允许私聊指令
+    friend?: boolean        // 是否允许好友指令
     cut?: number            // 消息预览截断长度
 }
 
