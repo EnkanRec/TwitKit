@@ -67,7 +67,6 @@ export default function (ctx: Context, argv: config) {
             // logger.debug(members)
         })
     }
-    console.log(ctx.app.options)
     // 中间件判断权限及解析短快捷指令
     ctx.middleware((meta, next) => {
         switch (meta.messageType) {
