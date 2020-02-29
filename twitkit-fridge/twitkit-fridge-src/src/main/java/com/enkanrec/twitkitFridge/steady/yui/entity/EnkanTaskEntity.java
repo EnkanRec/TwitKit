@@ -27,6 +27,10 @@ public class EnkanTaskEntity {
     private boolean published;
     private boolean hided;
     private String comment;
+    private Integer uid;
+    private Integer refTid;
+    private Timestamp pubDate;
+    private String extra;
     private Timestamp newdate;
     private Timestamp updatetime;
 
@@ -104,6 +108,46 @@ public class EnkanTaskEntity {
     }
 
     @Basic
+    @Column(name = "extra")
+    public String getExtra() {
+        return extra;
+    }
+
+    public void setExtra(String extra) {
+        this.extra = extra;
+    }
+
+    @Basic
+    @Column(name = "pub_date")
+    public Timestamp getPubDate() {
+        return pubDate;
+    }
+
+    public void setPubDate(Timestamp pubDate) {
+        this.pubDate = pubDate;
+    }
+
+    @Basic
+    @Column(name = "uid")
+    public Integer getUid() {
+        return uid;
+    }
+
+    public void setUid(Integer uid) {
+        this.uid = uid;
+    }
+
+    @Basic
+    @Column(name = "ref_tid")
+    public Integer getRefTid() {
+        return refTid;
+    }
+
+    public void setRefTid(Integer refTid) {
+        this.refTid = refTid;
+    }
+
+    @Basic
     @Column(name = "newdate", nullable = false, insertable = false, updatable = false)
     public Timestamp getNewdate() {
         return newdate;
@@ -134,13 +178,18 @@ public class EnkanTaskEntity {
                 Objects.equals(content, that.content) &&
                 Objects.equals(media, that.media) &&
                 Objects.equals(comment, that.comment) &&
+                Objects.equals(hided, that.hided) &&
+                Objects.equals(extra, that.extra) &&
+                Objects.equals(uid, that.uid) &&
+                Objects.equals(refTid, that.refTid) &&
+                Objects.equals(pubDate, that.pubDate) &&
                 Objects.equals(newdate, that.newdate) &&
                 Objects.equals(updatetime, that.updatetime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tid, url, content, media, published, comment, newdate, updatetime);
+        return Objects.hash(tid, url, content, media, published, comment, newdate, updatetime, hided, pubDate, extra, refTid, uid);
     }
 
     @JsonIgnore
