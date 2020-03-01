@@ -21,13 +21,14 @@ import java.util.Objects;
 @Table(name = "enkan_task", schema = "yui")
 public class EnkanTaskEntity {
     private int tid;
+    private String statusId;
     private String url;
     private String content;
     private String media;
     private boolean published;
     private boolean hided;
     private String comment;
-    private Integer uid;
+    private String twitterUid;
     private Integer refTid;
     private Timestamp pubDate;
     private String extra;
@@ -48,13 +49,23 @@ public class EnkanTaskEntity {
     }
 
     @Basic
-    @Column(name = "url", nullable = false, length = 767)
+    @Column(name = "url", length = 767)
     public String getUrl() {
         return url;
     }
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    @Basic
+    @Column(name = "status_id", length = 255)
+    public String getStatusId() {
+        return statusId;
+    }
+
+    public void setStatusId(String statusId) {
+        this.statusId = statusId;
     }
 
     @Basic
@@ -128,13 +139,13 @@ public class EnkanTaskEntity {
     }
 
     @Basic
-    @Column(name = "uid")
-    public Integer getUid() {
-        return uid;
+    @Column(name = "twitter_uid")
+    public String getTwitterUid() {
+        return twitterUid;
     }
 
-    public void setUid(Integer uid) {
-        this.uid = uid;
+    public void setTwitterUid(String twitterUid) {
+        this.twitterUid = twitterUid;
     }
 
     @Basic
@@ -174,13 +185,14 @@ public class EnkanTaskEntity {
         EnkanTaskEntity that = (EnkanTaskEntity) o;
         return tid == that.tid &&
                 published == that.published &&
+                Objects.equals(statusId, that.statusId) &&
                 Objects.equals(url, that.url) &&
                 Objects.equals(content, that.content) &&
                 Objects.equals(media, that.media) &&
                 Objects.equals(comment, that.comment) &&
                 Objects.equals(hided, that.hided) &&
                 Objects.equals(extra, that.extra) &&
-                Objects.equals(uid, that.uid) &&
+                Objects.equals(twitterUid, that.twitterUid) &&
                 Objects.equals(refTid, that.refTid) &&
                 Objects.equals(pubDate, that.pubDate) &&
                 Objects.equals(newdate, that.newdate) &&
@@ -189,7 +201,7 @@ public class EnkanTaskEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(tid, url, content, media, published, comment, newdate, updatetime, hided, pubDate, extra, refTid, uid);
+        return Objects.hash(tid, statusId, url, content, media, published, comment, newdate, updatetime, hided, pubDate, extra, refTid, twitterUid);
     }
 
     @JsonIgnore

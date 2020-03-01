@@ -35,7 +35,7 @@ public class TaskController {
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     public StandardResponse createTask(@Valid @RequestBody BaseJsonWarp<TaskCreationForm> form) {
         TaskCreationForm data = form.getData();
-        return StandardResponse.ok(this.service.addTask(data.getUrl(), data.getContent(), data.getMedia()));
+        return StandardResponse.ok(this.service.addTask(data));
     }
 
     /**

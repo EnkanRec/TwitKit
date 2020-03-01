@@ -18,7 +18,6 @@ import javax.validation.constraints.NotNull;
 @ToString
 @EqualsAndHashCode
 public class TaskCreationForm {
-    @NotNull
     private String url;
 
     @NotNull
@@ -31,7 +30,7 @@ public class TaskCreationForm {
     private String pub_date;
 
     @NotNull
-    private Integer status_id;
+    private String status_id;
 
     private Integer ref = null;
 

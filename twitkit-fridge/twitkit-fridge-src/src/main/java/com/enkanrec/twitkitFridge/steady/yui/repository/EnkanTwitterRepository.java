@@ -9,4 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EnkanTwitterRepository extends JpaRepository<EnkanTwitterEntity, Integer> {
 
+    EnkanTwitterEntity findByTwitterUid(String twitterUid);
 }

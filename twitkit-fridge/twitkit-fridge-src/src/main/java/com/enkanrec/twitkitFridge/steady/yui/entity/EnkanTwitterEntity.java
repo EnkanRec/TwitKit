@@ -4,6 +4,8 @@
  */
 package com.enkanrec.twitkitFridge.steady.yui.entity;
 
+import lombok.ToString;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -12,6 +14,7 @@ import java.util.Objects;
  * Class : EnkanTwitterEntity
  * Usage :
  */
+@ToString
 @Entity
 @Table(name = "enkan_twitter", schema = "yui")
 public class EnkanTwitterEntity {
