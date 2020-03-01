@@ -35,40 +35,16 @@ class GenerateImage(Resource):
         request_data = request_base_data['data']
         task_id = request_base_data['taskId']
 
-        try:
-            parsed_post_date = isoparse(request_data['postDate'])
-        except ValueError as e:
-            return make_response(400, f'日期时间格式有误：{e}')
-
         logger.info(f'[{task_id}] '
                     f'从 {request_base_data["forwardFrom"]} 收到烤图任务')
         filename = \
             md5(json.dumps(request_data).encode('utf-8')).hexdigest() + '.png'
 
         bake_params = {
-            'tid': request_data['tid'],
-            'output_path': os.path.join(image_path, filename),
-            'username': request_data['username'],
-            'post_date': parsed_post_date
+            'tid': request_data['tid']
         }
-
-        if 'origText' in request_data or 'transText' in request_data:
-            if 'origText' in request_data:
-                bake_params['orig_text'] = request_data['origText']
-            if 'transText' in request_data:
-                bake_params['trans_text'] = request_data['transText']
-        else:
-            return make_response(400, '必须至少指定原文和译文之一')
-
-        if 'media' in request_data:
-            bake_params['media_urls'] = request_data['media']
-        if 'tags' in request_data:
-            bake_params['hashtags'] = request_data['tags']
         if 'ppi' in request_data:
             bake_params['ppi'] = request_data['ppi']
-        if 'retweeterUsername' in request_data:
-            bake_params['retweeter_username'] = \
-                request_data['retweeterUsername']
 
         start_time = time.time()
         bake_result = bake_tweet(**bake_params)

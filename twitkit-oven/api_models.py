@@ -24,31 +24,6 @@ bake_data_model = oven_api.model('bakeDataModel', {
         required=True,
         description='推文ID',
         example=2233),
-    'origText': fields.String(
-        description='推文原文，Plain Text格式，不传则只输出译文',
-        example='マギアレコードの新魔法少女「南津　涼子」のキャラデザを担当させていただき'
-                'ました！どうぞよろしくお願いします✨ #マギレコ'),
-    'transText': fields.String(
-        description='推文译文，Plain Text格式，不传则只输出原文',
-        example='我有幸担任了魔法纪录新魔法少女“南津 凉子”的人物设计！请多多指教✨'),
-    'media': fields.List(
-        fields.String,
-        description='媒体列表，列表里每个字符串是一个媒体URL',
-        example=[
-            'https://pbs.twimg.com/media/EPcgk0JUUAE3NLt?format=jpg&name=orig'
-        ]),
-    'username': fields.String(
-        required=True,
-        description='推特用户名（不含`@`）',
-        example='azure_0608'),
-    'retweeterUsername': fields.String(
-        description='如果是转推，转推者的推特用户名（不含`@`）',
-        example='magireco'),
-    'postDate': fields.String(
-        dt_format='iso8601',
-        required=True,
-        description='推文发出日期时间，ISO8601格式',
-        example='2020-01-29T14:23:23.233+08:00'),
     'ppi': fields.Integer(
         default=config.DEFAULT_PPI,
         description='生成图像PPI',

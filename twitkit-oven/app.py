@@ -1,7 +1,8 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify, make_response
 from flask_restplus import Resource, Api
 from oven import tweet_page_bp
 from api import oven_api
+from requests import post, options
 
 import logging
 import sys
@@ -19,6 +20,20 @@ app.logger.setLevel(logging.getLevelName(config.LOG_LEVEL))
 
 app.register_blueprint(tweet_page_bp, url_prefix='/internal')
 api.add_namespace(oven_api, path='/api/oven')
+
+
+@app.route('/fridge_api_proxy/<path:path>', methods=['POST', 'OPTIONS'])
+def proxy(path):
+    if request.method == 'POST':
+        post_data = request.json
+        resp = post(f'{config.FRIDGE_API_BASE}/{path}', json=post_data)
+        response = jsonify(resp.json())
+    else:
+        resp = options(f'{config.FRIDGE_API_BASE}/{path}')
+        response = make_response()
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    return response, resp.status_code
 
 
 @app.after_request

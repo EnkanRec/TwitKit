@@ -19,6 +19,9 @@ TID_CODE_POS_Y = -2
 EXT_STATIC_BASE_URL = 'https://example.com/images'
 INT_BASE_URL = 'http://127.0.0.1:5000'
 
+## Fridge API URL
+FRIDGE_API_BASE = 'http://127.0.0.1:10103/api'
+
 ## 日志设置
 LOG_LEVEL = 'INFO'
 APP_LOG_FILE = None

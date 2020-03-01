@@ -5,18 +5,10 @@ import re
 from collections import namedtuple
 from xml.etree import ElementTree
 
-RSSHUB_TWITTER_URL = 'https://rsshub.app/twitter/user/{}'
+
 RSSHUB_BILIBILI_URL = 'https://rsshub.app/bilibili/user/dynamic/{}'
 
 FeedItem = namedtuple('FeedItem', 'content media_list url pub_date')
-Tweet = namedtuple('Tweet', 'author retweeter content media_list url pub_date')
-
-
-def tweet_url_to_username(url):
-    result = re.match(r'^https:\/\/twitter.com\/(\w+)\/status\/\d+$', url)
-    if not result:
-        return None
-    return result.group(1)
 
 
 def extract_content_media(content):
@@ -51,26 +43,6 @@ def get_new_feed(feed_url):
             url=url,
             pub_date=pub_date))
     return ret[::-1]
-
-
-def get_new_tweets(username):
-    new_feed_items = get_new_feed(RSSHUB_TWITTER_URL.format(username))
-    ret = []
-    for item in new_feed_items:
-        author = tweet_url_to_username(item.url)
-        if author != username:
-            retweeter = username
-        else:
-            retweeter = None
-        tweet = Tweet(
-            author=author,
-            retweeter=retweeter,
-            content=item.content,
-            media_list=item.media_list,
-            url=item.url,
-            pub_date=item.pub_date)
-        ret.append(tweet)
-    return ret
 
 
 def get_new_bilibili_status(bilibili_uid):

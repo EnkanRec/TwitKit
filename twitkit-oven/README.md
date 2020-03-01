@@ -61,6 +61,7 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 ### URL设置
 * `EXT_STATIC_BASE_URL`：指向`/static`的对外URL前缀，返回输出图片URL时用，例如`https://example.local/images`。
 * `INT_BASE_URL`：内部URL前缀，在`wkhtmltoimage`访问内部生成的推文页面时用。如果Gunicorn配置里改了端口号，这里要相应修改。
+* `FRIDGE_API_BASE`：指向Fridge API的Base URL，例如`http://127.0.0.1:10103/api`）
 
 ### 日志设置
 * `LOG_LEVEL`：日志等级。例如`INFO`、`DEBUG`。
@@ -126,17 +127,11 @@ gunicorn -c gunicorn_config.py app:app
 
 `data`参数内：
 
-| 名称                | 格式   | 必传 | 备注                                                         |
-| ------------------- | ------ | ---- | ------------------------------------------------------------ |
-| `taskId`            | string | Y    | 一个UUID，是一个任务的上下文唯一标识符                       |
-| `tid`               | int    | Y    | 推文ID                                                       |
-| `origText`          | string | N    | 推文原文，Plain Text格式，不传则只输出译文                   |
-| `transText`         | string | N    | 推文译文，Plain Text格式，不传则只输出原文<br />（`origText`和`transText`必须有一个出现） |
-| `media`             | list   | N    | 媒体列表，列表里每个字符串是一个媒体URL                      |
-| `username`          | string | Y    | 推特用户名，转推时是原推作者用户名                           |
-| `retweeterUsername` | string | N    | 转推时需要传此参数，为转发者的用户名                         |
-| `postDate`          | string | Y    | 发推日期时间，ISO8601格式，标准样例`2020-01-29T14:23:23.233+08:00` |
-| `ppi`               | int    | N    | 生成图像PPI，默认144                                         |
+| 名称     | 格式   | 必传 | 备注                                   |
+| -------- | ------ | ---- | -------------------------------------- |
+| `taskId` | string | Y    | 一个UUID，是一个任务的上下文唯一标识符 |
+| `tid`    | int    | Y    | 推文ID                                 |
+| `ppi`    | int    | N    | 生成图像PPI，默认144                   |
 
 #### 返回报文
 
