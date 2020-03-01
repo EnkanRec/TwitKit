@@ -1,5 +1,4 @@
 export class config {
-    twid: string            // 监视的推特ID
     prefix?: string         // 快捷指令前缀
     ispro?: boolean         // 是否发图
     cmd?: config_cmd        // 指令模块

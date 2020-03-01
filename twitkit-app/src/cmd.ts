@@ -26,7 +26,7 @@ export default function (ctx: Context, argv: config) {
         private:argv.cmd.private|| false
     }
     translator.init(ctx, cmd.host.translator)
-    store.init(ctx, cmd.host.store, argv.twid)
+    store.init(ctx, cmd.host.store)
     const logger: Logger = ctx.logger("app:cmd")
     // 初始化群成员列表
     if (cmd.group.length && cmd.private) {
@@ -67,7 +67,6 @@ export default function (ctx: Context, argv: config) {
             // logger.debug(members)
         })
     }
-    console.log(ctx.app.options)
     // 中间件判断权限及解析短快捷指令
     ctx.middleware((meta, next) => {
         switch (meta.messageType) {
@@ -214,9 +213,14 @@ export default function (ctx: Context, argv: config) {
                 msg = "从" + argv.prefix + twi + "到现在的已烤推特如下: "
                 for (const i of list) {
                     msg += "\n" + argv.prefix + i.id
-                    if (i.type !== "更新") msg += " " + i.type
+                    if (i.type !== "更新")  {
+                        msg += " " + i.type
+                        msg += argv.prefix + i.refTid
+                    } else if (i.refTid) {
+                        msg += "引用" + argv.prefix + i.refTid
+                    }
                     if (i.published) msg += " 已发"
-                    if (i.trans) {
+                    if (i.trans || i.img) {
                         msg += " 已烤"
                         if (i.comment) msg += "#" + i.comment
                         else msg += "-" + ((i.trans.length > cmd.cut)
@@ -321,7 +325,7 @@ export default function (ctx: Context, argv: config) {
             const tw = await store.comment(twi, comment)
             if (tw) {
                 logger.warn("comment %d : %s", twi, comment)
-                return meta.$send("已在 " + argv.prefix + twi + "上添加了备注: " + tw.comment)
+                return meta.$send("已在 " + argv.prefix + twi + "上添加了备注: " + tw.twitter.comment)
             } else {
                 logger.warn("comment %d fail", twi)
                 meta.$send("找不到: " + twi)
