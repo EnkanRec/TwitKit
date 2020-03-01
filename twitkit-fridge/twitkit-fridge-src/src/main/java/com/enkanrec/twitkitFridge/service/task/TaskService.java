@@ -15,7 +15,7 @@ import java.util.List;
  */
 public interface TaskService {
 
-    TaskServiceImpl.CreateTaskReplay addTask(String url, String content, String media);
+    TaskServiceImpl.CreateTaskReplay addTask(TaskCreationForm twitter);
 
     List<TaskServiceImpl.CreateTaskReplay> addTaskByBulk(List<TaskCreationForm> twitters);
 
@@ -23,25 +23,25 @@ public interface TaskService {
 
     Boolean removeTask(Integer tid);
 
-    EnkanTaskEntity getOneLatestOfVisible();
+    TaskServiceImpl.TaskReplay getOneLatestOfVisible();
 
     TaskServiceImpl.TranslatedTask getOneLatestOfVisibleWithTranslation();
 
-    EnkanTaskEntity getOneLatest();
+    TaskServiceImpl.TaskReplay getOneLatest();
 
     TaskServiceImpl.TranslatedTask getOneWithTranslation(Integer tid);
 
     List<TaskServiceImpl.TranslatedTask> getManyFromTidWithTranslation(Integer tid);
 
-    EnkanTaskEntity updateComment(Integer tid, String comment);
+    TaskServiceImpl.TaskReplay updateComment(Integer tid, String comment);
 
-    EnkanTaskEntity hide(Integer tid);
+    TaskServiceImpl.TaskReplay hide(Integer tid);
 
-    EnkanTaskEntity visible(Integer tid);
+    TaskServiceImpl.TaskReplay visible(Integer tid);
 
-    EnkanTaskEntity setPublished(Integer tid);
+    TaskServiceImpl.TaskReplay setPublished(Integer tid);
 
-    EnkanTaskEntity setUnpublished(Integer tid);
+    TaskServiceImpl.TaskReplay setUnpublished(Integer tid);
 
     Integer removeAllTranslations(Integer tid);
 

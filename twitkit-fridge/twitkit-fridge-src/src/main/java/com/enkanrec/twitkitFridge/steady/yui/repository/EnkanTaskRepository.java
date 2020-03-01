@@ -19,11 +19,13 @@ import java.util.List;
  */
 public interface EnkanTaskRepository extends JpaRepository<EnkanTaskEntity, Integer> {
 
-    boolean existsByUrl(String url);
+    boolean existsByStatusId(String statusId);
 
     EnkanTaskEntity findByUrl(String url);
 
-    List<EnkanTaskEntity> findByUrlIn(Collection<String> urls);
+    EnkanTaskEntity findByStatusId(String statusId);
+
+    List<EnkanTaskEntity> findByStatusIdIn(Collection<String> statusIds);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT et FROM EnkanTaskEntity et WHERE et.tid = :tid")

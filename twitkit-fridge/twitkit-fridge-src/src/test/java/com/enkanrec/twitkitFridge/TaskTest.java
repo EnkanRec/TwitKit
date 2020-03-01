@@ -125,29 +125,44 @@ public class TaskTest {
     @Transactional
     @Test
     public void getLastWithoutTranslation() throws Exception {
-        Map<String, Object> twitter2 = helper.apiPost("/last", null, Map.class);
+        Map<String, Object> resp = helper.apiPost("/last", null, Map.class);
+        Map twitter2 = (Map) resp.get("twitter");
+        Map user2 = (Map) resp.get("user");
         Assert.assertEquals(1003, twitter2.get("tid"));
         Assert.assertEquals("URL_3", twitter2.get("url"));
         Assert.assertEquals("内容3", twitter2.get("content"));
         Assert.assertEquals("[]", twitter2.get("media"));
+        Assert.assertEquals("123000123", user2.get("twitterUid"));
+        Assert.assertEquals("圆环纪录攻略组", user2.get("display"));
+        Assert.assertEquals("http://111/111.jpg", user2.get("avatar"));
+        Assert.assertEquals("enkanRecGLZ", user2.get("name"));
     }
 
     @Transactional
     @Test
     public void getActualLast() throws Exception {
-        Map<String, Object> twitter2 = helper.apiPost("/actuallast", null, Map.class);
+        Map<String, Object> resp = helper.apiPost("/actuallast", null, Map.class);
+        Map twitter2 = (Map) resp.get("twitter");
+        Map user2 = (Map) resp.get("user");
         Assert.assertEquals(1004, twitter2.get("tid"));
         Assert.assertEquals("URL_4_HIDED", twitter2.get("url"));
         Assert.assertEquals("内容4", twitter2.get("content"));
         Assert.assertEquals("[]", twitter2.get("media"));
+        Assert.assertEquals("123000123", user2.get("twitterUid"));
+        Assert.assertEquals("圆环纪录攻略组", user2.get("display"));
+        Assert.assertEquals("http://111/111.jpg", user2.get("avatar"));
+        Assert.assertEquals("enkanRecGLZ", user2.get("name"));
     }
 
     @Transactional
     @Test
     public void addTranslateAndRollback() throws Exception {
-        Map<String, Object> twitterLast = helper.apiPost("/last", null, Map.class);
+        Map<String, Object> respLast = helper.apiPost("/last", null, Map.class);
+        Map twitterLast = (Map) respLast.get("twitter");
+        Map userLast = (Map) respLast.get("user");
         Integer tid = (Integer) twitterLast.get("tid");
         Assert.assertTrue(tid >= 1000);
+        Assert.assertNotNull(userLast);
 
         int counter = 0;
         Map<String, Object> payload = new HashMap<>();
@@ -191,6 +206,8 @@ public class TaskTest {
         queryData.put("tid", tid);
         Map<String, Object> respDataRB = helper.apiPost("/rollback", queryData, Map.class);
         Map twitterRB = (Map) respDataRB.get("twitter");
+        Map userRB = (Map) respDataRB.get("user");
+        Assert.assertEquals("123000123", userRB.get("twitterUid"));
         Assert.assertEquals(tid, twitterRB.get("tid"));
         Map translationRB = (Map) respDataRB.get("translation");
         Assert.assertEquals(counter - 1, translationRB.get("version"));
@@ -201,7 +218,9 @@ public class TaskTest {
         Map twitterRB2 = (Map) respDataRB2.get("twitter");
         Assert.assertEquals(tid, twitterRB2.get("tid"));
         Map translationRB2 = (Map) respDataRB2.get("translation");
+        Map userRB2 = (Map) respDataRB2.get("user");
         Assert.assertNull(translationRB2);
+        Assert.assertNotNull(userRB2);
     }
 
     @Transactional
@@ -228,16 +247,28 @@ public class TaskTest {
         Map<String, Object> queryData = new HashMap<>();
         queryData.put("tid", 1001);
         Map<String, Object> back = helper.apiPost("/published", queryData, Map.class);
-        Assert.assertTrue((Boolean) back.get("published"));
+        Map twitter = (Map) back.get("twitter");
+        Map user = (Map) back.get("user");
+        Assert.assertTrue((Boolean) twitter.get("published"));
+        Assert.assertEquals("123000123", user.get("twitterUid"));
         back = helper.apiPost("/unpublished", queryData, Map.class);
-        Assert.assertFalse((Boolean) back.get("published"));
+        twitter = (Map) back.get("twitter");
+        user = (Map) back.get("user");
+        Assert.assertFalse((Boolean) twitter.get("published"));
+        Assert.assertEquals("123000123", user.get("twitterUid"));
 
         queryData = new HashMap<>();
         queryData.put("tid", 555);
         back = helper.apiPost("/published", queryData, Map.class);
-        Assert.assertNull(back);
+        twitter = (Map) back.get("twitter");
+        user = (Map) back.get("user");
+        Assert.assertNull(twitter);
+        Assert.assertNull(user);
         back = helper.apiPost("/unpublished", queryData, Map.class);
-        Assert.assertNull(back);
+        twitter = (Map) back.get("twitter");
+        user = (Map) back.get("user");
+        Assert.assertNull(twitter);
+        Assert.assertNull(user);
     }
 
     @Transactional
@@ -246,27 +277,37 @@ public class TaskTest {
         Map<String, Object> queryData = new HashMap<>();
         queryData.put("tid", 1003);
         Map<String, Object> back = helper.apiPost("/hide", queryData, Map.class);
-        Assert.assertTrue((Boolean) back.get("hided"));
+        Map twitterB = (Map) back.get("twitter");
+        Assert.assertTrue((Boolean) twitterB.get("hided"));
 
-        Map<String, Object> twitterL = helper.apiPost("/last", null, Map.class);
+        Map<String, Object> resp = helper.apiPost("/last", null, Map.class);
+        Map twitterL = (Map) resp.get("twitter");
         Assert.assertEquals(1002, twitterL.get("tid"));
         Assert.assertEquals("URL_2", twitterL.get("url"));
         Assert.assertEquals("内容2🍒", twitterL.get("content"));
         Assert.assertEquals("[\"media_2\"]", twitterL.get("media"));
 
         back = helper.apiPost("/visible", queryData, Map.class);
-        Assert.assertFalse((Boolean) back.get("hided"));
+        twitterB = (Map) back.get("twitter");
+        Assert.assertFalse((Boolean) twitterB.get("hided"));
 
-        twitterL = helper.apiPost("/last", null, Map.class);
+        resp = helper.apiPost("/last", null, Map.class);
+        twitterL = (Map) resp.get("twitter");
         Assert.assertEquals(1003, twitterL.get("tid"));
         Assert.assertEquals("URL_3", twitterL.get("url"));
 
         queryData = new HashMap<>();
         queryData.put("tid", 555);
         back = helper.apiPost("/hide", queryData, Map.class);
-        Assert.assertNull(back);
+        Map twitterN = (Map) back.get("twitter");
+        Map userN = (Map) back.get("user");
+        Assert.assertNull(twitterN);
+        Assert.assertNull(userN);
         back = helper.apiPost("/visible", queryData, Map.class);
-        Assert.assertNull(back);
+        twitterN = (Map) back.get("twitter");
+        userN = (Map) back.get("user");
+        Assert.assertNull(twitterN);
+        Assert.assertNull(userN);
     }
 
     @Transactional
@@ -277,15 +318,25 @@ public class TaskTest {
         queryData.put("tid", 1000);
         queryData.put("comment", currentTs);
         Map<String, Object> back = helper.apiPost("/comment", queryData, Map.class);
-        Assert.assertEquals(currentTs, back.get("comment"));
+        Map twitter = (Map) back.get("twitter");
+        Map user = (Map) back.get("user");
+
+        Assert.assertEquals(currentTs, twitter.get("comment"));
+        Assert.assertEquals("123000123", user.get("twitterUid"));
 
         queryData.put("comment", "");
         back = helper.apiPost("/comment", queryData, Map.class);
-        Assert.assertEquals("", back.get("comment"));
+        twitter = (Map) back.get("twitter");
+        user = (Map) back.get("user");
+        Assert.assertEquals("", twitter.get("comment"));
+        Assert.assertEquals("123000123", user.get("twitterUid"));
 
         queryData.put("tid", 1);
         back = helper.apiPost("/comment", queryData, Map.class);
-        Assert.assertNull(back);
+        twitter = (Map) back.get("twitter");
+        user = (Map) back.get("user");
+        Assert.assertNull(twitter);
+        Assert.assertNull(user);
     }
 
     @Transactional
@@ -296,6 +347,12 @@ public class TaskTest {
         queryData.put("url", url1);
         queryData.put("content", "入库推文1");
         queryData.put("media", "[\"media_1\"]");
+        queryData.put("pub_date", "2020-02-29T14:40:00.000+08:00");
+        queryData.put("status_id", "900000000000");
+        queryData.put("user_twitter_uid", "123000123");
+        queryData.put("user_name", "enkanRecGLZ");
+        queryData.put("user_display", "圆环纪录攻略组");
+        queryData.put("user_avatar", "http://111/111.jpg");
         Map<String, Object> back = helper.apiPost("/create", queryData, Map.class);
         Map<String, Object> twitterL = (Map<String, Object>) back.get("twitter");
         Integer inTid = (Integer) twitterL.get("tid");
@@ -309,9 +366,14 @@ public class TaskTest {
         Assert.assertTrue(respData.containsKey("twitter"));
         Assert.assertTrue(respData.containsKey("translation"));
         Map twitter = (Map) respData.get("twitter");
+        Map user = (Map) respData.get("user");
         Assert.assertEquals(inTid, twitter.get("tid"));
         Assert.assertEquals("入库推文1", twitter.get("content"));
         Assert.assertEquals("[\"media_1\"]", twitter.get("media"));
+        Assert.assertEquals("123000123", user.get("twitterUid"));
+        Assert.assertEquals("enkanRecGLZ", user.get("name"));
+        Assert.assertEquals("圆环纪录攻略组", user.get("display"));
+        Assert.assertEquals("http://111/111.jpg", user.get("avatar"));
         Assert.assertNull(respData.get("translation"));
 
         Boolean deleteResp = helper.apiPost("/delete", data, Boolean.class);
@@ -320,7 +382,9 @@ public class TaskTest {
         Assert.assertFalse(deleteResp);
 
         respData = helper.apiPost("/get", data, Map.class);
-        Assert.assertNull(respData);
+        Assert.assertNull(respData.get("twitter"));
+        Assert.assertNull(respData.get("user"));
+        Assert.assertNull(respData.get("translation"));
     }
 
     @Transactional
@@ -331,6 +395,12 @@ public class TaskTest {
         queryData.put("url", url1);
         queryData.put("content", "入库推文1");
         queryData.put("media", "[\"media_1\"]");
+        queryData.put("pub_date", "2020-02-29T14:40:00.000+08:00");
+        queryData.put("status_id", "900000000000");
+        queryData.put("user_twitter_uid", "123000123");
+        queryData.put("user_name", "enkanRecGLZ");
+        queryData.put("user_display", "圆环纪录攻略组");
+        queryData.put("user_avatar", "http://111/111.jpg");
         Map<String, Object> back = helper.apiPost("/create", queryData, Map.class);
         Map<String, Object> twitterL = (Map<String, Object>) back.get("twitter");
         Integer inTid = (Integer) twitterL.get("tid");
@@ -345,9 +415,14 @@ public class TaskTest {
         Assert.assertTrue((Boolean) backSame.get("alreadyExist"));
 
         Map<String, Object> queryData2 = new HashMap<>();
-        queryData2.put("url", url1);
         queryData2.put("content", "入库推文1_update");
         queryData2.put("media", "[\"media_1\"]");
+        queryData.put("pub_date", "2020-02-29T14:40:00.000+08:00");
+        queryData.put("status_id", "900000000000");
+        queryData.put("user_twitter_uid", "123000123");
+        queryData.put("user_name", "enkanRecGLZ");
+        queryData.put("user_display", "圆环纪录攻略组");
+        queryData.put("user_avatar", "http://111/111.jpg");
         Map<String, Object> back2 = helper.apiPost("/create", queryData, Map.class);
         Map<String, Object> twitter2 = (Map<String, Object>) back2.get("twitter");
         Assert.assertEquals(inTid, (Integer) twitter2.get("tid"));
@@ -369,11 +444,23 @@ public class TaskTest {
         queryData1.put("url", url1);
         queryData1.put("content", "入库推文1");
         queryData1.put("media", "[\"media_1\"]");
+        queryData1.put("pub_date", "2020-02-29T14:40:00.000+08:00");
+        queryData1.put("status_id", "900000000000");
+        queryData1.put("user_twitter_uid", "123000123");
+        queryData1.put("user_name", "enkanRecGLZ");
+        queryData1.put("user_display", "圆环纪录攻略组");
+        queryData1.put("user_avatar", "http://111/111.jpg");
         Map<String, Object> queryData2 = new HashMap<>();
         String url2 = UUID.randomUUID().toString();
         queryData2.put("url", url2);
         queryData2.put("content", "入库推文2");
         queryData2.put("media", "[\"media_2\"]");
+        queryData2.put("pub_date", "2020-02-29T14:40:00.000+08:00");
+        queryData2.put("status_id", "900000000001");
+        queryData2.put("user_twitter_uid", "123000123");
+        queryData2.put("user_name", "enkanRecGLZ");
+        queryData2.put("user_display", "圆环纪录攻略组");
+        queryData2.put("user_avatar", "http://111/111.jpg");
         bulkData1.add(queryData1);
         bulkData1.add(queryData2);
         List<Object> back1 = helper.apiPost("/bulk", bulkData1, List.class);
@@ -409,6 +496,12 @@ public class TaskTest {
         queryData3.put("url", url3);
         queryData3.put("content", "入库推文3");
         queryData3.put("media", "[\"media_3\"]");
+        queryData3.put("pub_date", "2020-02-29T14:40:00.000+08:00");
+        queryData3.put("status_id", "900000000002");
+        queryData3.put("user_twitter_uid", "123000123");
+        queryData3.put("user_name", "enkanRecGLZ");
+        queryData3.put("user_display", "圆环纪录攻略组");
+        queryData3.put("user_avatar", "http://111/111.jpg");
         bulkData2.add(queryData3);
         List<Object> back2 = helper.apiPost("/bulk", bulkData2, List.class);
         Assert.assertEquals(2, back2.size());

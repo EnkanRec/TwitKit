@@ -21,12 +21,17 @@ import java.util.Objects;
 @Table(name = "enkan_task", schema = "yui")
 public class EnkanTaskEntity {
     private int tid;
+    private String statusId;
     private String url;
     private String content;
     private String media;
     private boolean published;
     private boolean hided;
     private String comment;
+    private String twitterUid;
+    private Integer refTid;
+    private Timestamp pubDate;
+    private String extra;
     private Timestamp newdate;
     private Timestamp updatetime;
 
@@ -44,13 +49,23 @@ public class EnkanTaskEntity {
     }
 
     @Basic
-    @Column(name = "url", nullable = false, length = 767)
+    @Column(name = "url", length = 767)
     public String getUrl() {
         return url;
     }
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    @Basic
+    @Column(name = "status_id", length = 255)
+    public String getStatusId() {
+        return statusId;
+    }
+
+    public void setStatusId(String statusId) {
+        this.statusId = statusId;
     }
 
     @Basic
@@ -104,6 +119,46 @@ public class EnkanTaskEntity {
     }
 
     @Basic
+    @Column(name = "extra")
+    public String getExtra() {
+        return extra;
+    }
+
+    public void setExtra(String extra) {
+        this.extra = extra;
+    }
+
+    @Basic
+    @Column(name = "pub_date")
+    public Timestamp getPubDate() {
+        return pubDate;
+    }
+
+    public void setPubDate(Timestamp pubDate) {
+        this.pubDate = pubDate;
+    }
+
+    @Basic
+    @Column(name = "twitter_uid")
+    public String getTwitterUid() {
+        return twitterUid;
+    }
+
+    public void setTwitterUid(String twitterUid) {
+        this.twitterUid = twitterUid;
+    }
+
+    @Basic
+    @Column(name = "ref_tid")
+    public Integer getRefTid() {
+        return refTid;
+    }
+
+    public void setRefTid(Integer refTid) {
+        this.refTid = refTid;
+    }
+
+    @Basic
     @Column(name = "newdate", nullable = false, insertable = false, updatable = false)
     public Timestamp getNewdate() {
         return newdate;
@@ -130,17 +185,23 @@ public class EnkanTaskEntity {
         EnkanTaskEntity that = (EnkanTaskEntity) o;
         return tid == that.tid &&
                 published == that.published &&
+                Objects.equals(statusId, that.statusId) &&
                 Objects.equals(url, that.url) &&
                 Objects.equals(content, that.content) &&
                 Objects.equals(media, that.media) &&
                 Objects.equals(comment, that.comment) &&
+                Objects.equals(hided, that.hided) &&
+                Objects.equals(extra, that.extra) &&
+                Objects.equals(twitterUid, that.twitterUid) &&
+                Objects.equals(refTid, that.refTid) &&
+                Objects.equals(pubDate, that.pubDate) &&
                 Objects.equals(newdate, that.newdate) &&
                 Objects.equals(updatetime, that.updatetime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tid, url, content, media, published, comment, newdate, updatetime);
+        return Objects.hash(tid, statusId, url, content, media, published, comment, newdate, updatetime, hided, pubDate, extra, refTid, twitterUid);
     }
 
     @JsonIgnore
