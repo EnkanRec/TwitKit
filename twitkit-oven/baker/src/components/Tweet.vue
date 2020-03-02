@@ -134,12 +134,12 @@ export default {
 
       // 实测中遇到了Date解析不出来ISO8601的格式的情况，所以加了下面的代码作为fallback
       if (isNaN(d.getFullYear())) {
-        d.setFullYear(parseInt(date.substring(0, 4)));
-        d.setMonth(parseInt(date.substring(5, 7)));
-        d.setDate(parseInt(date.substring(8, 10)));
-        d.setHours(parseInt(date.substring(11, 13)));
-        d.setMinutes(parseInt(date.substring(14, 16)));
-        d.setSeconds(parseInt(date.substring(17, 19)));
+        d.setUTCFullYear(parseInt(date.substring(0, 4)));
+        d.setUTCMonth(parseInt(date.substring(5, 7)));
+        d.setUTCDate(parseInt(date.substring(8, 10)));
+        d.setUTCHours(parseInt(date.substring(11, 13)));
+        d.setUTCMinutes(parseInt(date.substring(14, 16)));
+        d.setUTCSeconds(parseInt(date.substring(17, 19)));
 
         date = date.substring(19);
         var tzPos = date.indexOf("+");
@@ -151,8 +151,6 @@ export default {
           tzOffset *= 60 * 60 * 1000;
           d.setTime(d.getTime() - tzOffset);
         }
-
-        d.getTime();
       }
 
       formatted =
