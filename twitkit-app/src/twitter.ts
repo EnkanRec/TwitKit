@@ -127,7 +127,7 @@ export function Twitter2msg(tw: Twitter, argv): string {
         + ((tw.type === "更新" || tw.type === "引用") ? "更新了" : ("转发了【" + tw.oirgUser.display + "】的推" + argv.prefix + tw.refTid))
         + "\n----------------\n"
         + "内容: " + tw.content
-    if (tw.media) {
+    if (tw.media && tw.media.length) {
         msg += "\n媒体: "
         for (const img of tw.media) msg += argv.ispro ? "[CQ:image,file=" + img + "]" : img
     }
