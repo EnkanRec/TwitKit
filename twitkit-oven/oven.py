@@ -35,6 +35,9 @@ def bake_tweet(tid, trans_text=None,
     viewport_width = config.VIEWPORT_WIDTH
 
     command = ['wkhtmltoimage',
+               '--no-stop-slow-scripts',
+               '--javascript-delay',
+               '10000',
                '--zoom', str(zoom_ratio),
                '--width', str(int(round(viewport_width * zoom_ratio))),
                '--disable-smart-width',
