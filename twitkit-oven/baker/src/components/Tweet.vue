@@ -10,7 +10,7 @@
       </div>
       <div class="cardBody">
         <div
-          v-html="translation ? translation.translation : tweet.content"
+          v-html="translation ? (transText || translation.translation) : tweet.content"
           :lang="translation ? null : 'ja-jp'"
         ></div>
         <div class="origText" v-if="translation && tweet.content">
@@ -41,6 +41,7 @@ export default {
   props: {
     tid: String,
     altBg: Boolean,
+    transText: String,
     noDate: Boolean
   },
   data() {

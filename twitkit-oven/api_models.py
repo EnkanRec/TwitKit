@@ -24,6 +24,9 @@ bake_data_model = oven_api.model('bakeDataModel', {
         required=True,
         description='推文ID',
         example=2233),
+    'transText': fields.String(
+        description='推文译文，Plain Text格式，不传则使用数据库中的译文',
+        example='我有幸担任了魔法纪录新魔法少女“南津 凉子”的人物设计！请多多指教✨'),
     'ppi': fields.Integer(
         default=config.DEFAULT_PPI,
         description='生成图像PPI',

@@ -18,12 +18,14 @@ tweet_page_bp = Blueprint('internal', __name__, static_folder='baker/dist/')
 STATIC = 'static'
 
 
-def bake_tweet(tid, ppi=config.DEFAULT_PPI, transparent=False, smooth=True):
+def bake_tweet(tid, trans_text=None,
+               ppi=config.DEFAULT_PPI, transparent=False, smooth=True):
 
     payload_data = json.dumps({
         'tid': tid,
-        'zh_font': config.ZH_FONT,
-        'ja_font': config.JA_FONT,
+        'transText': trans_text,
+        'zhFont': config.ZH_FONT,
+        'jaFont': config.JA_FONT,
     })
 
     zoom_ratio = ppi / 96

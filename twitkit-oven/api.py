@@ -40,6 +40,8 @@ class GenerateImage(Resource):
         bake_params = {
             'tid': request_data['tid'],
         }
+        if 'transText' in request_data:
+            bake_params['trans_text'] = request_data['transText']
         if 'ppi' in request_data:
             bake_params['ppi'] = request_data['ppi']
 
