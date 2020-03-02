@@ -2,7 +2,6 @@
 
 from flask_restplus import Resource, Api
 from flask import request
-from hashlib import md5
 from datetime import datetime
 from dateutil.parser import isoparser
 from api_models import oven_api
@@ -37,20 +36,18 @@ class GenerateImage(Resource):
 
         logger.info(f'[{task_id}] '
                     f'从 {request_base_data["forwardFrom"]} 收到烤图任务')
-        filename = \
-            md5(json.dumps(request_data).encode('utf-8')).hexdigest() + '.png'
 
         bake_params = {
-            'tid': request_data['tid']
+            'tid': request_data['tid'],
         }
         if 'ppi' in request_data:
             bake_params['ppi'] = request_data['ppi']
 
         start_time = time.time()
-        bake_result = bake_tweet(**bake_params)
+        filename = bake_tweet(**bake_params)
         end_time = time.time()
         process_time_ms = int((end_time - start_time) * 1000)
-        if not bake_result:
+        if not filename:
             return make_response(500, '后端生成图片发生错误，请联系管理员检查日志')
         else:
             logger.info(f'[{task_id}] '

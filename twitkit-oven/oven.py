@@ -3,6 +3,7 @@ from flask import Blueprint, request, render_template
 from subprocess import run, PIPE
 from PIL import Image
 from tid_code import add_code_to_image
+from hashlib import md5
 
 import os
 import sys
@@ -14,9 +15,10 @@ import config
 logger = logging.getLogger('app')
 tweet_page_bp = Blueprint('internal', __name__, static_folder='baker/dist/')
 
+STATIC = 'static'
 
-def bake_tweet(tid, output_path,
-               ppi=config.DEFAULT_PPI, transparent=False, smooth=True):
+
+def bake_tweet(tid, ppi=config.DEFAULT_PPI, transparent=False, smooth=True):
 
     payload_data = json.dumps({
         'tid': tid,
@@ -41,10 +43,12 @@ def bake_tweet(tid, output_path,
         command.append('--transparent')
 
     command.append(f'{config.INT_BASE_URL}/internal/index.html')
-    command.append(output_path)
+    temp_filename = f'{tid}.png'
+    temp_filepath = os.path.join(STATIC, temp_filename)
+    command.append(temp_filepath)
 
     try:
-        os.makedirs(os.path.dirname(output_path), mode=0o755, exist_ok=True)
+        os.makedirs(STATIC, mode=0o755, exist_ok=True)
     except OSError:
         logger.error('创建输出目录失败。')
         return False
@@ -61,7 +65,7 @@ def bake_tweet(tid, output_path,
         return False
 
     render_ppi = int(zoom_ratio * 96)
-    im = Image.open(output_path)
+    im = Image.open(temp_filepath)
     add_code_to_image(im, tid,
                       config.TID_CODE_POS_X, config.TID_CODE_POS_Y,
                       config.TID_CODE_WIDTH, config.TID_CODE_HEIGHT)
@@ -71,6 +75,8 @@ def bake_tweet(tid, output_path,
         new_size = (int(round(im.size[0] / 2)), int(round(im.size[1] / 2)))
         im.thumbnail(new_size, resample=Image.BICUBIC)
 
-    im.save(output_path)
+    actual_filename = md5(im.tobytes()).digest()
+    im.save(os.path.join(STATIC, actual_filename))
+    os.unlink(temp_filepath)
 
-    return True
+    return actual_filename
