@@ -117,6 +117,7 @@ export default function (ctx: Context, argv: config) {
                     case "":
                         return ctx.runCommand('translate', meta, [twi, trans])
                     case "!":
+                    case "！":
                         return ctx.runCommand('fresh', meta, [twi])
                     case "*":
                         return ctx.runCommand('raw', meta, [twi])
@@ -141,6 +142,7 @@ export default function (ctx: Context, argv: config) {
                     case "~":
                         return ctx.runCommand('list', meta)
                     case "!":
+                    case "！":
                         return ctx.runCommand('fresh', meta)
                     case "*":
                         return ctx.runCommand('raw', meta,)
@@ -151,6 +153,7 @@ export default function (ctx: Context, argv: config) {
                     case "-":
                         return ctx.runCommand('hide', meta)
                     case "?":
+                    case "？":
                         return meta.$send("快捷命令使用帮助: " + argv.prefix + "[id][cmd]\n"
                                         + "id: 任务id\n"
                                         + "cmd: 短指令\n"
@@ -237,7 +240,7 @@ export default function (ctx: Context, argv: config) {
                 logger.warn("Twitter %d not found", twi)
                 return meta.$send("找不到 " + id)
             }
-            if (tw.type === "更新" && !tw.trans) return meta.$send(argv.prefix + id + "还没有翻译")
+            // if (tw.type === "更新" && !tw.trans) return meta.$send(argv.prefix + id + " 还没有翻译")
             tw.img = await translator.get(tw)
             store.trans(twi, tw.trans, tw.img, false)
             logger.debug("Update image: " + tw.img)
@@ -272,8 +275,7 @@ export default function (ctx: Context, argv: config) {
                 for (const i of list) {
                     msg += "\n" + argv.prefix + i.id
                     if (i.type !== "更新")  {
-                        msg += " " + i.type
-                        msg += argv.prefix + i.refTid
+                        msg += " " + i.type + " " + argv.prefix + i.refTid
                     }
                     if (i.published) msg += " 已发"
                     if (i.trans || i.img) {

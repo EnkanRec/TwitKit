@@ -157,7 +157,6 @@ async function getLastTid(): Promise<number> {
 
 /**
  * @description 获取最新一条推文，包括隐藏的推
- * @returns newest tid
  * @deprecated 暂未启用
  */
 async function getActualLast(): Promise<Twitter> {
