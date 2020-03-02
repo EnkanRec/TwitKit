@@ -46,13 +46,14 @@ class RealtimeUpdateStreamListener(tweepy.StreamListener):
         """callback函数接受一个参数，为一个tweepy的Status对象"""
         self.callback = callback
         self.uid = uid
+        self.api = api
         logging.info(f"开始监听推特用户{uid}")
 
     def on_status(self, status):
         try:
-            if status.user.id == uid:
+            if status.user.id == self.uid:
                 logging.info(f"收到实时动态：{status.text}")
-                callback(status)
+                self.callback(status)
         except Exception as e:
             logging.warning(f"on_status发生错误：{e}")
             logging.warning(traceback.format_exc())
@@ -65,6 +66,6 @@ class RealtimeUpdateStreamListener(tweepy.StreamListener):
 def start_realtime_update(username, callback):
     uid = username_to_uid(username)
     rusl = RealtimeUpdateStreamListener(uid, callback)
-    stream = tweepy.Stream(auth=api.auth, listener=rusl)
+    stream = tweepy.Stream(auth=api.auth, listener=rusl, tweet_mode='extended')
     stream.filter(follow=[str(uid)], is_async=True)
     return rusl

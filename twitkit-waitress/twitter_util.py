@@ -2,6 +2,7 @@ from dateutil import tz
 from datetime import datetime
 
 import json
+import re
 
 def utc_to_local(dt: datetime):
     dt = dt.replace(tzinfo=tz.tzutc())
@@ -14,7 +15,15 @@ def convert_tweepy_tweet(tweepy_tweet):
 
     def _convert_tweepy_tweet(tweepy_tweet):
         ref_tweet = None
-        full_text = tweepy_tweet.full_text
+        if hasattr(tweepy_tweet, 'full_text'):
+            full_text = tweepy_tweet.full_text
+        elif hasattr(tweepy_tweet, 'extended_tweet'):
+            full_text = tweepy_tweet.extended_tweet['full_text']
+        elif hasattr(tweepy_tweet, 'text'):
+            full_text = tweepy_tweet.text
+
+        full_text = re.sub(r' https:\/\/t.co\/[A-Za-z0-9]{10}$', '', full_text)
+
         ref_id = None
         
         media_urls = []
