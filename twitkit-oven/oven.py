@@ -75,7 +75,7 @@ def bake_tweet(tid, ppi=config.DEFAULT_PPI, transparent=False, smooth=True):
         new_size = (int(round(im.size[0] / 2)), int(round(im.size[1] / 2)))
         im.thumbnail(new_size, resample=Image.BICUBIC)
 
-    actual_filename = md5(im.tobytes()).digest()
+    actual_filename = md5(im.tobytes()).hexdigest() 
     im.save(os.path.join(STATIC, actual_filename))
     os.unlink(temp_filepath)
 
