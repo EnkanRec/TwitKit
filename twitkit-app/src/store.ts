@@ -111,8 +111,8 @@ function comment(tid: number, comment: string): Promise<dbtw> {
  * @param trans 翻译
  * @param img 烤推机输出图片地址
  */
-function trans(tid: number, trans: string, img: string): Promise<dbtw> {
-    lastTrans = tid
+function trans(tid: number, trans: string, img: string, last: boolean = true): Promise<dbtw> {
+    if (last) lastTrans = tid
     // const res: { twitter: db_twitter, translation: db_translation } = await 
     return rest("/api/db/task/translate", { tid, img, trans })
     // return convert(res.twitter, res.translation, orig)
@@ -217,10 +217,21 @@ async function hide(tid: number): Promise<boolean> {
 async function hideAll(): Promise<number[]> {
     const queue: Twitter[] = await list()
     let res: number[] = []
+    let ref: number[] = []
     for (const i of queue) {
         if (i.published) {
             rest("/api/db/task/hide", { tid: i.id })
             res.push(i.id)
+            if (i.refTid) ref.push(i.refTid)
+        }
+    }
+    while (ref.length) {
+        const i = ref.pop()
+        const tw = queue.find((value) => { value.id === i })
+        if (tw) {
+            rest("/api/db/task/hide", { tid: tw.id })
+            res.push(tw.id)
+            if (tw.refTid) ref.push(tw.refTid)
         }
     }
     return res

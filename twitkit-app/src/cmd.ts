@@ -116,6 +116,8 @@ export default function (ctx: Context, argv: config) {
                     case undefined:
                     case "":
                         return ctx.runCommand('translate', meta, [twi, trans])
+                    case "!":
+                        return ctx.runCommand('fresh', meta, [twi])
                     case "~":
                         return ctx.runCommand('list', meta, [twi])
                     case "~~":
@@ -146,6 +148,7 @@ export default function (ctx: Context, argv: config) {
                         return meta.$send("快捷命令使用帮助: " + argv.prefix + "[id][cmd]\n"
                                         + "id: 任务id\n"
                                         + "cmd: 短指令\n"
+                                        + "    !: 刷新任务烤图\n"
                                         + "    ~: 列出之后的所有任务\n"
                                         + "    ~~: 列出之后的所有烤推结果\n"
                                         + "    /: 设置队列头\n"
@@ -186,14 +189,25 @@ export default function (ctx: Context, argv: config) {
                     return meta.$send("找不到 " + id)
                 }
                 if (trans) {
-                    tw.trans = trans
-                    tw.img = await translator.get(tw)
-                    store.trans(twi, trans, tw.img)
-                    logger.debug("update translation: " + trans)
+                    if (tw.type === "转推") {
+                        await store.trans(tw.refTid, trans, "")
+                        tw.img = await translator.get(tw)
+                        await store.trans(twi, "", tw.img)
+                    } else {
+                        tw.trans = trans
+                        tw.img = await translator.get(tw)
+                        store.trans(twi, trans, tw.img)
+                        logger.debug("update translation: " + trans)
+                    }
                 }
-                if (tw.trans) {
+                if (tw.trans || tw.img) {
+                    if (!tw.img) {
+                        tw.img = await translator.get(tw)
+                        // store.undo(tw.id)
+                        store.trans(twi, tw.trans, tw.img, false)
+                    }
                     logger.debug("Show translation: " + tw.img)
-                    return meta.$send(tw.img + (argv.ispro ? "\n[CQ:image,file=" + tw.img + "]" : ""))
+                    return meta.$send(tw.img + (argv.ispro ? "\n[CQ:image,cache=0,file=" + tw.img + "]" : ""))
                 } else {
                     logger.debug("Show raw Twitter: " + tw.content)
                     const msg = Twitter2msg(tw, argv)
@@ -202,6 +216,23 @@ export default function (ctx: Context, argv: config) {
             }
         })
         .usage("获取/更新这个id的翻译内容")
+
+    ctx.command('fresh <id>')
+        .action(async ({ meta }, id) => {
+            const twi = parseInt(id)
+            if (isNaN(twi)) return meta.$send("找不到 " + id)
+            let tw: Twitter = await store.getTask(twi)
+            if (!tw) {
+                logger.warn("Twitter %d not found", twi)
+                return meta.$send("找不到 " + id)
+            }
+            if (tw.type === "更新" && !tw.trans) return meta.$send(argv.prefix + id + "还没有翻译")
+            tw.img = await translator.get(tw)
+            store.trans(twi, tw.trans, tw.img, false)
+            logger.debug("Update image: " + tw.img)
+            return meta.$send(tw.img + (argv.ispro ? "\n[CQ:image,cache=0,file=" + tw.img + "]" : ""))
+        })
+        .usage("刷新这个id的翻译烤图")
 
     ctx.command('list [id]')
         .action(async ({ meta }, id) => {
@@ -216,8 +247,6 @@ export default function (ctx: Context, argv: config) {
                     if (i.type !== "更新")  {
                         msg += " " + i.type
                         msg += argv.prefix + i.refTid
-                    } else if (i.refTid) {
-                        msg += "引用" + argv.prefix + i.refTid
                     }
                     if (i.published) msg += " 已发"
                     if (i.trans || i.img) {
@@ -249,7 +278,7 @@ export default function (ctx: Context, argv: config) {
             logger.debug("show translation from %d", twi)
             const list = await store.list(twi)
             let msg:string = ""
-            if (list) for (const i of list) if (i.trans) {
+            if (list) for (const i of list) if (i.trans || i.img) {
                 msg += "\n" + argv.prefix + i.id + "\n"
                 msg += argv.ispro ? "[CQ:image,file=" + i.img + "]" : i.img
                 if (i.media && i.media.length) for (const j of i.media)
@@ -340,11 +369,19 @@ export default function (ctx: Context, argv: config) {
                 logger.debug("Nothing to undo")
                 return meta.$send("找不到推文: " + argv.prefix + id)
             }
-            const tw = await store.undo(twi)
+            let tw = await store.undo(twi)
             if (tw) {
-                logger.debug("undo translate: %d", tw)
-                let msg:string = "已撤销修改，现在" + argv.prefix + twi + "的翻译是: \n" + tw.trans
-                return meta.$send(msg)
+                logger.debug("undo translate: %d", tw.id)
+                if (tw.type === "转推") {
+                    const tw2 = await store.undo(tw.refTid)
+                    if (!tw2) logger.warn("ref twitter %d undo fail", tw.refTid)
+                    else {
+                        logger.debug("undo translate: %d", tw2.id)
+                        return meta.$send("已撤销 " + argv.prefix + twi + ">" + argv.prefix + tw2.id
+                                        + " 的修改，现在的翻译是: \n" + tw2.trans)
+                    }
+                }
+                return meta.$send("已撤销 " + argv.prefix + twi + " 的修改，现在的翻译是: \n" + tw.trans)
             } else {
                 logger.warn("Twitter %d notfound", twi)
                 return meta.$send("找不到推文: " + argv.prefix + id)
