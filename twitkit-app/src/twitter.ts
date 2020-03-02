@@ -108,13 +108,17 @@ export function convert(dbtw: dbtw, orig?: dbtw): Twitter {
         },
         extra: JSON.parse(dbtw.twitter.extra)
     }
-    if (orig) {
+    if (orig || !tw.content) {
         tw.type = "转推"
-        tw.oirgUser = {
-            twitterUid: orig.user.twitterUid,
-            name: orig.user.name,
-            display: orig.user.display,
-            avatar: orig.user.avatar
+        if (orig) {
+            tw.oirgUser = {
+                twitterUid: orig.user.twitterUid,
+                name: orig.user.name,
+                display: orig.user.display,
+                avatar: orig.user.avatar
+            }
+            tw.content = orig.twitter.content
+            tw.media = JSON.parse(orig.twitter.media)
         }
     } else if (dbtw.twitter.refTid) {
         tw.type = "引用"
@@ -124,15 +128,18 @@ export function convert(dbtw: dbtw, orig?: dbtw): Twitter {
 
 export function Twitter2msg(tw: Twitter, argv): string {
     let msg: string = "【" + tw.user.display + "】"
-        + ((tw.type === "更新" || tw.type === "引用") ? "更新了" : ("转发了【" + tw.oirgUser.display + "】的推" + argv.prefix + tw.refTid))
-        + "\n----------------\n"
-        + "内容: " + tw.content
+    if (tw.type === "转推") {
+        msg += "转发了【" + tw.oirgUser.display + "】的推" + argv.prefix + tw.id
+    } else {
+        msg += "更新了"
+    }
+    msg += "\n----------------\n内容: " + tw.content
     if (tw.media && tw.media.length) {
         msg += "\n媒体: "
         for (const img of tw.media) msg += argv.ispro ? "[CQ:image,file=" + img + "]" : img
     }
     if (tw.type === "引用") {
-        msg += "\n引用推文: " + argv.prefix + tw.refTid
+        msg += "\n引用: " + argv.prefix + tw.refTid
     }
     msg += "\n原链接: " + tw.url + "\n快速嵌字发送: " + argv.prefix + tw.id + " 译文"
     return msg

@@ -118,12 +118,14 @@ export default function (ctx: Context, argv: config) {
                         return ctx.runCommand('translate', meta, [twi, trans])
                     case "!":
                         return ctx.runCommand('fresh', meta, [twi])
+                    case "*":
+                        return ctx.runCommand('raw', meta, [twi])
                     case "~":
                         return ctx.runCommand('list', meta, [twi])
                     case "~~":
                         return ctx.runCommand('list-detail', meta, [twi])
                     case "/":
-                        return ctx.runCommand('current', meta, [twi])
+                        return ctx.runCommand('clear', meta, [twi])
                     case "-":
                         return ctx.runCommand('hide', meta, [twi])
                     case "+":
@@ -138,10 +140,14 @@ export default function (ctx: Context, argv: config) {
                     case "":
                     case "~":
                         return ctx.runCommand('list', meta)
+                    case "!":
+                        return ctx.runCommand('fresh', meta)
+                    case "*":
+                        return ctx.runCommand('raw', meta,)
                     case "~~":
                         return ctx.runCommand('list-detail', meta)
                     case "/":
-                        return ctx.runCommand('current', meta)
+                        return ctx.runCommand('clear', meta)
                     case "-":
                         return ctx.runCommand('hide', meta)
                     case "?":
@@ -149,6 +155,7 @@ export default function (ctx: Context, argv: config) {
                                         + "id: 任务id\n"
                                         + "cmd: 短指令\n"
                                         + "    !: 刷新任务烤图\n"
+                                        + "    *: 显示推文原文\n"
                                         + "    ~: 列出之后的所有任务\n"
                                         + "    ~~: 列出之后的所有烤推结果\n"
                                         + "    /: 设置队列头\n"
@@ -191,8 +198,10 @@ export default function (ctx: Context, argv: config) {
                 if (trans) {
                     if (tw.type === "转推") {
                         await store.trans(tw.refTid, trans, "")
+                        logger.debug("update ref twitter translation: %d", tw.refTid)
                         tw.img = await translator.get(tw)
                         await store.trans(twi, "", tw.img)
+                        logger.debug("update twitter image: %d", twi)
                     } else {
                         tw.trans = trans
                         tw.img = await translator.get(tw)
@@ -217,10 +226,12 @@ export default function (ctx: Context, argv: config) {
         })
         .usage("获取/更新这个id的翻译内容")
 
-    ctx.command('fresh <id>')
+    ctx.command('fresh [id]')
         .action(async ({ meta }, id) => {
-            const twi = parseInt(id)
-            if (isNaN(twi)) return meta.$send("找不到 " + id)
+            let twi = parseInt(id)
+            if (isNaN(twi)) {
+                twi = store.getLastTrans()
+            }
             let tw: Twitter = await store.getTask(twi)
             if (!tw) {
                 logger.warn("Twitter %d not found", twi)
@@ -233,6 +244,22 @@ export default function (ctx: Context, argv: config) {
             return meta.$send(tw.img + (argv.ispro ? "\n[CQ:image,cache=0,file=" + tw.img + "]" : ""))
         })
         .usage("刷新这个id的翻译烤图")
+
+    ctx.command('raw [id]')
+        .action(async ({ meta }, id) => {
+            let twi = parseInt(id)
+            if (isNaN(twi)) {
+                twi = store.getLastTrans()
+            }
+            let tw: Twitter = await store.getTask(twi)
+            if (!tw) {
+                logger.warn("Twitter %d not found", twi)
+                return meta.$send("找不到 " + id)
+            }
+            const msg = Twitter2msg(tw, argv)
+            return meta.$send(msg)
+        })
+        .usage("显示这个id的推文原文")
 
     ctx.command('list [id]')
         .action(async ({ meta }, id) => {
@@ -294,7 +321,7 @@ export default function (ctx: Context, argv: config) {
         })
         .usage("批量获取队列某个id后的烤推结果，id为空时使用预设的队列头")
 
-    ctx.command('current [id]')
+    ctx.command('clear [id]')
         .action(async ({ meta }, id) => {
             const todo = store.getTodo()
             logger.debug("Old todo: " + todo)

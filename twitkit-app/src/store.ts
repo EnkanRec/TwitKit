@@ -88,7 +88,7 @@ async function getTask(tid: number): Promise<Twitter> {
         if (tw.twitter.refTid && !tw.twitter.content) {
             const ref = await get(tw.twitter.refTid)
             if (ref) {
-                return convert(ref, tw)
+                return convert(tw, ref)
             }
         }
         return convert(tw)
@@ -188,7 +188,12 @@ async function list(tid?: number): Promise<Twitter[]> {
     let result: Twitter[] = [];
     for (const i of list) {
         try {
-            result.push(convert(i))
+            if (i.twitter.content) result.push(convert(i))
+            else {
+                let tw = list.find((value) => {value.twitter.tid == i.twitter.refTid})
+                if (!tw) tw = await get(i.twitter.refTid)
+                result.push(convert(i, tw))
+            }
             logger.debug("tid %d: %s", i.twitter.tid, i.twitter.comment || i.translation ? i.translation.translation : i.twitter.content)
         } catch (e) {
             logger.warn("convent twitter error: " + e)
