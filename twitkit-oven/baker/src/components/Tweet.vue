@@ -57,7 +57,7 @@ export default {
       .post("/fridge_api_proxy/db/task/get", {
         taskId: uuidv4(),
         forwardFrom: "twitkit-oven-baker",
-        timestamp: (new Date).toISOString(),
+        timestamp: new Date().toISOString(),
         data: { tid: this.tid }
       })
       .then(response => {
@@ -130,12 +130,38 @@ export default {
         }
       };
       var d = new Date(date);
-      return (
+      var formatted;
+
+      // 实测中遇到了Date解析不出来ISO8601的格式的情况，所以加了下面的代码作为fallback
+      if (isNaN(d.getFullYear())) {
+        d.setFullYear(parseInt(date.substring(0, 4)));
+        d.setMonth(parseInt(date.substring(5, 7)));
+        d.setDate(parseInt(date.substring(8, 10)));
+        d.setHours(parseInt(date.substring(11, 13)));
+        d.setMinutes(parseInt(date.substring(14, 16)));
+        d.setSeconds(parseInt(date.substring(17, 19)));
+
+        date = date.substring(19);
+        var tzPos = date.indexOf("+");
+        if (tzPos == -1) tzPos = date.indexOf("-");
+        if (tzPos != -1) {
+          var tzStr = date.substring(tzPos).replace(":", "");
+          var tzOffset = parseFloat(tzStr);
+          if (Math.abs(tzOffset) > 12) tzOffset /= 100;
+          tzOffset *= 60 * 60 * 1000;
+          d.setTime(d.getTime() - tzOffset);
+        }
+
+        d.getTime();
+      }
+
+      formatted =
         `${d.getFullYear()} 年 ${d.getMonth()} 月 ${d.getDate()} 日 ` +
         `${padZero(d.getHours())}:${padZero(d.getMinutes())}:` +
         `${padZero(d.getSeconds())}` +
-        `（${formatTimezone(d.getTimezoneOffset() / 60)}）`
-      );
+        `（${formatTimezone(d.getTimezoneOffset() / 60)}）`;
+
+      return formatted;
     }
   }
 };
