@@ -10,10 +10,10 @@
       </div>
       <div class="cardBody">
         <div
-          v-html="translation ? (transText || translation.translation) : tweet.content"
-          :lang="translation ? null : 'ja-jp'"
+          v-html="actualTransText || tweet.content"
+          :lang="actualTransText ? null : 'ja-jp'"
         ></div>
-        <div class="origText" v-if="translation && tweet.content">
+        <div class="origText" v-if="actualTransText && tweet.content">
           <legend>原文</legend>
           <div lang="ja-jp" v-html="tweet.content"></div>
         </div>
@@ -50,6 +50,7 @@ export default {
       user: null,
       translation: null,
       dataReady: false,
+      actualTransText: null,
       errorMessage: null
     };
   },
@@ -70,6 +71,9 @@ export default {
         this.tweet = response.data.data.twitter;
         this.user = response.data.data.user;
         this.translation = response.data.data.translation;
+        this.actualTransText =
+          this.transText ||
+          (this.translation ? this.translation.translation : null);
         if (this.tweet === null) {
           this.errorMessage = "推文不存在";
           return;
