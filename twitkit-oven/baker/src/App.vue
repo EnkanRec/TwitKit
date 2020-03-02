@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <Tweet :tid="tid" v-if="tid" />
+  <div v-if="payloadData">
+    <Tweet :tid="payloadData.tid" :trans-text="payloadData.transText" />
     <div v-html="errorMessage" v-if="errorMessage"></div>
   </div>
 </template>
@@ -16,34 +16,40 @@ export default {
   },
   data() {
     return {
-      tid: null,
+      payloadData: null,
       errorMessage: null
     };
   },
   mounted() {
     var cookies = cookie.parse(document.cookie);
     try {
-      var payload_data = JSON.parse(cookies.payload_data);
-      this.tid = payload_data.tid;
+      this.payloadData = JSON.parse(cookies.payload_data);
     } catch (error) {
       this.errorMessage = "错误：" + error.message + "<br>";
     }
-    if (!this.tid) {
+    if (!this.payloadData.tid) {
       this.errorMessage += "读取tid失败";
     }
+
+    // CSS插入变量的hack
+    var styleHtml = `
+      <style>
+        body {
+          font-family: "${this.payloadData.zhFont || "Source Han Sans SC"}";
+        }
+        *:lang(ja-jp) {
+          font-family: "${this.payloadData.jaFont || "Source Han Sans"}";
+        }
+      </style>`;
+    document.head.innerHTML += styleHtml;
   }
 };
 </script>
 
 <style lang="less">
 body {
-  font-family: "Source Han Sans SC";
   padding: 0;
   color: #444;
   font-size: 22px;
-}
-
-*:lang(ja-jp) {
-  font-family: "Source Han Sans";
 }
 </style>
