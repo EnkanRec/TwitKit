@@ -85,7 +85,7 @@ async function get(tid: number): Promise<dbtw> {
 async function getTask(tid: number): Promise<Twitter> {
     const tw: dbtw = await get(tid)
     if (tw) {
-        if (tw.twitter.refTid && !tw.twitter.url && !tw.twitter.content) {
+        if (tw.twitter.refTid && !tw.twitter.content) {
             const ref = await get(tw.twitter.refTid)
             if (ref) {
                 return convert(ref, tw)
