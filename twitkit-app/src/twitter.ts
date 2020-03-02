@@ -124,15 +124,18 @@ export function convert(dbtw: dbtw, orig?: dbtw): Twitter {
 
 export function Twitter2msg(tw: Twitter, argv): string {
     let msg: string = "【" + tw.user.display + "】"
-        + ((tw.type === "更新" || tw.type === "引用") ? "更新了" : ("转发了【" + tw.oirgUser.display + "】的推" + argv.prefix + tw.refTid))
-        + "\n----------------\n"
-        + "内容: " + tw.content
+    if (tw.type === "转推") {
+        msg += "转发了【" + tw.oirgUser.display + "】的推" + argv.prefix + tw.id
+    } else {
+        msg += "更新了"
+    }
+    msg += "\n----------------\n内容: " + tw.content
     if (tw.media && tw.media.length) {
         msg += "\n媒体: "
         for (const img of tw.media) msg += argv.ispro ? "[CQ:image,file=" + img + "]" : img
     }
     if (tw.type === "引用") {
-        msg += "\n引用推文: " + argv.prefix + tw.refTid
+        msg += "\n引用: " + argv.prefix + tw.refTid
     }
     msg += "\n原链接: " + tw.url + "\n快速嵌字发送: " + argv.prefix + tw.id + " 译文"
     return msg

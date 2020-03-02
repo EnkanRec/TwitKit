@@ -88,7 +88,7 @@ async function getTask(tid: number): Promise<Twitter> {
         if (tw.twitter.refTid && !tw.twitter.content) {
             const ref = await get(tw.twitter.refTid)
             if (ref) {
-                return convert(ref, tw)
+                return convert(tw, ref)
             }
         }
         return convert(tw)
