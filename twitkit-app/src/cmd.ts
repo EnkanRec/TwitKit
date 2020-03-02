@@ -217,10 +217,12 @@ export default function (ctx: Context, argv: config) {
         })
         .usage("获取/更新这个id的翻译内容")
 
-    ctx.command('fresh <id>')
+    ctx.command('fresh [id]')
         .action(async ({ meta }, id) => {
-            const twi = parseInt(id)
-            if (isNaN(twi)) return meta.$send("找不到 " + id)
+            let twi = parseInt(id)
+            if (isNaN(twi)) {
+                twi = store.getLastTrans()
+            }
             let tw: Twitter = await store.getTask(twi)
             if (!tw) {
                 logger.warn("Twitter %d not found", twi)
