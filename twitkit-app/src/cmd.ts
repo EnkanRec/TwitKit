@@ -198,8 +198,10 @@ export default function (ctx: Context, argv: config) {
                 if (trans) {
                     if (tw.type === "转推") {
                         await store.trans(tw.refTid, trans, "")
+                        logger.debug("update ref twitter translation: %d", tw.refTid)
                         tw.img = await translator.get(tw)
                         await store.trans(twi, "", tw.img)
+                        logger.debug("update twitter image: %d", twi)
                     } else {
                         tw.trans = trans
                         tw.img = await translator.get(tw)

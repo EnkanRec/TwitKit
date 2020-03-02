@@ -108,13 +108,17 @@ export function convert(dbtw: dbtw, orig?: dbtw): Twitter {
         },
         extra: JSON.parse(dbtw.twitter.extra)
     }
-    if (orig) {
+    if (orig || !tw.content) {
         tw.type = "转推"
-        tw.oirgUser = {
-            twitterUid: orig.user.twitterUid,
-            name: orig.user.name,
-            display: orig.user.display,
-            avatar: orig.user.avatar
+        if (orig) {
+            tw.oirgUser = {
+                twitterUid: orig.user.twitterUid,
+                name: orig.user.name,
+                display: orig.user.display,
+                avatar: orig.user.avatar
+            }
+            tw.content = orig.twitter.content
+            tw.media = JSON.parse(orig.twitter.media)
         }
     } else if (dbtw.twitter.refTid) {
         tw.type = "引用"
