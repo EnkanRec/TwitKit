@@ -71,7 +71,7 @@ export default function (ctx: Context, argv: config) {
         })
     }
     // 中间件判断权限及解析短快捷指令
-    ctx.middleware((meta, next) => {
+    ctx.prependMiddleware((meta, next) => {
         switch (meta.messageType) {
             case "private":
                 switch (meta.subType) {
@@ -83,14 +83,16 @@ export default function (ctx: Context, argv: config) {
                         // 配置不许私聊上班
                         if (!cmd.private) {
                             logger.debug("Ignore private message")
-                            return next()
+                            return
                         }
+                        // 如何群列表为空则允许所有人上班
+                        if (!cmd.group.length) break
                         // 指定群的成员允许临时会话私聊上班
                         if (members.has(meta.userId)) break
                     default:
                         // 其他通通不给私聊上班
                         logger.debug("Ignore unknown private")
-                        return next()
+                        return
                 }
                 break
             case "discuss":
@@ -104,7 +106,7 @@ export default function (ctx: Context, argv: config) {
                 if (meta.groupId && ~cmd.group.indexOf(meta.groupId)) break
             default:
                 logger.debug("Ignore illegal source")
-                return next()
+                return
         }
         if (meta.message.startsWith(argv.prefix)) {
             const msg = meta.message.slice(argv.prefix.length)
