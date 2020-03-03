@@ -41,13 +41,17 @@ def get_history_tweets(username, max_count=200, min_tweet_id=None):
     return new_tweets
 
 
+def get_tweet_by_id(id: int):
+    return twitter_api.get_status(id, tweet_mode='extended')
+
+
 def get_tweet_by_url(url):
     search_result = re.search(r'twitter.com\/[\w]{1,15}/status/([0-9]+)', url)
     if search_result:
         status_id = int(search_result.group(1))
     else:
         return False
-    return twitter_api.get_status(status_id, tweet_mode='extended')
+    return get_tweet_by_id(status_id)
 
 
 class RealtimeUpdateStreamListener(tweepy.StreamListener):

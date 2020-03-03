@@ -1,5 +1,6 @@
 from dateutil import tz
 from datetime import datetime
+from twitter_client import get_tweet_by_id
 
 import json
 import re
@@ -40,6 +41,10 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
         elif hasattr(tweepy_tweet, 'quoted_status'):
             ref_tweet = _convert_tweepy_tweet(tweepy_tweet.quoted_status)
             ref_id = tweepy_tweet.quoted_status.id
+        elif hasattr(tweepy_tweet, 'in_reply_to_status_id') \
+                and tweepy_tweet.in_reply_to_status_id:
+            ref_id = tweepy_tweet.in_reply_to_status_id
+            ref_tweet = _convert_tweepy_tweet(get_tweet_by_id(ref_id))
 
         user = tweepy_tweet.user
         user_avatar_url = user.profile_image_url_https.replace(
