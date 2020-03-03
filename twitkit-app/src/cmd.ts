@@ -321,7 +321,7 @@ export default function (ctx: Context, argv: config) {
             let msg:string = ""
             if (list) for (const i of list) if (i.trans || i.img) {
                 msg += "\n" + argv.prefix + i.id + "\n"
-                msg += argv.ispro ? "[CQ:image,file=" + i.img + "]" : i.img
+                if (i.img) msg += argv.ispro ? "[CQ:image,file=" + i.img + "]" : i.img
                 if (i.media && i.media.length) for (const j of i.media)
                     msg += argv.ispro ? "[CQ:image,file=" + j + "]" : j
             }
