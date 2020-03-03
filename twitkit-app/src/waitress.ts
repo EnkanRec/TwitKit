@@ -37,7 +37,7 @@ async function addTask(url: string): Promise<number[]> {
 
 function init(ctx: Context, Host: string) {
     logger = ctx.logger("app:waitress")       // 初始化logger
-    host = Host                               // 初始化DB的Host
+    host = Host                               // 初始化waitress的Host
     logger.info("waitress ready")
 }
 

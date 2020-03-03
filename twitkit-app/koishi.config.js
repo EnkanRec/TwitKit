@@ -13,6 +13,7 @@ module.exports = {
       cmd: {
         host: {
           translator: "http://localhost",
+          waitress: "http://localhost",
           store: "http://localhost"
         },
         group: [],      // 监听命令的群组，留空监听所有人
