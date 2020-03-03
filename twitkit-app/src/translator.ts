@@ -49,12 +49,7 @@ function get(tw: Twitter): Promise<string> {
     logger.debug("Tid: %d", tw.id)
     return rest("/api/oven/bake", {
         tid: tw.id,
-        origText: tw.content,
-        transText: tw.trans,
-        media: tw.media,
-        username: tw.user.name,
-        retweeterUsername: tw.oirgUser ? tw.oirgUser.name : undefined,
-        postDate: tw.postDate
+        transText: tw.trans
     })
 }
 
@@ -66,7 +61,7 @@ function get(tw: Twitter): Promise<string> {
  */
 function getByUrl(url: string, trans: string): Promise<string> {
     logger.debug("url: " + url)
-    return rest("/api/oven/bakeurl", {
+    return rest("/api/oven/bake", {
         url,
         transText: trans
     })
