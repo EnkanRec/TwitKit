@@ -193,9 +193,15 @@ export default function (ctx: Context, argv: config) {
                         const img = await translator.getByUrl(id, trans)
                         return meta.$send(img + (argv.ispro ? "\n[CQ:image,cache=0,file=" + img + "]" : ""))
                     } else {
-                        let list = await waitress.addTask(id)
+                        let list = (await waitress.addTask(id)).sort().reverse()
+                        let ref: number[] = []
                         for (const i of list) {
+                            if (~ref.indexOf(i)) {
+                                logger.debug("ignore ref tid: %d", i)
+                                continue
+                            }
                             const tw: Twitter = await store.getTask(i)
+                            if (tw.type === "转推") ref.push(tw.refTid)
                             logger.debug("[" + tw.user.display + "]" + tw.content)
                             const msg = Twitter2msg(tw, argv)
                             meta.$send(msg)
