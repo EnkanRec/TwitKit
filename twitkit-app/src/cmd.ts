@@ -1,6 +1,7 @@
 import { Context, Logger, Meta } from 'koishi-core'
 import { Twitter, Twitter2msg } from './twitter'
 import store from './store'
+import waitress from './waitress'
 import translator from './translator'
 import { config, config_cmd } from './utils'
 
@@ -18,6 +19,7 @@ export default function (ctx: Context, argv: config) {
     const cmd: config_cmd = {
         host: {
             store:      argv.cmd.host.store     || "http://localhost",
+            waitress:   argv.cmd.host.waitress  || "http://localhost",
             translator: argv.cmd.host.translator|| "http://localhost"
         },
         cut:    argv.cmd.cut    || 8,
@@ -27,6 +29,7 @@ export default function (ctx: Context, argv: config) {
     }
     translator.init(ctx, cmd.host.translator)
     store.init(ctx, cmd.host.store)
+    waitress.init(ctx, cmd.host.waitress)
     const logger: Logger = ctx.logger("app:cmd")
     // 初始化群成员列表
     if (cmd.group.length && cmd.private) {
@@ -186,9 +189,18 @@ export default function (ctx: Context, argv: config) {
             if (isNaN(twi)) {
                 if (/^https?:\/\/(((www\.)?twitter\.com)|(t\.co))\//.test(id)) {
                     logger.debug("translate with url=%s trans=%s", id, trans)
-                    const img = await translator.getByUrl(id, trans)
-                    if (!img) return meta.$send("请求失败")
-                    return meta.$send(img + (argv.ispro ? "\n[CQ:image,file=" + img + "]" : ""))
+                    if (trans) {
+                        const img = await translator.getByUrl(id, trans)
+                        return meta.$send(img + (argv.ispro ? "\n[CQ:image,cache=0,file=" + img + "]" : ""))
+                    } else {
+                        let list = await waitress.addTask(id)
+                        for (const i of list) {
+                            const tw: Twitter = await store.getTask(i)
+                            logger.debug("[" + tw.user.display + "]" + tw.content)
+                            const msg = Twitter2msg(tw, argv)
+                            meta.$send(msg)
+                        }
+                    }
                 }
                 logger.warn("Bad translate id: " + id)
                 return meta.$send("找不到 " + id)
