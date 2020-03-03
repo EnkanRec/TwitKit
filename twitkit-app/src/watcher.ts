@@ -93,14 +93,23 @@ export default function (ctx: Context, argv: config) {
                 logger.debug(data.data)
                 switch (r[1]) {
                     case "twitter":
-                        for (const i in data.data) if (data.data[i]) {
-                            logger.debug("Event %s, tid: %d", i, data.data[i])
-                            const tw: Twitter = await store.getTask(data.data[i])
+                        let list: number[] = []
+                        for (const i in data.data) {
+                            if (data.data[i]) {
+                                logger.debug("Event %s, tid: %d", i, data.data[i])
+                                list.push(data.data[i])
+                            }
+                            else logger.debug("Event %s, no update", i)
+                        }
+                        list = list.sort().reverse()
+                        let ref: number[] = []
+                        for (const i of list) {
+                            if (~ref.indexOf(i)) continue
+                            const tw: Twitter = await store.getTask(i)
+                            if (tw.type === "转推") ref.push(tw.refTid)
                             logger.debug("[" + tw.user.display + "]" + tw.content)
-                            const msg: string = Twitter2msg(tw, argv)
+                            const msg = Twitter2msg(tw, argv)
                             sendmsg(ctx, watcher.target, msg)
-                        } else {
-                            logger.debug("Event %s, no update", i)
                         }
                         logger.info("Update notice done")
                         break

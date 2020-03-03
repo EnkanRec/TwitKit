@@ -157,7 +157,6 @@ async function getLastTid(): Promise<number> {
 
 /**
  * @description 获取最新一条推文，包括隐藏的推
- * @returns newest tid
  * @deprecated 暂未启用
  */
 async function getActualLast(): Promise<Twitter> {
@@ -188,12 +187,7 @@ async function list(tid?: number): Promise<Twitter[]> {
     let result: Twitter[] = [];
     for (const i of list) {
         try {
-            if (i.twitter.content) result.push(convert(i))
-            else {
-                let tw = list.find((value) => {value.twitter.tid == i.twitter.refTid})
-                if (!tw) tw = await get(i.twitter.refTid)
-                result.push(convert(i, tw))
-            }
+            result.push(convert(i))
             logger.debug("tid %d: %s", i.twitter.tid, i.twitter.comment || i.translation ? i.translation.translation : i.twitter.content)
         } catch (e) {
             logger.warn("convent twitter error: " + e)

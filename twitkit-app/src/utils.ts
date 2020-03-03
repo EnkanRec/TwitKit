@@ -8,6 +8,7 @@ export class config {
 export class config_cmd {
     host?: {                // 微服务域名
         store: string,      // 数据库
+        waitress: string,   // 推特监视器
         translator: string  // 烤推机
     }
     group?: number[]        // 允许使用指令的群号
