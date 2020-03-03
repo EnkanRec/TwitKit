@@ -61,7 +61,8 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 ### URL设置
 * `EXT_STATIC_BASE_URL`：指向`/static`的对外URL前缀，返回输出图片URL时用，例如`https://example.local/images`。
 * `INT_BASE_URL`：内部URL前缀，在`wkhtmltoimage`访问内部生成的推文页面时用。如果Gunicorn配置里改了端口号，这里要相应修改。
-* `FRIDGE_API_BASE`：指向Fridge API的Base URL，例如`http://127.0.0.1:10103/api`）
+* `FRIDGE_API_BASE`：指向Fridge API的Base URL，用于从数据库烤推，例如`http://127.0.0.1:10103/api`
+* `WAITRESS_API_BASE`：指向Waitress API的Base URL，用于URL烤推，例如`http://127.0.0.1:5001/api`
 
 ### 日志设置
 * `LOG_LEVEL`：日志等级。例如`INFO`、`DEBUG`。
@@ -106,13 +107,7 @@ gunicorn -c gunicorn_config.py app:app
   "data": {
     "taskId": "123e4567-e89b-12d3-a456-426655440000",
     "tid": 1001,
-    "origText": "マギアレコードの新魔法少女「南津　涼子」のキャラデザを担当させていただきました！どうぞよろしくお願いします✨",
-    "transText": "我有幸担任了魔法纪录新魔法少女“南津 凉子”的人物设计！请多多指教✨",
-    "media": [
-      "https://pbs.twimg.com/media/EPcgk0JUUAE3NLt?format=jpg&name=orig"
-    ],
-    "username": "magireco",
-    "postDate": "2020-01-29T14:23:23.233+08:00",
+    "transText": "译文"
   }
 }
 ```
@@ -130,7 +125,8 @@ gunicorn -c gunicorn_config.py app:app
 | 名称        | 格式   | 必传 | 备注                                               |
 | ----------- | ------ | ---- | -------------------------------------------------- |
 | `taskId`    | string | Y    | 一个UUID，是一个任务的上下文唯一标识符             |
-| `tid`       | int    | Y    | 推文ID                                             |
+| `tid`       | int    | N    | 任务ID（从任务列表烤推时，传此参数）               |
+| `url`       | string | N    | 推特URL（URL烤推时，传此参数）                     |
 | `transText` | string | N    | 推文译文，Plain Text格式，不传则使用数据库中的译文 |
 | `ppi`       | int    | N    | 生成图像PPI，默认144                               |
 

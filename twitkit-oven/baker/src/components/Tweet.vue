@@ -9,17 +9,20 @@
         </div>
       </div>
       <div class="cardBody">
-        <div
-          v-html="actualTransText || tweet.content"
-          :lang="actualTransText ? null : 'ja-jp'"
-        ></div>
+        <div v-html="actualTransText || tweet.content" :lang="actualTransText ? null : 'ja-jp'"></div>
         <div class="origText" v-if="actualTransText && tweet.content">
           <legend>原文</legend>
           <div lang="ja-jp" v-html="tweet.content"></div>
         </div>
       </div>
-      <div class="refTweet" v-if="tweet.refTid">
-        <Tweet :tid="tweet.refTid" :alt-bg="!altBg" :no-date="true" />
+      <div class="refTweet" v-if="tweet.refTid || tweet.refStatusId">
+        <Tweet
+          :tid="tweet.refTid"
+          :tweets="tweets"
+          :statusId="tweet.refStatusId"
+          :alt-bg="!altBg"
+          :no-date="true"
+        />
       </div>
       <div class="media">
         <img v-for="url in JSON.parse(tweet.media)" :key="url" :src="url" />
@@ -40,9 +43,12 @@ export default {
   name: "Tweet",
   props: {
     tid: String,
+    statusId: String,
+    url: String,
     altBg: Boolean,
     transText: String,
-    noDate: Boolean
+    noDate: Boolean,
+    tweets: Object
   },
   data() {
     return {
@@ -55,67 +61,29 @@ export default {
     };
   },
   mounted() {
-    axios
-      .post("/fridge_api_proxy/db/task/get", {
-        taskId: uuidv4(),
-        forwardFrom: "twitkit-oven-baker",
-        timestamp: new Date().toISOString(),
-        data: { tid: this.tid }
-      })
-      .then(response => {
-        if (response.data.code != 0) {
-          this.errorMessage = `Fridge返回${response.data.code}：${response.data.message}`;
-          return;
-        }
-
-        this.tweet = response.data.data.twitter;
-        this.user = response.data.data.user;
-        this.translation = response.data.data.translation;
-        this.actualTransText =
-          this.transText ||
-          (this.translation ? this.translation.translation : null);
-        if (this.tweet === null) {
-          this.errorMessage = "推文不存在";
-          return;
-        }
-
-        var convertEmoji = str => {
-          return twemoji.replace(str, function(emoji) {
-            return (
-              `<img src="https://twemoji.maxcdn.com/svg/` +
-              `${twemoji.convert.toCodePoint(emoji)}.svg" style="height:1em">`
-            );
-          });
-        };
-
-        var addColor = str => {
-          str = str.replace(/(@\w{1,15})/g, '<span class="mention">$1</span>');
-          str = str.replace(
-            /(#[^\s,.!?，。！？<]*)/g,
-            '<span class="hashtag">$1</span>'
-          );
-          str = str.replace(
-            /([^"])(https?:\/\/[\w-_~:[\]@!$&'()*+,;=.?%#/]+)[^"]/g,
-            '$1<span class="link">$2</span>'
-          );
-          return str;
-        };
-
-        if (this.tweet && this.tweet.content)
-          this.tweet.content = convertEmoji(
-            addColor(escape(this.tweet.content))
-          );
-        if (this.translation && this.translation.content)
-          this.translation.content = convertEmoji(
-            addColor(escape(this.translation.content))
-          );
-        this.user.display = convertEmoji(escape(this.user.display));
-
-        this.dataReady = true;
-      })
-      .catch(error => {
-        this.errorMessage = `请求Fridge失败：${error.message}`;
-      });
+    if (this.tid) {
+      axios
+        .post("/api_proxy/fridge/db/task/get", {
+          taskId: uuidv4(),
+          forwardFrom: "twitkit-oven-baker",
+          timestamp: new Date().toISOString(),
+          data: { tid: this.tid }
+        })
+        .then(response => {
+          if (response.data.code != 0) {
+            this.errorMessage = `Fridge返回${response.data.code}：${response.data.message}`;
+            return;
+          }
+          this.renderTweet(response.data.data);
+        })
+        .catch(error => {
+          this.errorMessage = `请求Fridge失败：${error.message}`;
+        });
+    } else if (this.statusId) {
+      this.renderTweet(this.tweets[this.statusId]);
+    } else {
+      this.errorMessage = "没有传入数据";
+    }
   },
   methods: {
     formatDate(date) {
@@ -165,6 +133,52 @@ export default {
         `（${formatTimezone(d.getTimezoneOffset() / 60)}）`;
 
       return formatted;
+    },
+    renderTweet(tweetData) {
+      this.tweet = tweetData.twitter;
+      this.user = tweetData.user;
+      this.translation = tweetData.translation;
+      this.actualTransText =
+        this.transText ||
+        (this.translation ? this.translation.translation : null);
+      if (this.tweet === null) {
+        this.errorMessage = "推文不存在";
+        return;
+      }
+
+      var convertEmoji = str => {
+        return twemoji.replace(str, function(emoji) {
+          return (
+            `<img src="https://twemoji.maxcdn.com/svg/` +
+            `${twemoji.convert.toCodePoint(emoji)}.svg" style="height:1em">`
+          );
+        });
+      };
+
+      var addColor = str => {
+        str = str.replace(/(@\w{1,15})/g, '<span class="mention">$1</span>');
+        str = str.replace(
+          /(#[^\s,.!?，。！？<]*)/g,
+          '<span class="hashtag">$1</span>'
+        );
+        str = str.replace(
+          /([^"])(https?:\/\/[\w-_~:[\]@!$&'()*+,;=.?%#/]+)([^"])/g,
+          '$1<span class="link">$2</span>$3'
+        );
+        return str;
+      };
+
+      if (this.tweet && this.tweet.content)
+        this.tweet.content = convertEmoji(addColor(escape(this.tweet.content)));
+      if (this.translation && this.translation.content)
+        this.translation.content = convertEmoji(
+          addColor(escape(this.translation.content))
+        );
+      if (this.transText)
+        this.transText = convertEmoji(addColor(escape(this.transText)));
+      this.user.display = convertEmoji(escape(this.user.display));
+
+      this.dataReady = true;
     }
   }
 };

@@ -1,3 +1,4 @@
 requests
 coloredlogs
-dateutil
+python-dateutil
+flask_restplus

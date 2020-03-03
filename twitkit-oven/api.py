@@ -34,11 +34,19 @@ class GenerateImage(Resource):
         request_data = request_base_data['data']
         task_id = request_base_data['taskId']
 
+        if 'url' in request_data == 'tid' in request_data:
+            return make_response(400, '必须指定url或tid中的一个')
+
+        url = request_data['url'] if 'url' in request_data else None
+        tid = request_data['tid'] if 'tid' in request_data else None
+
         logger.info(f'[{task_id}] '
-                    f'从 {request_base_data["forwardFrom"]} 收到烤图任务')
+                    f'从 {request_base_data["forwardFrom"]} 收到烤图任务：'
+                    f'{url if url else tid}')
 
         bake_params = {
-            'tid': request_data['tid'],
+            'tid': tid,
+            'url': url
         }
         if 'transText' in request_data:
             bake_params['trans_text'] = request_data['transText']
@@ -63,7 +71,7 @@ class GenerateImage(Resource):
 
 
 @oven_api.route('/check')
-class GenerateImage(Resource):
+class CheckImageTid(Resource):
     @oven_api.expect(check_model, validate=True)
     @oven_api.doc("CheckResponse", model=check_response_model)
     def post(self):

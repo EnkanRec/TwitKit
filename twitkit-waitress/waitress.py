@@ -42,7 +42,7 @@ def extract_response_data(resp):
     return json.loads(resp.text)['data']
 
 
-def bulk_insert(fridge_tweets: list):
+def bulk_insert(fridge_tweets: list, include_existing=False):
     known_tid = {}
     inserted_tweets = set()
     logging.debug(f'准备插入{len(fridge_tweets)}条推')
@@ -61,12 +61,13 @@ def bulk_insert(fridge_tweets: list):
         if not to_be_inserted:
             break
 
+        logging.debug(f"准备插入：{to_be_inserted}")
         resp = requests.post(f'{config.FRIDGE_API_ROOT}/db/task/bulk',
                              json=make_request_payload(to_be_inserted))
         inserted_tweets_actual = extract_response_data(resp)
         for tweet in inserted_tweets_actual:
             known_tid[tweet['twitter']['statusId']] = tweet['twitter']['tid']
-            if not tweet['alreadyExist']:
+            if include_existing or not tweet['alreadyExist']:
                 inserted_tweets.add(tweet['twitter']['tid'])
     return inserted_tweets
 
@@ -197,6 +198,7 @@ class Waitress:
         except Exception as e:
             logging.error(f'通知APP其他更新时出错：{e}')
             return False
+
 
 
 if __name__ == '__main__':
