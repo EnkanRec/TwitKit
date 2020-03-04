@@ -8,10 +8,11 @@ import uuid
 import traceback
 import time
 import coloredlogs
+import threading
 
 from datetime import datetime, timezone
 from rsshub_client import get_new_bilibili_status
-from twitter_client import get_history_tweets, start_realtime_update
+from twitter_client import get_history_tweets, run_realtime_update
 from twitter_util import batch_convert_tweepy_tweets, convert_tweepy_tweet
 
 
@@ -96,8 +97,7 @@ class Waitress:
             raise Exception('Fridge返回twid为空')
         self.monitor_target = resp_data['twid']
 
-        latest_status_id = get_latest_status_id()
-
+    def run_twitter_realtime_update(self):
         def update_tweets_from_stream(tweepy_tweet):
             try:
                 self.update_tweets(convert_tweepy_tweet(tweepy_tweet))
@@ -105,14 +105,22 @@ class Waitress:
                 logging.error('执行推特更新时出错：')
                 logging.error(traceback.format_exc())
 
-        start_realtime_update(self.monitor_target, update_tweets_from_stream)
+        while True:
+            try:
+                latest_status_id = get_latest_status_id()
+                run_realtime_update(self.monitor_target,
+                                    update_tweets_from_stream)
 
-        new_tweets = batch_convert_tweepy_tweets(
-            get_history_tweets(
-                self.monitor_target,
-                config.MAX_HISTORY_TWEETS, latest_status_id))
+                new_tweets = batch_convert_tweepy_tweets(
+                    get_history_tweets(
+                        self.monitor_target,
+                        config.MAX_HISTORY_TWEETS, latest_status_id))
 
-        self.update_tweets(new_tweets)
+                self.update_tweets(new_tweets)
+            except Exception as e:
+                logging.warning(e)
+                logging.warning(traceback.format_exc)
+                time.sleep(1)
 
     def update_tweets(self, new_tweets):
         new_tid_list = bulk_insert(new_tweets)
@@ -199,6 +207,32 @@ class Waitress:
             logging.error(f'通知APP其他更新时出错：{e}')
             return False
 
+    def run_bilibili_update_checker(self):
+        while True:
+            start_time = time.time()
+            try:
+                self.update_bilibili(
+                    get_new_bilibili_status(config.BILIBILI_UID))
+            except:
+                logging.error('执行Bilibili动态更新时出错：')
+                logging.error(traceback.format_exc())
+            elapsed_time = time.time() - start_time
+            sleep_time = max(1, config.UPDATE_INTERVAL - elapsed_time)
+            logging.debug(f'sleep for {sleep_time}s')
+            time.sleep(sleep_time)
+            logging.debug('sleep finished')
+
+    def run(self):
+        self.twitter_updater_thread = threading.Thread(
+            target=self.run_twitter_realtime_update, args=(), daemon=True)
+        self.twitter_updater_thread.start()
+
+        self.bilibili_updater_thread = threading.Thread(
+            target=self.run_bilibili_update_checker, args=(), daemon=True)
+        self.bilibili_updater_thread.start()
+
+        self.twitter_updater_thread.join()
+        self.bilibili_updater_thread.join()
 
 
 if __name__ == '__main__':
@@ -206,17 +240,4 @@ if __name__ == '__main__':
         level=logging.DEBUG if config.LOG_DEBUG else logging.INFO)
 
     waitress = Waitress()
-
-    while True:
-        start_time = time.time()
-        try:
-            waitress.update_bilibili(
-                get_new_bilibili_status(config.BILIBILI_UID))
-        except:
-            logging.error('执行Bilibili动态更新时出错：')
-            logging.error(traceback.format_exc())
-        elapsed_time = time.time() - start_time
-        sleep_time = max(1, config.UPDATE_INTERVAL - elapsed_time)
-        logging.debug(f'sleep for {sleep_time}s')
-        time.sleep(sleep_time)
-        logging.debug('sleep finished')
+    waitress.run()

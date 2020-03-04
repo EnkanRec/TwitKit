@@ -78,10 +78,10 @@ class RealtimeUpdateStreamListener(tweepy.StreamListener):
         return True
 
 
-def start_realtime_update(username, callback):
+def run_realtime_update(username, callback):
     uid = username_to_uid(username)
     rusl = RealtimeUpdateStreamListener(uid, callback)
     stream = tweepy.Stream(
         auth=twitter_api.auth, listener=rusl, tweet_mode='extended')
-    stream.filter(follow=[str(uid)], is_async=True)
-    return rusl
+    stream.filter(follow=[str(uid)], is_async=False)
+
