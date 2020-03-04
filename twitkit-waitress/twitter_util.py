@@ -4,6 +4,7 @@ from twitter_client import get_tweet_by_id
 
 import json
 import re
+import logging
 
 
 def utc_to_local(dt: datetime):
@@ -16,12 +17,13 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
     ret = []
 
     def _convert_tweepy_tweet(tweepy_tweet):
+        logging.debug(tweepy_tweet)
         ref_tweet = None
         if hasattr(tweepy_tweet, 'full_text'):
             full_text = tweepy_tweet.full_text
         elif hasattr(tweepy_tweet, 'extended_tweet'):
             full_text = tweepy_tweet.extended_tweet['full_text']
-        elif hasattr(tweepy_tweet, 'text'):
+        else:
             full_text = tweepy_tweet.text
 
         full_text = re.sub(r' https:\/\/t.co\/[A-Za-z0-9]{10}$', '', full_text)
@@ -29,9 +31,16 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
         ref_id = None
 
         media_urls = []
-        if 'media' in tweepy_tweet.entities:
-            for media in tweepy_tweet.entities['media']:
-                media_urls.append(media['media_url'])
+        if hasattr(tweepy_tweet, 'extended_entities'):
+            entities = tweepy_tweet.extended_entities
+        elif hasattr(tweepy_tweet, 'extended_tweet'):
+            entities = tweepy_tweet.extended_tweet['extended_entities']
+        else:
+            entities = tweepy_tweet.entities
+
+        if 'media' in entities:
+            for media in entities['media']:
+                media_urls.append(media['media_url_https'])
 
         if hasattr(tweepy_tweet, 'retweeted_status'):
             full_text = None
