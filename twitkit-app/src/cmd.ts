@@ -254,10 +254,14 @@ export default function (ctx: Context, argv: config) {
                 if (trans) {
                     logger.debug("translate with url=%s trans=%s", url, trans)
                     const img = await translator.getByUrl(url, trans)
+                    if (!img) return meta.$send("请求失败")
                     return meta.$send(img + (argv.ispro ? "\n[CQ:image,cache=0,file=" + img + "]" : ""))
                 } else {
                     logger.debug("fetch new task: %s", url)
-                    let list = (await waitress.addTask(url)).sort().reverse()
+                    let list = await waitress.addTask(url)
+                    if (!list) return meta.$send("请求失败")
+                    if (!list.length) return meta.$send("添加失败，是否已经在库中？")
+                    list = list.sort().reverse()
                     let ref: number[] = []
                     for (const i of list) {
                         if (~ref.indexOf(i)) {
