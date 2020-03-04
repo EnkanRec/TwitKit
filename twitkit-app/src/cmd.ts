@@ -189,6 +189,9 @@ export default function (ctx: Context, argv: config) {
                     default:
                         if (msg[0] === "+")
                             return ctx.runCommand('comment', meta, ["", msg.slice(1)])
+                        const r = /^(https?:\/\/((www\.)?twitter\.com|t\.co)[\/\w]+)\s*([\s\S]*)$/.exec(msg)
+                        if (r)
+                            return ctx.runCommand('fetch', meta, [r[1], r[4]])
                         logger.debug("But match nothing.")
                         return next()
                 }
@@ -204,27 +207,6 @@ export default function (ctx: Context, argv: config) {
             const twi = parseInt(id)
             trans = trans.replace(/\[CQ:[^\]]*\]/g, " ").trim()
             if (isNaN(twi)) {
-                if (/^https?:\/\/(((www\.)?twitter\.com)|(t\.co))\//.test(id)) {
-                    logger.debug("translate with url=%s trans=%s", id, trans)
-                    if (trans) {
-                        const img = await translator.getByUrl(id, trans)
-                        return meta.$send(img + (argv.ispro ? "\n[CQ:image,cache=0,file=" + img + "]" : ""))
-                    } else {
-                        let list = (await waitress.addTask(id)).sort().reverse()
-                        let ref: number[] = []
-                        for (const i of list) {
-                            if (~ref.indexOf(i)) {
-                                logger.debug("ignore ref tid: %d", i)
-                                continue
-                            }
-                            const tw: Twitter = await store.getTask(i)
-                            if (tw.type === "转推") ref.push(tw.refTid)
-                            logger.debug("[" + tw.user.display + "]" + tw.content)
-                            const msg = Twitter2msg(tw, argv)
-                            meta.$send(msg)
-                        }
-                    }
-                }
                 logger.warn("Bad translate id: " + id)
                 return meta.$send("找不到 " + id)
             } else {
@@ -263,6 +245,38 @@ export default function (ctx: Context, argv: config) {
             }
         })
         .usage("获取/更新这个id的翻译内容")
+
+    ctx.command('fetch <url> [trans...]')
+        .action(async ({ meta }, url, trans) => {
+            if (!promission) return
+            if (/^https?:\/\/((www\.)?twitter\.com|t\.co)\//.test(url)) {
+                trans = trans.replace(/\[CQ:[^\]]*\]/g, " ").trim()
+                if (trans) {
+                    logger.debug("translate with url=%s trans=%s", url, trans)
+                    const img = await translator.getByUrl(url, trans)
+                    return meta.$send(img + (argv.ispro ? "\n[CQ:image,cache=0,file=" + img + "]" : ""))
+                } else {
+                    logger.debug("fetch new task: %s", url)
+                    let list = (await waitress.addTask(url)).sort().reverse()
+                    let ref: number[] = []
+                    for (const i of list) {
+                        if (~ref.indexOf(i)) {
+                            logger.debug("ignore ref tid: %d", i)
+                            continue
+                        }
+                        const tw: Twitter = await store.getTask(i)
+                        if (tw.type === "转推") ref.push(tw.refTid)
+                        logger.debug("[" + tw.user.display + "]" + tw.content)
+                        const msg = Twitter2msg(tw, argv)
+                        meta.$send(msg)
+                    }
+                }
+            } else {
+                logger.debug("unsupport url: " + url)
+                meta.$send("不支持的链接")
+            }
+        })
+        .usage("将指定链接的推文入库或直接烤图")
 
     ctx.command('fresh [id]')
         .action(async ({ meta }, id) => {
