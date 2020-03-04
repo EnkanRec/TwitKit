@@ -189,7 +189,7 @@ export default function (ctx: Context, argv: config) {
                     default:
                         if (msg[0] === "+")
                             return ctx.runCommand('comment', meta, ["", msg.slice(1)])
-                        const r = /^(https?:\/\/((www\.)?twitter\.com|t\.co)[\/\w]+)\s*([\s\S]*)$/.exec(msg)
+                        const r = /^(https?:\/\/((www\.)?twitter\.com|t\.co)[\/\w!@#%&+-=?~]+)\s*([\s\S]*)$/.exec(msg)
                         if (r)
                             return ctx.runCommand('fetch', meta, [r[1], r[4]])
                         logger.debug("But match nothing.")
