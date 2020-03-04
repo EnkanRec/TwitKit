@@ -22,20 +22,26 @@ class response { // oven return
  * @returns response.resultUrl
  */
 async function rest(url: string, data: any): Promise<string> {
-    logger.debug("Data: " + data)
-    let res = await axios.post<response>(host + url, new request(data))
-    if (res.status !== 200) {
-        logger.error("Internet error: %d", res.status)
-        return null
-    }
-    logger.debug("Return %d: %s", res.data.code, res.data.message)
-    if (res.data || res.data.code === 0) {
-        logger.debug("Finish in %d s", res.data.processTime)
+    logger.debug("POST " + url)
+    logger.debug(data)
+    try {
+        const res = await axios.post<response>(host + url, new request(data))
+        if (res.data.code === 0) {
+            logger.debug(res.data)
+            logger.debug("Return %d: %s", res.data.code, res.data.message || "")
+            logger.debug("Finish in %d s", res.data.processTime)
         return res.data.resultUrl
-    } else {
-        logger.warn("Error: %s", res.data.error)
-        return null
+        } else {
+            logger.warn("Error %d: %s", res.data.code, res.data.message)
+            return null
+        }
+    } catch (e) {
+        if (e.response) {
+            logger.error("Internet error: %d", e.response.status)
+            logger.debug(e.response.data)
+        } else logger.error(e)
     }
+    return null
 }
 
 /**
