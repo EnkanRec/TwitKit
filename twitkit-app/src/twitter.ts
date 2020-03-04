@@ -129,7 +129,7 @@ export function convert(dbtw: dbtw, orig?: dbtw): Twitter {
 export function Twitter2msg(tw: Twitter, argv): string {
     let msg: string = "【" + tw.user.display + "】"
     if (tw.type === "转推") {
-        msg += "转发了【" + tw.oirgUser.display + "】的推 " + argv.prefix + tw.id
+        msg += "转发了【" + tw.oirgUser.display + "】的推 " + argv.prefix + tw.refTid
     } else {
         msg += "更新了"
     }

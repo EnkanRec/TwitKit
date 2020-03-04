@@ -10,23 +10,29 @@ class response { // oven return
     message: string
     error?: any
     addedTid?: number[]
-    rootTid?: number[]
+    rootTid?: number
 }
 
 async function rest(url: string, data: any): Promise<response> {
-    logger.debug("Data: " + data)
-    let res = await axios.post<response>(host + url, new request(data))
-    if (res.status !== 200) {
-        logger.error("Internet error: %d", res.status)
-        return null
+    logger.debug("POST " + url)
+    logger.debug(data)
+    try {
+        const res = await axios.post<response>(host + url, new request(data))
+        if (res.data.code === 0) {
+            logger.debug("Return %d: %s", res.data.code, res.data.message || "")
+            logger.debug(res.data)
+            return res.data
+        } else {
+            logger.warn("Error %d: %s", res.data.code, res.data.message)
+            return null
+        }
+    } catch (e) {
+        if (e.response) {
+            logger.error("Internet error: %d", e.response.status)
+            logger.debug(e.response.data)
+        } else logger.error(e)
     }
-    logger.debug("Return %d: %s", res.data.code, res.data.message)
-    if (res.data.code === 0) {
-        return res.data
-    } else {
-        logger.warn("Error: %s", res.data.error)
-        return null
-    }
+    return null
 }
 
 async function addTask(url: string): Promise<number[]> {

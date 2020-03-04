@@ -14,6 +14,11 @@ let groups: Map<number, number[]> = new Map()
  * @description 储存允许私聊上班的Q号
  */
 let members: Set<number> = new Set()
+/**
+ * @description 是否允许使用命令
+ * @global
+ */
+let promission: boolean = false
 
 export default function (ctx: Context, argv: config) {
     const cmd: config_cmd = {
@@ -70,7 +75,7 @@ export default function (ctx: Context, argv: config) {
             // logger.debug(members)
         })
     }
-    // 中间件判断权限及解析短快捷指令
+    // 前置中间件判断权限
     ctx.prependMiddleware((meta, next) => {
         switch (meta.messageType) {
             case "private":
@@ -83,7 +88,8 @@ export default function (ctx: Context, argv: config) {
                         // 配置不许私聊上班
                         if (!cmd.private) {
                             logger.debug("Ignore private message")
-                            return
+                            promission = false
+                            return next()
                         }
                         // 如何群列表为空则允许所有人上班
                         if (!cmd.group.length) break
@@ -92,7 +98,8 @@ export default function (ctx: Context, argv: config) {
                     default:
                         // 其他通通不给私聊上班
                         logger.debug("Ignore unknown private")
-                        return
+                        promission = false
+                        return next()
                 }
                 break
             case "discuss":
@@ -106,8 +113,15 @@ export default function (ctx: Context, argv: config) {
                 if (meta.groupId && ~cmd.group.indexOf(meta.groupId)) break
             default:
                 logger.debug("Ignore illegal source")
-                return
+                promission = false
+                return next()
         }
+        promission = true
+        logger.debug("allow command")
+        return next()
+    })
+    // 中间件解析短快捷指令
+    ctx.middleware((meta, next) => {
         if (meta.message.startsWith(argv.prefix)) {
             const msg = meta.message.slice(argv.prefix.length)
             const r = /^(\d+)(~~|[^\d\s])?\s*([\s\S]*)$/.exec(msg)
@@ -175,6 +189,9 @@ export default function (ctx: Context, argv: config) {
                     default:
                         if (msg[0] === "+")
                             return ctx.runCommand('comment', meta, ["", msg.slice(1)])
+                        const r = /^(https?:\/\/((www\.)?twitter\.com|t\.co)[\/\w!@#%&+-=?~]+)\s*([\s\S]*)$/.exec(msg)
+                        if (r)
+                            return ctx.runCommand('fetch', meta, [r[1], r[4]])
                         logger.debug("But match nothing.")
                         return next()
                 }
@@ -186,30 +203,10 @@ export default function (ctx: Context, argv: config) {
     // 命令实现具体功能
     ctx.command('translate <id> [trans...]')
         .action(async ({ meta }, id, trans) => {
+            if (!promission) return
             const twi = parseInt(id)
             trans = trans.replace(/\[CQ:[^\]]*\]/g, " ").trim()
             if (isNaN(twi)) {
-                if (/^https?:\/\/(((www\.)?twitter\.com)|(t\.co))\//.test(id)) {
-                    logger.debug("translate with url=%s trans=%s", id, trans)
-                    if (trans) {
-                        const img = await translator.getByUrl(id, trans)
-                        return meta.$send(img + (argv.ispro ? "\n[CQ:image,cache=0,file=" + img + "]" : ""))
-                    } else {
-                        let list = (await waitress.addTask(id)).sort().reverse()
-                        let ref: number[] = []
-                        for (const i of list) {
-                            if (~ref.indexOf(i)) {
-                                logger.debug("ignore ref tid: %d", i)
-                                continue
-                            }
-                            const tw: Twitter = await store.getTask(i)
-                            if (tw.type === "转推") ref.push(tw.refTid)
-                            logger.debug("[" + tw.user.display + "]" + tw.content)
-                            const msg = Twitter2msg(tw, argv)
-                            meta.$send(msg)
-                        }
-                    }
-                }
                 logger.warn("Bad translate id: " + id)
                 return meta.$send("找不到 " + id)
             } else {
@@ -249,8 +246,45 @@ export default function (ctx: Context, argv: config) {
         })
         .usage("获取/更新这个id的翻译内容")
 
+    ctx.command('fetch <url> [trans...]')
+        .action(async ({ meta }, url, trans) => {
+            if (!promission) return
+            if (/^https?:\/\/((www\.)?twitter\.com|t\.co)\//.test(url)) {
+                trans = trans.replace(/\[CQ:[^\]]*\]/g, " ").trim()
+                if (trans) {
+                    logger.debug("translate with url=%s trans=%s", url, trans)
+                    const img = await translator.getByUrl(url, trans)
+                    if (!img) return meta.$send("请求失败")
+                    return meta.$send(img + (argv.ispro ? "\n[CQ:image,cache=0,file=" + img + "]" : ""))
+                } else {
+                    logger.debug("fetch new task: %s", url)
+                    let list = await waitress.addTask(url)
+                    if (!list) return meta.$send("请求失败")
+                    if (!list.length) return meta.$send("添加失败，是否已经在库中？")
+                    list = list.sort().reverse()
+                    let ref: number[] = []
+                    for (const i of list) {
+                        if (~ref.indexOf(i)) {
+                            logger.debug("ignore ref tid: %d", i)
+                            continue
+                        }
+                        const tw: Twitter = await store.getTask(i)
+                        if (tw.type === "转推") ref.push(tw.refTid)
+                        logger.debug("[" + tw.user.display + "]" + tw.content)
+                        const msg = Twitter2msg(tw, argv)
+                        meta.$send(msg)
+                    }
+                }
+            } else {
+                logger.debug("unsupport url: " + url)
+                meta.$send("不支持的链接")
+            }
+        })
+        .usage("将指定链接的推文入库或直接烤图")
+
     ctx.command('fresh [id]')
         .action(async ({ meta }, id) => {
+            if (!promission) return
             let twi = parseInt(id)
             if (isNaN(twi)) {
                 twi = store.getLastTrans()
@@ -270,6 +304,7 @@ export default function (ctx: Context, argv: config) {
 
     ctx.command('raw [id]')
         .action(async ({ meta }, id) => {
+            if (!promission) return
             let twi = parseInt(id)
             if (isNaN(twi)) {
                 twi = store.getLastTrans()
@@ -286,6 +321,7 @@ export default function (ctx: Context, argv: config) {
 
     ctx.command('list [id]')
         .action(async ({ meta }, id) => {
+            if (!promission) return
             const twi = id ? parseInt(id) : store.getTodo()
             logger.debug("show list from %d", twi)
             const list: Twitter[] = await store.list(twi)
@@ -323,6 +359,7 @@ export default function (ctx: Context, argv: config) {
 
     ctx.command('list-detail [id]')
         .action(async ({ meta }, id) => {
+            if (!promission) return
             const twi = id ? parseInt(id) : store.getTodo()
             logger.debug("show translation from %d", twi)
             const list = await store.list(twi)
@@ -345,6 +382,7 @@ export default function (ctx: Context, argv: config) {
 
     ctx.command('clear [id]')
         .action(async ({ meta }, id) => {
+            if (!promission) return
             const todo = store.getTodo()
             logger.debug("Old todo: " + todo)
             const twi = id ? parseInt(id) : await store.getLastTid()
@@ -365,6 +403,7 @@ export default function (ctx: Context, argv: config) {
 
     ctx.command('hide [id]')
         .action(async ({ meta }, id) => {
+            if (!promission) return
             const twi = parseInt(id)
             if (!isNaN(twi)) {
                 const hide = await store.hide(twi)
@@ -388,6 +427,7 @@ export default function (ctx: Context, argv: config) {
 
     ctx.command('comment [id] [comment...]')
         .action(async ({ meta }, id, comment) => {
+            if (!promission) return
             let twi = parseInt(id)
             if (isNaN(twi)) {
                 twi = await store.getLastTid()
@@ -413,6 +453,7 @@ export default function (ctx: Context, argv: config) {
 
     ctx.command('undo [id]')
         .action(async ({ meta }, id) => {
+            if (!promission) return
             const twi = id ? parseInt(id) : store.getLastTrans()
             if (twi === null || isNaN(twi)) {
                 logger.debug("Nothing to undo")
