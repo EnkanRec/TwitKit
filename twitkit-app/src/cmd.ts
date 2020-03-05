@@ -518,7 +518,7 @@ export default function (ctx: Context, argv: config) {
                                         + " 的修改，现在的翻译是: \n" + tw2.trans)
                     }
                 }
-                return meta.$send("已撤销 " + argv.prefix + twi + " 的修改，现在的翻译是: \n" + tw.trans)
+                return meta.$send("已撤销 " + argv.prefix + twi + " 的修改，现在的翻译是: \n" + tw.trans || "<空>")
             } else {
                 logger.warn("Twitter %d notfound", twi)
                 return meta.$send("找不到推文: " + argv.prefix + id)
@@ -532,6 +532,29 @@ export default function (ctx: Context, argv: config) {
         )
         .example("undo // 回滚最近修改过的翻译")
         .example("undo 1000 // 回滚任务1000的翻译")
+
+    ctx.command('delete <id>', "删除一条任务")
+        .action(async ({ meta }, id) => {
+            if (!promission) return
+            const twi = parseInt(id)
+            if (twi === null || isNaN(twi)) {
+                logger.debug("Nothing to delete")
+                return meta.$send("找不到推文: " + argv.prefix + id)
+            }
+            const stat = await store.deleteTask(twi)
+            if (stat) {
+                return meta.$send("删除成功")
+            } else {
+                return meta.$send("删除失败")
+            }
+        })
+        .usage("删除一个任务，返回是否删除成功")
+        .usage("    id: 推文的任务id\n"
+            +  "一般情况下用不上，删除后无法任务自动恢复\n"
+            +  "建议使用hide命令隐藏\n"
+            +  "这条指令没有设计快捷指令"
+        )
+        .example("delete 1000 // 删除任务1000")
 
     ctx.command('how', "TwitKit的帮助")
         .action(({ meta }) => {
