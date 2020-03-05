@@ -161,8 +161,8 @@ export default {
           /(#[^\s,.!?，。！？<]*)/g,
           '<span class="hashtag">$1</span>'
         );
-        var entities = this.tweet.extra ? JSON.parse(this.tweet.extra) : {}
-        JSON.parse(this.tweet.extra)
+        var entities = this.tweet.extra ? JSON.parse(this.tweet.extra) : {};
+        JSON.parse(this.tweet.extra);
         if (entities && entities.urls) {
           for (var url of entities.urls) {
             str = str.replace(
@@ -184,8 +184,10 @@ export default {
         this.translation.content = convertEmoji(
           addColor(escape(this.translation.content))
         );
-      if (this.transText)
-        this.transText = convertEmoji(addColor(escape(this.transText)));
+      if (this.actualTransText)
+        this.actualTransText = convertEmoji(
+          addColor(escape(this.actualTransText))
+        );
       this.user.display = convertEmoji(addColor(escape(this.user.display)));
 
       this.dataReady = true;
