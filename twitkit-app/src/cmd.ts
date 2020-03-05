@@ -184,7 +184,9 @@ export default function (ctx: Context, argv: config) {
                                         + "    -: 隐藏/显示该任务，或批量隐藏队列里已发布的任务\n"
                                         + "    +: 给任务添加备注\n"
                                         + "    ?: 显示这条帮助\n"
-                                        + "详细帮助参考bot指令help"
+                                        + "快捷命令将映射到一个长命令，使用“how”命令查看TwitKit的命令帮助\n"
+                                        + "也可以使用Koishi自带的help命令查看帮助\n"
+                                        + "群聊可以通过 “@我+指令名”或“" + argv.prefix + "+指令名” 的方式进行使用"
                         )
                     default:
                         if (msg[0] === "+")
@@ -201,7 +203,8 @@ export default function (ctx: Context, argv: config) {
     })
 
     // 命令实现具体功能
-    ctx.command('translate <id> [trans...]')
+    ctx.command('translate <id> [trans...]', "更新(获取)一个任务翻译(图)")
+        // .option("-e, --empty", "允许空翻译，直接烤图")
         .action(async ({ meta }, id, trans) => {
             if (!promission) return
             const twi = parseInt(id)
@@ -244,9 +247,16 @@ export default function (ctx: Context, argv: config) {
                 }
             }
         })
-        .usage("获取/更新这个id的翻译内容")
+        .usage("    id: 推文的任务id\n"
+            +  "    trans: 可选，翻译文本\n"
+            +  "当trans为空时，若已经有翻译，则返回烤图；否则显示原文(同raw)\n"
+            +  "当trans非空时，更新翻译并请求烤图机，返回烤图\n"
+            +  "注：翻译文本允许emoji，但不支持QQ表情或图片等元素，不支持的元素会被换成空格"
+        )
+        .example(argv.prefix + "1000 或 translate 1000 // 显示任务1000的原文或烤图")
+        .example(argv.prefix + "1000 <翻译> 或 translate 1000 <翻译> // 翻译任务1000并取得烤图")
 
-    ctx.command('fetch <url> [trans...]')
+    ctx.command('fetch <url> [trans...]', "处理推文链接")
         .action(async ({ meta }, url, trans) => {
             if (!promission) return
             if (/^https?:\/\/((www\.)?twitter\.com|t\.co)\//.test(url)) {
@@ -280,9 +290,16 @@ export default function (ctx: Context, argv: config) {
                 meta.$send("不支持的链接")
             }
         })
-        .usage("将指定链接的推文入库或直接烤图")
+        .usage("    url: 目标推文的url\n"
+            +  "    trans: 可选，翻译文本\n"
+            +  "当trans为空时，获取推文并入库分配一个任务id，然后显示原文\n"
+            +  "当trans非空时，，直接请求烤推机，不会影响库，返回烤图\n"
+            +  "注：翻译文本允许emoji，但不支持QQ表情或图片等元素，不支持的元素会被换成空格"
+        )
+        .example(argv.prefix + "<url> 或 fetch <url> // 将<url>的推文入库，并显示它的原文")
+        .example(argv.prefix + "<url> <翻译> 或 fetch <url> <翻译> // 直接对<url>的推文翻译，并返回烤图")
 
-    ctx.command('fresh [id]')
+    ctx.command('fresh [id]', "刷新一个翻译图")
         .action(async ({ meta }, id) => {
             if (!promission) return
             let twi = parseInt(id)
@@ -300,9 +317,15 @@ export default function (ctx: Context, argv: config) {
             logger.debug("Update image: " + tw.img)
             return meta.$send(tw.img + (argv.ispro ? "\n[CQ:image,cache=0,file=" + tw.img + "]" : ""))
         })
-        .usage("刷新这个id的翻译烤图")
+        .usage("    id: 可选，推文的任务id\n"
+            +  "当id为空时，则使用最近一次翻译过的推文\n"
+            +  "最近一次翻译过的推文信息仅储存在内存，重启丢弃\n"
+            +  "通常在烤推机出错或引用的推文有翻译更新时使用"
+        )
+        .example(argv.prefix + "! 或 fresh // 刷新最后一次更新过翻译的推文烤图")
+        .example(argv.prefix + "1000! 或 fresh 1000 // 刷新任务1000的推文烤图")
 
-    ctx.command('raw [id]')
+    ctx.command('raw [id]', "显示一个任务原文")
         .action(async ({ meta }, id) => {
             if (!promission) return
             let twi = parseInt(id)
@@ -317,9 +340,16 @@ export default function (ctx: Context, argv: config) {
             const msg = Twitter2msg(tw, argv)
             return meta.$send(msg)
         })
-        .usage("显示这个id的推文原文")
+        .usage("    id: 可选，推文的任务id\n"
+            +  "当id为空时，则使用最近一次翻译过的推文\n"
+            +  "最近一次翻译过的推文信息仅储存在内存，重启丢弃\n"
+            +  "由于在翻译过某个推后，除非undo掉所有的翻译，原文只能以图片形式查看，故留此接口"
+        )
+        .example(argv.prefix + "* 或 raw // 显示最后一次更新过翻译的推文的原文")
+        .example(argv.prefix + "1000* 或 raw 1000 // 显示任务1000的推文原文")
 
-    ctx.command('list [id]')
+    ctx.command('list [id]', "显示任务队列")
+        // .option("-d --detail", "输出熟肉队列")
         .action(async ({ meta }, id) => {
             if (!promission) return
             const twi = id ? parseInt(id) : store.getTodo()
@@ -336,13 +366,13 @@ export default function (ctx: Context, argv: config) {
                     if (i.published) msg += " 已发"
                     if (i.trans || i.img) {
                         msg += " 已烤"
-                        if (i.comment) msg += "#" + i.comment
+                        if (i.comment) msg += argv.prefix + "" + i.comment
                         else msg += "-" + ((i.trans.length > cmd.cut)
                             ? i.trans.substr(0, cmd.cut).replace(/\n/g, ' ') + "…" 
                             : i.trans.replace(/\n/g, ' ')
                         ) // short(i.trans)
                     } else {
-                        if (i.comment) msg += "#" + i.comment
+                        if (i.comment) msg += argv.prefix + "" + i.comment
                     }
                 }
                 msg += "\n--------共" + list.length + "条--------\n"
@@ -355,9 +385,16 @@ export default function (ctx: Context, argv: config) {
             }
             return meta.$send(msg)
         })
-        .usage("查看队列某个id后的任务，id为空时使用预设的队列头")
+        .usage("显示该任务之后至最新的所有任务简介\n"
+            +  "    id: 可选，队列开始前的一条任务id\n"
+            +  "当id为空时，则使用队列头，默认为0\n"
+            +  "队列头储存在数据库中，并在内存缓存，使用clear命令修改\n"
+            +  "队列里不包括作为队列头的任务"
+        )
+        .example(argv.prefix + " 或 " + argv.prefix + "~ 或 list // 显示当前队列")
+        .example(argv.prefix + "1000~ 或 list 1000 // 显示1000之后的所有推文")
 
-    ctx.command('list-detail [id]')
+    ctx.command('list-detail [id]', "输出熟肉队列")
         .action(async ({ meta }, id) => {
             if (!promission) return
             const twi = id ? parseInt(id) : store.getTodo()
@@ -378,9 +415,15 @@ export default function (ctx: Context, argv: config) {
             }
             return meta.$send(msg)
         })
-        .usage("批量获取队列某个id后的烤推结果，id为空时使用预设的队列头")
+        .usage("显示该任务之后至最新的所有熟肉及其媒体，参见list命令\n"
+            +  "    id: 可选，队列开始前的一条任务id\n"
+            +  "当id为空时，则使用队列头，默认为0\n"
+            +  "队列里不包括作为队列头的任务"
+        )
+        .example(argv.prefix + " 或 " + argv.prefix + "~~ 或 list // 显示当前队列")
+        .example(argv.prefix + "1000~ 或 list 1000 // 显示1000之后的所有推文")
 
-    ctx.command('clear [id]')
+    ctx.command('clear [id]', "设置队列头")
         .action(async ({ meta }, id) => {
             if (!promission) return
             const todo = store.getTodo()
@@ -399,9 +442,14 @@ export default function (ctx: Context, argv: config) {
                 + "效果等价于" + argv.prefix + twi + "~与" + argv.prefix + twi + "~~"
             )
         })
-        .usage("设置队列头，id为空时，设置成最新的id（清空队列）")
+        .usage("参见list命令\n"
+            +  "    id: 可选，设置队列头使用的任务id\n"
+            +  "当id为空时，则使用最新一条任务id，相当于清空当前队列"
+        )
+        .example(argv.prefix + "/ 或 clear // 清空队列")
+        .example(argv.prefix + "1000/ 或 clear 1000 // 设置队列头为1000")
 
-    ctx.command('hide [id]')
+    ctx.command('hide [id]', "隐藏或显示任务")
         .action(async ({ meta }, id) => {
             if (!promission) return
             const twi = parseInt(id)
@@ -423,9 +471,14 @@ export default function (ctx: Context, argv: config) {
                 return meta.$send("以下推文已经隐藏" + argv.prefix + list.join(", " + argv.prefix))
             }
         })
-        .usage("隐藏或显示某个推，id为空时，隐藏所有已烤的推")
+        .usage("    id: 可选，操作目标任务id\n"
+            +  "当id为空时，则将队列中所有状态为已发的任务隐藏，返回被隐藏的任务id\n"
+            +  "当id非空时，则修改该任务隐藏状态，未隐藏则隐藏之，隐藏的显示之"
+        )
+        .example(argv.prefix + "- 或 hide // 隐藏队列里所有已发的任务")
+        .example(argv.prefix + "1000- 或 hide 1000 // 隐藏或显示任务1000")
 
-    ctx.command('comment [id] [comment...]')
+    ctx.command('comment [id] [comment...]', "给任务添加注释")
         .action(async ({ meta }, id, comment) => {
             if (!promission) return
             let twi = parseInt(id)
@@ -449,9 +502,16 @@ export default function (ctx: Context, argv: config) {
                 meta.$send("找不到: " + twi)
             }
         })
-        .usage("为某个推添加注释，id为空时，加到最近的推")
+        .usage("    id: 可选，操作目标任务id\n"
+            +  "    comment: 注释内容\n"
+            +  "若id不是数字，则会被当成comment的一部分\n"
+            +  "当id为空或非数字时，则使用最新一条任务id\n"
+            +  "注释会显示在队列里，参见list命令"
+        )
+        .example(argv.prefix + "+<注释> 或 comment <注释> // 给最新一条任务添加注释")
+        .example(argv.prefix + "1000+<注释> 或 comment 1000 <注释> // 给任务1000添加注释")
 
-    ctx.command('undo [id]')
+    ctx.command('undo [id]', "回滚一条翻译")
         .action(async ({ meta }, id) => {
             if (!promission) return
             const twi = id ? parseInt(id) : store.getLastTrans()
@@ -477,5 +537,41 @@ export default function (ctx: Context, argv: config) {
                 return meta.$send("找不到推文: " + argv.prefix + id)
             }
         })
-        .usage("撤销某个推的翻译修改，id为空时，撤销最近修改过的翻译，不会撤销初始翻译")
+        .usage("回滚一个翻译，返回当前翻译文本")
+        .usage("    id: 可选，推文的任务id\n"
+            +  "当id为空时，则使用最近一次翻译过的推文\n"
+            +  "最近一次翻译过的推文信息仅储存在内存，重启丢弃\n"
+            +  "这条指令没有设计快捷指令"
+        )
+        .example("undo // 回滚最近修改过的翻译")
+        .example("undo 1000 // 回滚任务1000的翻译")
+
+    ctx.command('how', "TwitKit的帮助")
+        .action(({ meta }) => {
+            return meta.$send("命令使用帮助: " + argv.prefix + " <命令> [参数]；括号内为对应的快捷命令\n"
+                            + "    " + argv.prefix + " list [id] (" + argv.prefix + "[id]~)\n"
+                            + "    查看队列某个id后的任务，id为空时使用预设的队列头\n"
+                            + "    " + argv.prefix + " translate <id> [trans] (" + argv.prefix + "[id] [trans])\n"
+                            + "    获取/更新这个id的翻译内容\n"
+                            + "    " + argv.prefix + " list-detail [id] (" + argv.prefix + "[id]~~)\n"
+                            + "    批量获取队列某个id后的烤推结果，id为空时使用预设的队列头\n"
+                            + "    " + argv.prefix + " clear [id] (" + argv.prefix + "[id]/)\n"
+                            + "    设置队列头，id为空时，设置成最新的id（清空队列）\n"
+                            + "    " + argv.prefix + " undo [id]\n"
+                            + "    撤销某个推的翻译修改，id为空时，撤销最近修改过的翻译，不会撤销初始翻译\n"
+                            + "    " + argv.prefix + " fetch <url> [trans] (" + argv.prefix + "[url] [trans])\n"
+                            + "    将指定链接的推文入库或直接烤图\n"
+                            + "    " + argv.prefix + " hide [id] (" + argv.prefix + "[id]-)\n"
+                            + "    隐藏或显示某个推，id为空时，隐藏所有已烤的推\n"
+                            + "    " + argv.prefix + " comment [id] <text> (" + argv.prefix + "[id]+[text])\n"
+                            + "    为某个推添加注释，id为空时，加到最近的推\n"
+                            + "    " + argv.prefix + " fresh [id] (" + argv.prefix + "[id]!)\n"
+                            + "    刷新这个id的翻译烤图，id为空时使用最近修改过的翻译\n"
+                            + "    " + argv.prefix + " raw [id] (" + argv.prefix + "[id]*)\n"
+                            + "    显示这个id的推文原文，id为空时使用最近修改过的翻译\n"
+                            + "另有快捷指令，用 “" + argv.prefix + "?” 查看帮助\n"
+                            + "群聊可以通过 “@我+指令名”或“" + argv.prefix + "+指令名” 的方式进行使用\n"
+                            + "允许私聊，且私聊不需要添加上述前缀，直接输入指令名即可"
+            )
+        })
 }

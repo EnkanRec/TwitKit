@@ -6,6 +6,16 @@ module.exports = {
   nickname: '',
   commandPrefix: '#',
   plugins: [
+    ["common", {
+      admin: false,
+      broadcast: false,
+      contextify: false,
+      echo: false,
+      exec: false,
+      exit: false,
+      info: false,
+      help: true
+    }],
     [".", {
       twid: "",         // 监听推主
       prefix: '#',      // 快捷指令前缀
