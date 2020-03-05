@@ -273,6 +273,7 @@ export default function (ctx: Context, argv: config) {
                     if (!list.length) return meta.$send("添加失败，是否已经在库中？")
                     list = list.sort().reverse()
                     let ref: number[] = []
+                    let quere: string[] = []
                     for (const i of list) {
                         if (~ref.indexOf(i)) {
                             logger.debug("ignore ref tid: %d", i)
@@ -282,8 +283,9 @@ export default function (ctx: Context, argv: config) {
                         if (tw.type === "转推") ref.push(tw.refTid)
                         logger.debug("[" + tw.user.display + "]" + tw.content)
                         const msg = Twitter2msg(tw, argv)
-                        meta.$send(msg)
+                        quere.unshift(msg)
                     }
+                    for (const msg of quere) meta.$send(msg)
                 }
             } else {
                 logger.debug("unsupport url: " + url)

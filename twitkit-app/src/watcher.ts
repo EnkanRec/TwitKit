@@ -103,14 +103,16 @@ export default function (ctx: Context, argv: config) {
                         }
                         list = list.sort().reverse()
                         let ref: number[] = []
+                        let quere: string[] = []
                         for (const i of list) {
                             if (~ref.indexOf(i)) continue
                             const tw: Twitter = await store.getTask(i)
                             if (tw.type === "转推") ref.push(tw.refTid)
                             logger.debug("[" + tw.user.display + "]" + tw.content)
                             const msg = Twitter2msg(tw, argv)
-                            sendmsg(ctx, watcher.target, msg)
+                            quere.unshift(msg)
                         }
+                        for (const msg of quere) sendmsg(ctx, watcher.target, msg)
                         logger.info("Update notice done")
                         break
                     case "other":
