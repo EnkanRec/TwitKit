@@ -204,8 +204,8 @@ export default function (ctx: Context, argv: config) {
 
     // 命令实现具体功能
     ctx.command('translate <id> [trans...]', "更新(获取)一个任务翻译(图)")
-        // .option("-e, --empty", "允许空翻译，直接烤图")
-        .action(async ({ meta }, id, trans) => {
+        .option("-e, --empty", "允许空翻译，直接烤图")
+        .action(async ({ meta, options }, id, trans) => {
             if (!promission) return
             const twi = parseInt(id)
             trans = trans.replace(/\[CQ:[^\]]*\]/g, " ").trim()
@@ -218,9 +218,9 @@ export default function (ctx: Context, argv: config) {
                     logger.warn("Twitter %d not found", twi)
                     return meta.$send("找不到 " + id)
                 }
-                if (trans) {
+                if (trans || options.e || options.empty) {
                     if (tw.type === "转推") {
-                        await store.trans(tw.refTid, trans, "")
+                        if (trans) await store.trans(tw.refTid, trans, "")
                         logger.debug("update ref twitter translation: %d", tw.refTid)
                         tw.img = await translator.get(tw)
                         await store.trans(twi, "", tw.img)
@@ -351,40 +351,52 @@ export default function (ctx: Context, argv: config) {
         .example(argv.prefix + "1000* 或 raw 1000 // 显示任务1000的推文原文")
 
     ctx.command('list [id]', "显示任务队列")
-        // .option("-d --detail", "输出熟肉队列")
-        .action(async ({ meta }, id) => {
+        .option("-d, --detail", "仅输出队列中已翻译的烤图及媒体")
+        .action(async ({ meta, options }, id) => {
             if (!promission) return
             const twi = id ? parseInt(id) : store.getTodo()
             logger.debug("show list from %d", twi)
             const list: Twitter[] = await store.list(twi)
-            let msg:string
-            if (list && list.length) {
-                msg = "从" + argv.prefix + twi + "到现在的已烤推特如下: "
-                for (const i of list) {
-                    msg += "\n" + argv.prefix + i.id
-                    if (i.type !== "更新")  {
-                        msg += " " + i.type + " " + argv.prefix + i.refTid
-                    }
-                    if (i.published) msg += " 已发"
-                    if (i.trans || i.img) {
-                        msg += " 已烤"
-                        if (i.comment) msg += argv.prefix + "" + i.comment
-                        else msg += "-" + ((i.trans.length > cmd.cut)
-                            ? i.trans.substr(0, cmd.cut).replace(/\n/g, ' ') + "…" 
-                            : i.trans.replace(/\n/g, ' ')
-                        ) // short(i.trans)
-                    } else {
-                        if (i.comment) msg += argv.prefix + "" + i.comment
-                    }
-                }
-                msg += "\n--------共" + list.length + "条--------\n"
-                    + "发送 " + argv.prefix + "推特ID 以获取详细信息\n"
-                    + "发送 " + argv.prefix + twi + "~~以批量获取嵌字结果"
-                logger.debug("Found %d Twitters", list.length)
-            } else {
-                logger.debug("But nothing found")
-                msg = "列表为空"
+            if (!list) {
+                logger.debug("Request DB fail")
+                return meta.$send("请求失败")
             }
+            let task: string[] = []
+            if (options.d || options.detail) for (const i of list) {
+                if (!(i.trans || i.img)) continue
+                let msg = ""
+                if (i.img) msg += argv.ispro ? "[CQ:image,file=" + i.img + "]" : i.img
+                if (i.media && i.media.length) for (const j of i.media)
+                    msg += argv.ispro ? "[CQ:image,file=" + j + "]" : j
+                if (i.video && i.video.length) msg += "\n" + i.video.join("\n")
+                if (msg) task.push(argv.prefix + i.id + "\n" + msg)
+            } else for (const i of list) {
+                let msg = argv.prefix + i.id
+                if (i.type !== "更新")  {
+                    msg += " " + i.type + " " + argv.prefix + i.refTid
+                }
+                if (i.published) msg += " 已发"
+                if (i.trans || i.img) {
+                    if (!i.published)msg += " 已烤"
+                    if (!i.comment) msg += "-" + (
+                        (i.trans.length > cmd.cut)
+                        ? i.trans.substr(0, cmd.cut).replace(/\n/g, ' ') + "…"
+                        : i.trans.replace(/\n/g, ' ')
+                    ) // short(i.trans)
+                }
+                if (i.comment) msg += "+" + i.comment
+                task.push(msg)
+            }
+            if (!task.length) {
+                logger.debug("But nothing found")
+                return meta.$send("列表为空")
+            }
+            let msg = "从" + argv.prefix + twi + "到现在的已烤推特如下:\n"
+                + task.join("\n")
+                + "\n--------共" + task.length + "条--------\n"
+                + "发送 " + argv.prefix + "任务ID 以获取详细信息\n"
+                + "发送 " + argv.prefix + twi + "~~以批量获取嵌字结果"
+            logger.debug("Found %d Twitters", list.length)
             return meta.$send(msg)
         })
         .usage("显示该任务之后至最新的所有任务简介\n"
@@ -395,35 +407,8 @@ export default function (ctx: Context, argv: config) {
         )
         .example(argv.prefix + " 或 " + argv.prefix + "~ 或 list // 显示当前队列")
         .example(argv.prefix + "1000~ 或 list 1000 // 显示1000之后的所有推文")
-
-    ctx.command('list-detail [id]', "输出熟肉队列")
-        .action(async ({ meta }, id) => {
-            if (!promission) return
-            const twi = id ? parseInt(id) : store.getTodo()
-            logger.debug("show translation from %d", twi)
-            const list = await store.list(twi)
-            let msg:string = ""
-            if (list) for (const i of list) if (i.trans || i.img) {
-                msg += "\n" + argv.prefix + i.id + "\n"
-                if (i.img) msg += argv.ispro ? "[CQ:image,file=" + i.img + "]" : i.img
-                if (i.media && i.media.length) for (const j of i.media)
-                    msg += argv.ispro ? "[CQ:image,file=" + j + "]" : j
-            }
-            if (msg.length) {
-                msg = "从" + argv.prefix + twi + "到现在的已烤推特如下: " + msg
-            } else {
-                msg = "列表为空"
-                logger.debug("But nothing found")
-            }
-            return meta.$send(msg)
-        })
-        .usage("显示该任务之后至最新的所有熟肉及其媒体，参见list命令\n"
-            +  "    id: 可选，队列开始前的一条任务id\n"
-            +  "当id为空时，则使用队列头，默认为0\n"
-            +  "队列里不包括作为队列头的任务"
-        )
-        .example(argv.prefix + " 或 " + argv.prefix + "~~ 或 list // 显示当前队列")
-        .example(argv.prefix + "1000~ 或 list 1000 // 显示1000之后的所有推文")
+        .shortcut("list-detail", { prefix: true, fuzzy: true, options: { detail: true } })
+        .example(argv.prefix + "~~ 或 list-detail 或 list --detail // 显示队列中已翻译的烤图及媒体")
 
     ctx.command('clear [id]', "设置队列头")
         .action(async ({ meta }, id) => {
