@@ -101,7 +101,7 @@ class AddTask(Resource):
         task_label = "[{}][{}]".format(
             request_base_data['forwardFrom'], request_base_data['taskId'])
 
-        logging.info(f'[{task_label}] 请求加入任务：{request_data["url"]}')
+        logging.info(f'{task_label} 请求加入任务：{request_data["url"]}')
 
         try:
             tweet = twitter_client.get_tweet_by_url(request_data['url'])

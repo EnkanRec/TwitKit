@@ -31,12 +31,23 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
         ref_id = None
 
         media_urls = []
+        entities_list = []
         if hasattr(tweepy_tweet, 'extended_entities'):
-            entities = tweepy_tweet.extended_entities
-        elif hasattr(tweepy_tweet, 'extended_tweet'):
-            entities = tweepy_tweet.extended_tweet['extended_entities']
+            entities_list.append(tweepy_tweet.extended_entities)
+        if hasattr(tweepy_tweet, 'extended_tweet'):
+            entities_list.append(
+                tweepy_tweet.extended_tweet['extended_entities'])
         else:
-            entities = tweepy_tweet.entities
+            entities_list.append(tweepy_tweet.entities)
+
+        entities = {}
+        for e in entities_list:
+            for k, v in e.items():
+                if k not in entities:
+                    entities[k] = v
+                else:
+                    if len(v) > len(entities[k]):
+                        entities[k] = v
 
         if 'media' in entities:
             for media in entities['media']:
@@ -71,7 +82,7 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
             'user_name': user.screen_name,
             'user_display': user.name,
             'user_avatar': user_avatar_url,
-            'extra': None,
+            'extra': json.dumps(entities),
             'ref': str(ref_id) if ref_id else None
         } if not two_level_format else {
             'twitter': {
@@ -82,12 +93,12 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
                 'refStatusId': str(ref_id) if ref_id else None,
                 'twitterUid': str(user.id),
                 'pubDate': utc_to_local(tweepy_tweet.created_at).isoformat(),
-                'extra': None,
+                'extra': json.dumps(entities),
             },
             'user': {
                 'twitterUid': str(user.id),
                 'name': user.screen_name,
-                'display': user.screen_name,
+                'display': user.name,
                 'avatar': user_avatar_url
             }
         }

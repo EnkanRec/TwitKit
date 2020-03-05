@@ -35,7 +35,7 @@
 
 <script>
 import axios from "axios";
-import twemoji from "twemoji";
+import { parse as twimojiParse } from "twemoji-parser";
 import escape from "escape-html";
 import { v4 as uuidv4 } from "uuid";
 
@@ -147,12 +147,12 @@ export default {
       }
 
       var convertEmoji = str => {
-        return twemoji.replace(str, function(emoji) {
-          return (
-            `<img src="https://twemoji.maxcdn.com/svg/` +
-            `${twemoji.convert.toCodePoint(emoji)}.svg" style="height:1em">`
-          );
-        });
+        var entities = twimojiParse(str);
+        for (var e of entities) {
+          var emojiImg = `<img src="${e.url}" class="emoji">`;
+          str = str.replace(e.text, emojiImg);
+        }
+        return str;
       };
 
       var addColor = str => {
@@ -161,22 +161,32 @@ export default {
           /(#[^\s,.!?，。！？<]*)/g,
           '<span class="hashtag">$1</span>'
         );
+        var entities = this.tweet.extra ? JSON.parse(this.tweet.extra) : {}
+        JSON.parse(this.tweet.extra)
+        if (entities && entities.urls) {
+          for (var url of entities.urls) {
+            str = str.replace(
+              url.url,
+              `<span class="link">${url.display_url}</span>`
+            );
+          }
+        }
         str = str.replace(
-          /([^"])(https?:\/\/[\w-_~:[\]@!$&'()*+,;=.?%#/]+)([^"])/g,
-          '$1<span class="link">$2</span>$3'
+          /(https?:\/\/[\w-_~:[\]@!$&'()*+,;=.?%#/]+)/g,
+          '<span class="link">$1</span>'
         );
         return str;
       };
 
       if (this.tweet && this.tweet.content)
-        this.tweet.content = convertEmoji(addColor(escape(this.tweet.content)));
+        this.tweet.content = convertEmoji(addColor(this.tweet.content));
       if (this.translation && this.translation.content)
         this.translation.content = convertEmoji(
           addColor(escape(this.translation.content))
         );
       if (this.transText)
         this.transText = convertEmoji(addColor(escape(this.transText)));
-      this.user.display = convertEmoji(escape(this.user.display));
+      this.user.display = convertEmoji(addColor(escape(this.user.display)));
 
       this.dataReady = true;
     }
@@ -184,7 +194,6 @@ export default {
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="less">
 .card {
   margin: 18px;
@@ -224,6 +233,12 @@ export default {
   .link {
     color: #4daefd;
     display: inline-block;
+  }
+  img.emoji {
+    height: 1em;
+    width: 1em;
+    margin: 0 0.05em 0 0.1em;
+    vertical-align: -0.1em;
   }
   .origText {
     legend {
