@@ -6,6 +6,7 @@ export class Twitter {
     url:        string
     content:    string
     media:      string[]
+    video?:     string[]
     published:  boolean
     type:       "更新" | "转推" | "引用"
     postDate?:  string
@@ -93,6 +94,7 @@ export function convert(dbtw: dbtw, orig?: dbtw): Twitter {
         url: dbtw.twitter.url || makeTwUrl(dbtw.twitter.statusId, dbtw.user.name),
         content: dbtw.twitter.content,
         media: JSON.parse(dbtw.twitter.media),
+        video: [],
         published: dbtw.twitter.published,
         type: "更新",
         postDate: dbtw.twitter.pubDate,
@@ -106,7 +108,13 @@ export function convert(dbtw: dbtw, orig?: dbtw): Twitter {
             display: dbtw.user.display,
             avatar: dbtw.user.avatar
         },
-        extra: JSON.parse(dbtw.twitter.extra)
+        extra: undefined
+    }
+    try {
+        tw.extra = JSON.parse(dbtw.twitter.extra)
+    } catch (e) {
+        // logger.warn(e)
+        tw.extra = {}
     }
     if (orig || !tw.content) {
         tw.type = "转推"
@@ -123,6 +131,17 @@ export function convert(dbtw: dbtw, orig?: dbtw): Twitter {
     } else if (dbtw.twitter.refTid) {
         tw.type = "引用"
     }
+    if (tw.extra.media) {
+        for (const i of tw.extra.media) if (i.type === "video" && i.video_info && i.video_info.variants) {
+            let bitrate: number = 0
+            let link: string
+            for (const j of i.video_info.variants) if (j.url && (!link || j.bitrate && bitrate < j.bitrate)) {
+                link = j.url
+                bitrate = j.bitrate
+            }
+            if (link) tw.video.push(link)
+        }
+    }
     return tw
 }
 
@@ -138,9 +157,11 @@ export function Twitter2msg(tw: Twitter, argv): string {
         msg += "\n媒体: "
         for (const img of tw.media) msg += argv.ispro ? "[CQ:image,file=" + img + "]" : img
     }
-    if (tw.type === "引用") {
-        msg += "\n引用: " + argv.prefix + tw.refTid
+    if (tw.video && tw.video.length) {
+        msg += "\n视频:\n" + tw.video.join("\n")
     }
+    if (tw.type === "引用") msg += "\n引用: " + argv.prefix + tw.refTid
+    if (tw.comment) msg += "\n备注: " + tw.comment
     msg += "\n原链接: " + tw.url + "\n快速嵌字发送: " + argv.prefix + tw.id + " 译文"
     return msg
 }
