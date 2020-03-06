@@ -407,7 +407,7 @@ export default function (ctx: Context, argv: config) {
         )
         .example(argv.prefix + " 或 " + argv.prefix + "~ 或 list // 显示当前队列")
         .example(argv.prefix + "1000~ 或 list 1000 // 显示1000之后的所有推文")
-        .shortcut("list-detail", { prefix: true, fuzzy: true, options: { detail: true } })
+        .shortcut("list-detail", { fuzzy: true, options: { detail: true } })
         .example(argv.prefix + "~~ 或 list-detail 或 list --detail // 显示队列中已翻译的烤图及媒体")
 
     ctx.command('clear [id]', "设置队列头")
