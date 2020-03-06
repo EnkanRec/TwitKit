@@ -285,7 +285,7 @@ export default function (ctx: Context, argv: config) {
                         const msg = Twitter2msg(tw, argv)
                         quere.unshift(msg)
                     }
-                    for (const msg of quere) meta.$send(msg)
+                    for (const msg of quere) await meta.$send(msg)
                 }
             } else {
                 logger.debug("unsupport url: " + url)
@@ -550,7 +550,7 @@ export default function (ctx: Context, argv: config) {
         })
         .usage("删除一个任务，返回是否删除成功")
         .usage("    id: 推文的任务id\n"
-            +  "一般情况下用不上，删除后无法任务自动恢复\n"
+            +  "一般情况下用不上，删除后任务无法自动恢复\n"
             +  "建议使用hide命令隐藏\n"
             +  "这条指令没有设计快捷指令"
         )
