@@ -22,7 +22,8 @@
   "dependencies": {
     "@types/node": "^13.5.1",
     "axios": "^0.19.2",
-    "koishi-core": "^1.6.0",
-    "koishi-utils": "^1.0.2"
+    "koishi-core": "^1.10.0",
+    "koishi-plugin-common": "^2.1.5",
+    "koishi-utils": "^1.0.4"
   }
 }

@@ -168,7 +168,6 @@ async function getActualLast(): Promise<Twitter> {
  * @description 删除推文
  * @param tid 要删除的推文id
  * @returns 删除成功 ? true : false
- * @deprecated 暂未启用
  */
 function deleteTask(tid: number): Promise<boolean> {
     return rest("/api/db/task/delete", { tid })
@@ -304,5 +303,6 @@ export default {
     hide,
     hideAll,
     getLastTrans,
-    undo
+    undo,
+    deleteTask
 }
