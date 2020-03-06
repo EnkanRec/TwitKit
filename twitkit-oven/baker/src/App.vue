@@ -76,10 +76,10 @@ export default {
     var styleHtml = `
       <style>
         body {
-          font-family: "${this.payloadData.zhFont || "Source Han Sans SC"}";
+          font-family: ${this.payloadData.zhFont};
         }
         *:lang(ja-jp) {
-          font-family: "${this.payloadData.jaFont || "Source Han Sans"}";
+          font-family: ${this.payloadData.jaFont};
         }
       </style>`;
     document.head.innerHTML += styleHtml;
