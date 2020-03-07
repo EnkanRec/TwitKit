@@ -111,7 +111,7 @@ export function convert(dbtw: dbtw, orig?: dbtw): Twitter {
         extra: undefined
     }
     try {
-        tw.extra = JSON.parse(dbtw.twitter.extra)
+        tw.extra = JSON.parse(dbtw.twitter.extra) || {}
     } catch (e) {
         // logger.warn(e)
         tw.extra = {}
