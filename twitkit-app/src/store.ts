@@ -225,7 +225,7 @@ async function hideAll(): Promise<number[]> {
     }
     while (ref.length) {
         const i = ref.pop()
-        const tw = queue.find((value) => { value.id === i })
+        const tw = queue.find((value) => { return value.id === i })
         if (tw) {
             rest("/api/db/task/hide", { tid: tw.id })
             res.push(tw.id)
