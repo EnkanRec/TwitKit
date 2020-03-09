@@ -50,10 +50,10 @@ async function rss2msg(tw: rss, argv: config): Promise<string> {
     return msg
 }
 
-function sendmsg(ctx: Context, target: { discuss: number[], private: number[], group: number[] }, msg: string): void {
+async function sendmsg(ctx: Context, target: { discuss: number[], private: number[], group: number[] }, msg: string) {
     logger.debug("msg: " + msg)
     for (const i in target) for (const j of target[i]) {
-        ctx.sender.sendMsgAsync(<MessageType>i, j, msg)
+        await ctx.sender.sendMsgAsync(<MessageType>i, j, msg)
         logger.debug("send message to: %s_%d", i, j)
     }
 }
@@ -112,7 +112,7 @@ export default function (ctx: Context, argv: config) {
                             const msg = Twitter2msg(tw, argv)
                             quere.unshift(msg)
                         }
-                        for (const msg of quere) sendmsg(ctx, watcher.target, msg)
+                        for (const msg of quere) await sendmsg(ctx, watcher.target, msg)
                         logger.info("Update notice done")
                         break
                     case "other":

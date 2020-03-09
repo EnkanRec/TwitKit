@@ -17,7 +17,6 @@ module.exports = {
       help: true
     }],
     [".", {
-      twid: "",         // 监听推主
       prefix: '#',      // 快捷指令前缀
       ispro: false,     // 是否发图
       cmd: {
