@@ -36,7 +36,7 @@ async function rest(url: string, data: any): Promise<response> {
 }
 
 async function addTask(url: string): Promise<number[]> {
-    const res = await rest("/api/waitress/addtask", { url })
+    const res = await rest("/api/maid/addtask", { url })
     if (!res || !res.rootTid || !res.addedTid) return null
     return res.addedTid
 }
