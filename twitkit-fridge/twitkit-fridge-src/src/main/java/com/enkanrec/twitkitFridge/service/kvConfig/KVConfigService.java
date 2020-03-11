@@ -16,15 +16,25 @@ import java.util.Map;
  */
 public interface KVConfigService {
 
-    void setOne(String namespace, String key, String value);
+    void setOneDefault(String key, String value) throws Exception;
+
+    String getOneDefault(String key);
+
+    void setManyDefault(Map<String, Object> configs) throws Exception;
+
+    Map<String, String> getManyDefault(Collection<String> keys);
+
+    void setOne(String namespace, String key, String value) throws Exception;
 
     String getOne(String namespace, String key);
 
-    void setMany(String namespace, Map<String, String> configs);
+    void setMany(String namespace, Map<String, Object> configs) throws Exception;
 
     Map<String, String> getMany(String namespace, Collection<String> keys);
 
     Map<String, String> getAll(String namespace);
+
+    void clearNamespace(String namespace);
 
     Map<String, String> getAll();
 }

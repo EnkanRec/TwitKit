@@ -18,7 +18,6 @@
 
 封装成微服务的数据库组件
 
-### matsuri-cooker
+### twitkit-oven
 
-基于[夏色祭工坊烤推机](https://github.com/cn-matsuri/matsuri_translation)的封装，用于生成翻译图片。  
-未来可能会被其他实现取代。
+基于wkhtmltoimage的烤图组件

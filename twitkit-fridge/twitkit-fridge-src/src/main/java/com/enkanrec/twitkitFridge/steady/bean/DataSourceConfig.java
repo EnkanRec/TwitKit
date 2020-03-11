@@ -21,10 +21,10 @@ import javax.sql.DataSource;
 public class DataSourceConfig {
 
     @Primary
-    @Bean(name = "noelDataSource")
-    @Qualifier("noelDataSource")
-    @ConfigurationProperties(prefix = "spring.datasource.noel")
-    public DataSource noelDataSource() {
+    @Bean(name = "yuiDataSource")
+    @Qualifier("yuiDataSource")
+    @ConfigurationProperties(prefix = "spring.datasource.yui")
+    public DataSource yuiDataSource() {
         return DataSourceBuilder.create().build();
     }
 }
