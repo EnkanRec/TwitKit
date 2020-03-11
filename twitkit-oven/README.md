@@ -14,29 +14,23 @@
     apt install wkhtmltopdf
     ```
 
-2. 安装Python环境，创建虚拟环境（也可以直接装全局）：
-
-    暂略
-
-3. 安装Python依赖：
+2. 安装Python依赖：
 
     ```
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
     ```
 
-4. 安装Gunicorn和gevent（生产环境需要）：
+3. 将`config_example.py`复制一份，命名为`config.py`，根据需要修改配置（下面介绍）；
+
+4. 安装字体：
+
     ```
-    pip install gunicron gevent
+    apt install fonts-noto-cjk
     ```
 
-5. 准备配置文件：
+    * 也可以使用其他字体，需要修改配置文件里相应的配置项；
 
-    * 将`config_example.py`复制一份，命名为`config.py`，根据需要修改配置（下面介绍）；
-    * 如果是生产环境，也将`gunicorn_config_example.py`复制一份，命名为`gunicorn_config.py`，根据需要修改配置。（配置文件设置项可参考[文档](http://docs.gunicorn.org/en/stable/settings.html)）
-
-6. 安装字体：
-   
-    从<https://github.com/adobe-fonts/source-han-sans/releases>下载[SourceHanSans.ttc](https://github.com/adobe-fonts/source-han-sans/releases/download/2.001R/SourceHanSans.ttc)，放入`/usr/local/share/fonts/`。此为全语言全字重的字体集，比较方便。或者用其他字体也可以。可执行`fc-list`确认字体已装好。
+    * 如果要支持一些不常见的符号，可从Windows复制一份Segoe UI Symbol字体至Ubuntu（ 从Windows复制`%WINDIR%\Fonts\seguisym.ttf`放入 `/usr/local/share/fonts/`，可执行`fc-list`确认字体已装好）。
 
 ## 配置文件说明
 
@@ -46,8 +40,8 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 
 * `VIEWPORT_WIDTH`：视口宽度。96PPI时，一个像素等于一个真实像素。即例如设为480的话，96PPI时出图为480px。
 * `DEFAULT_PPI`：默认PPI（Pixels Per Inch）。如果Oven的API调用的时候没有指定PPI，会用这里的值。
-* `ZH_FONT`：中文字体。假如按上面的步骤安装了Source Han Sans的TTC，这里填写`Source Han Sans SC`。
-* `JA_FONT`：日文字体。假如按上面的步骤安装了Source Han Sans的TTC，这里填写`Source Han Sans`。
+* `ZH_FONT`：中文字体。假如按上面的步骤安装了Noto Sans，保持默认即可。
+* `JA_FONT`：日文字体。假如按上面的步骤安装了Noto Sans，保持默认即可。
 
 ### 二维码定位设置
 此二维码用于识别tid。以下数值对应的均为相对于浏览器渲染时的像素值，和上面视口宽度类似。
@@ -71,19 +65,11 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 
 ## 运行服务端
 
-### 生产环境
-
-生产环境下，用`gunicorn`运行`app`。
+用Python3执行`start_oven.py`即可，例如：
 
 ```
-gunicorn -c gunicorn_config.py app:app
+python3 start_oven.py
 ```
-
-### 开发环境
-
-用Python执行`app.py`即可。
-
-`tests.py`中有少量测试，目前只有针对关于tid二维码的。
 
 ## API说明
 💡 **访问web根目录可浏览API。**

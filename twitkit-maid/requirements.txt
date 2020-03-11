@@ -2,3 +2,4 @@ requests
 coloredlogs
 python-dateutil
 flask_restplus
+waitress

@@ -17,7 +17,7 @@ from twitter_util import batch_convert_tweepy_tweets, convert_tweepy_tweet
 
 
 def make_request_payload(data):
-    return {'forwardFrom': 'twitkit-waitress',
+    return {'forwardFrom': 'twitkit-maid',
             'timestamp': datetime.utcnow().isoformat(),
             'taskId': str(uuid.uuid4()),
             'data': data}
@@ -83,7 +83,7 @@ def get_latest_status_id():
         return None
 
 
-class Waitress:
+class Maid:
 
     checked_image_urls = set()
 
@@ -239,5 +239,5 @@ if __name__ == '__main__':
     coloredlogs.install(
         level=logging.DEBUG if config.LOG_DEBUG else logging.INFO)
 
-    waitress = Waitress()
-    waitress.run()
+    maid = Maid()
+    maid.run()

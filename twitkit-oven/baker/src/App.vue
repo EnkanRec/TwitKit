@@ -50,7 +50,7 @@ export default {
 
     if (this.payloadData.url) {
       axios
-        .post("/api_proxy/waitress/waitress/gettweet", {
+        .post("/api_proxy/maid/maid/gettweet", {
           taskId: uuidv4(),
           forwardFrom: "twitkit-oven-baker",
           timestamp: new Date().toISOString(),
@@ -58,7 +58,7 @@ export default {
         })
         .then(response => {
           if (response.data.code != 0) {
-            this.errorMessage = `Waitress返回${response.data.code}：${response.data.message}`;
+            this.errorMessage = `Maid返回${response.data.code}：${response.data.message}`;
           } else {
             this.tweets = response.data.tweets;
             this.statusId = response.data.rootId;
@@ -66,7 +66,7 @@ export default {
           }
         })
         .catch(error => {
-          this.errorMessage = `请求Waitress失败：${error.message}`;
+          this.errorMessage = `请求Maid失败：${error.message}`;
         });
     } else {
       this.ready = true;
