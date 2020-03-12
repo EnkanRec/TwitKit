@@ -10,9 +10,9 @@
 
 基于koishi框架的APP部分，业务逻辑依赖于其他组件
 
-### twitkit-stargazer
+### twitkit-maid
 
-依赖RSSHub（暂定）的更新检测组
+依赖推特API和RSSHub的更新检测组
 
 ### twitkit-fridge
 

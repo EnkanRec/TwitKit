@@ -1,8 +1,12 @@
 ## 渲染设置
 VIEWPORT_WIDTH = 480
 DEFAULT_PPI = 144
-ZH_FONT = 'Source Han Sans SC'
-JA_FONT = 'Source Han Sans'
+ZH_FONT = 'Noto Sans CJK SC, Segoe UI Symbol'
+JA_FONT = 'Noto Sans CJK JP, Segoe UI Symbol'
+
+# 监听设置
+API_SERVER_HOST = '127.0.0.1'
+API_SERVER_PORT = 5000
 
 ## 二维码定位设置
 ## （以下数值对应的均为相对于浏览器渲染时的像素值）
@@ -22,8 +26,8 @@ INT_BASE_URL = 'http://127.0.0.1:5000'
 ## Fridge API URL
 FRIDGE_API_BASE = 'http://127.0.0.1:10103/api'
 
-## Waitress API URL
-WAITRESS_API_BASE = 'http://127.0.0.1:5001/api'
+## Maid API URL
+MAID_API_BASE = 'http://127.0.0.1:5001/api'
 
 ## 日志设置
 LOG_DEBUG = False

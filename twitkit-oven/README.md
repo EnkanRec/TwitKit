@@ -6,37 +6,32 @@
 
 * Python 3.6及以上
 * wkhtmltopdf
+* Xvfb（或者图形环境）
 
 以下步骤以在Ubuntu 18.04的环境下为例。
 
-1. Oven使用wkhtmltopdf的`wkhtmltoimage`从网页生成图片，可用以下命令安装：
+1. Oven使用wkhtmltopdf的`wkhtmltoimage`从网页生成图片，在非GUI环境下需要用Xvfb在无头环境下运行，可用以下命令安装：
     ```
-    apt install wkhtmltopdf
-    ```
-
-2. 安装Python环境，创建虚拟环境（也可以直接装全局）：
-
-    暂略
-
-3. 安装Python依赖：
-
-    ```
-    pip install -r requirements.txt
+    apt install wkhtmltopdf xvfb
     ```
 
-4. 安装Gunicorn和gevent（生产环境需要）：
+2. 安装Python依赖：
+
     ```
-    pip install gunicron gevent
+    pip3 install -r requirements.txt
     ```
 
-5. 准备配置文件：
+3. 将`config_example.py`复制一份，命名为`config.py`，根据需要修改配置（下面介绍）；
 
-    * 将`config_example.py`复制一份，命名为`config.py`，根据需要修改配置（下面介绍）；
-    * 如果是生产环境，也将`gunicorn_config_example.py`复制一份，命名为`gunicorn_config.py`，根据需要修改配置。（配置文件设置项可参考[文档](http://docs.gunicorn.org/en/stable/settings.html)）
+4. 安装字体：
 
-6. 安装字体：
-   
-    从<https://github.com/adobe-fonts/source-han-sans/releases>下载[SourceHanSans.ttc](https://github.com/adobe-fonts/source-han-sans/releases/download/2.001R/SourceHanSans.ttc)，放入`/usr/local/share/fonts/`。此为全语言全字重的字体集，比较方便。或者用其他字体也可以。可执行`fc-list`确认字体已装好。
+    ```
+    apt install fonts-noto-cjk
+    ```
+
+    * 也可以使用其他字体，需要修改配置文件里相应的配置项；
+
+    * 如果要支持一些不常见的符号，可从Windows复制一份Segoe UI Symbol字体至Ubuntu（ 从Windows复制`%WINDIR%\Fonts\seguisym.ttf`放入 `/usr/local/share/fonts/`，可执行`fc-list`确认字体已装好）。
 
 ## 配置文件说明
 
@@ -46,8 +41,14 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 
 * `VIEWPORT_WIDTH`：视口宽度。96PPI时，一个像素等于一个真实像素。即例如设为480的话，96PPI时出图为480px。
 * `DEFAULT_PPI`：默认PPI（Pixels Per Inch）。如果Oven的API调用的时候没有指定PPI，会用这里的值。
-* `ZH_FONT`：中文字体。假如按上面的步骤安装了Source Han Sans的TTC，这里填写`Source Han Sans SC`。
-* `JA_FONT`：日文字体。假如按上面的步骤安装了Source Han Sans的TTC，这里填写`Source Han Sans`。
+* `ZH_FONT`：中文字体。假如按上面的步骤安装了Noto Sans，保持默认即可。
+* `JA_FONT`：日文字体。假如按上面的步骤安装了Noto Sans，保持默认即可。
+
+### 监听设置
+
+* `API_SERVER_HOST`：监听地址
+
+* `API_SERVER_PORT`：监听端口
 
 ### 二维码定位设置
 此二维码用于识别tid。以下数值对应的均为相对于浏览器渲染时的像素值，和上面视口宽度类似。
@@ -62,7 +63,7 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 * `EXT_STATIC_BASE_URL`：指向`/static`的对外URL前缀，返回输出图片URL时用，例如`https://example.local/images`。
 * `INT_BASE_URL`：内部URL前缀，在`wkhtmltoimage`访问内部生成的推文页面时用。如果Gunicorn配置里改了端口号，这里要相应修改。
 * `FRIDGE_API_BASE`：指向Fridge API的Base URL，用于从数据库烤推，例如`http://127.0.0.1:10103/api`
-* `WAITRESS_API_BASE`：指向Waitress API的Base URL，用于URL烤推，例如`http://127.0.0.1:5001/api`
+* `MAID_API_BASE`：指向Maid API的Base URL，用于URL烤推，例如`http://127.0.0.1:5001/api`
 
 ### 日志设置
 * `LOG_LEVEL`：日志等级。例如`INFO`、`DEBUG`。
@@ -71,21 +72,16 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 
 ## 运行服务端
 
-### 生产环境
-
-生产环境下，用`gunicorn`运行`app`。
+在Xvfb下，用Python3执行`start_oven.py`即可，例如：
 
 ```
-gunicorn -c gunicorn_config.py app:app
+xvfb-run python3 start_oven.py
 ```
 
-### 开发环境
-
-用Python执行`app.py`即可。
-
-`tests.py`中有少量测试，目前只有针对关于tid二维码的。
+如果有图形环境，可以不用`xvfb-run`
 
 ## API说明
+
 💡 **访问web根目录可浏览API。**
 
 ### 提交烤图任务

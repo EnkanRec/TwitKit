@@ -4,7 +4,7 @@ from flask import Flask, make_response, request
 from flask_restplus import Api, fields, Namespace, Resource
 from traceback import format_exc
 
-import waitress
+import maid
 import twitter_client
 import twitter_util
 import logging
@@ -12,10 +12,7 @@ import coloredlogs
 import config
 
 app = Flask(__name__)
-api = Api(app, description='Waitress API')
-
-coloredlogs.install(
-    level=logging.DEBUG if config.LOG_DEBUG else logging.INFO)
+api = Api(app, description='Maid API')
 
 
 def make_request_model(data_fields: dict, label: str):
@@ -91,7 +88,7 @@ def make_response(code=0, message="", **kwargs):
     return response
 
 
-@api.route('/api/waitress/addtask')
+@api.route('/api/maid/addtask')
 class AddTask(Resource):
     @api.expect(addtask_model, validate=True)
     @api.doc("addtaskResponse", model=addtask_resp_model)
@@ -115,7 +112,7 @@ class AddTask(Resource):
             return make_response(400, 'URL格式不正确')
 
         try:
-            inserted = waitress.bulk_insert(
+            inserted = maid.bulk_insert(
                 twitter_util.convert_tweepy_tweet(tweet),
                 include_existing=True)
         except Exception as e:
@@ -135,7 +132,7 @@ class AddTask(Resource):
         )
 
 
-@api.route('/api/waitress/gettweet')
+@api.route('/api/maid/gettweet')
 class GetTweet(Resource):
     @api.expect(gettweet_model, validate=True)
     @api.doc("CheckResponse", model=gettweet_resp_model)
@@ -171,7 +168,7 @@ class GetTweet(Resource):
 
 @app.after_request
 def after_request(response):
-    if request.path.startswith('/api/waitress'):
+    if request.path.startswith('/api/maid'):
         try:
             response_data = json.loads(response.get_data())
         except:
@@ -184,4 +181,6 @@ def after_request(response):
 
 
 if __name__ == '__main__':
+    coloredlogs.install(
+        level=logging.DEBUG if config.LOG_DEBUG else logging.INFO)
     app.run(debug=True, port=5001)
