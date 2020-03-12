@@ -18,11 +18,16 @@ tweet_page_bp = Blueprint('internal', __name__, static_folder='baker/dist/')
 STATIC = 'static'
 
 
-def bake_tweet(tid, trans_text=None,
+def bake_tweet(tid=None, url=None, trans_text=None,
                ppi=config.DEFAULT_PPI, transparent=False, smooth=True):
+
+    if tid and url:
+        logger.error('不能同时指定tid和url')
+        return False
 
     payload_data = json.dumps({
         'tid': tid,
+        'url': url,
         'transText': trans_text,
         'zhFont': config.ZH_FONT,
         'jaFont': config.JA_FONT,
@@ -71,9 +76,10 @@ def bake_tweet(tid, trans_text=None,
 
     render_ppi = int(zoom_ratio * 96)
     im = Image.open(temp_filepath)
-    add_code_to_image(im, tid,
-                      config.TID_CODE_POS_X, config.TID_CODE_POS_Y,
-                      config.TID_CODE_WIDTH, config.TID_CODE_HEIGHT)
+    if not url:
+        add_code_to_image(im, tid,
+                          config.TID_CODE_POS_X, config.TID_CODE_POS_Y,
+                          config.TID_CODE_WIDTH, config.TID_CODE_HEIGHT)
 
     if smooth:
         # 如果前面wkhtmltoimage能写入图片，应该可以认为图片输出没问题，这里就不检查了。
