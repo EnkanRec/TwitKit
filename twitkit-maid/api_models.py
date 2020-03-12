@@ -2,8 +2,8 @@ from flask import Flask, make_response
 from flask_restplus import Api, fields, Namespace
 import config
 
-app = Flask(__name__, root_path='/api/waitress')
-api = Api(app, description='Waitress API')
+app = Flask(__name__, root_path='/api/maid')
+api = Api(app, description='Maid API')
 
 
 def make_request_model(data_fields: dict, label: str):

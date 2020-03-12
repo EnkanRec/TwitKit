@@ -26,8 +26,8 @@ api.add_namespace(oven_api, path='/api/oven')
 
 @app.route('/api_proxy/<module>/<path:path>', methods=['POST', 'OPTIONS'])
 def proxy(module, path):
-    if module == 'waitress':
-        url = f'{config.WAITRESS_API_BASE}/{path}'
+    if module == 'maid':
+        url = f'{config.MAID_API_BASE}/{path}'
     elif module == 'fridge':
         url = f'{config.FRIDGE_API_BASE}/{path}'
     else:
