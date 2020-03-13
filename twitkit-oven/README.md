@@ -33,6 +33,14 @@
 
     * 如果要支持一些不常见的符号，可从Windows复制一份Segoe UI Symbol字体至Ubuntu（ 从Windows复制`%WINDIR%\Fonts\seguisym.ttf`放入 `/usr/local/share/fonts/`，可执行`fc-list`确认字体已装好）。
 
+5. 构建Baker（渲染推文用的网页）：
+    ```
+    npm install -g yarn
+    yarn install
+    yarn build
+    ```
+    （以后考虑在release里包含构建好的`dist`文件）
+    
 ## 配置文件说明
 
 Oven从`config.py`中的变量读入配置。变量名和说明如下。
