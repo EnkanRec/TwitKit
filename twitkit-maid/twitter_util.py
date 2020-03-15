@@ -34,7 +34,8 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
         entities_list = []
         if hasattr(tweepy_tweet, 'extended_entities'):
             entities_list.append(tweepy_tweet.extended_entities)
-        if hasattr(tweepy_tweet, 'extended_tweet'):
+        if hasattr(tweepy_tweet, 'extended_tweet') and \
+                'extended_entities' in tweepy_tweet.extended_tweet:
             entities_list.append(
                 tweepy_tweet.extended_tweet['extended_entities'])
         else:
