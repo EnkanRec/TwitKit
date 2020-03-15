@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "outDir": "dist",
+    "removeComments": true,
+    // "strict": true,
+    // "module": "es2015",
+    // "target": "es5",
+    // "lib": [
+    //   "dom",
+    //   "es5",
+    //   "es2015"
+    // ]
+    "noFallthroughCasesInSwitch": false
+    }
+}
