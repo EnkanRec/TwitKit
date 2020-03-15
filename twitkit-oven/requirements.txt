@@ -1,4 +1,4 @@
-flask_restplus
+flask_restx
 python-dateutil
 pillow
 crc8

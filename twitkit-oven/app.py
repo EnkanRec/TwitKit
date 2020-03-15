@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, make_response, abort
-from flask_restplus import Resource, Api
+from flask_restx import Resource, Api
 from oven import tweet_page_bp
 from api import oven_api
 from requests import post, options
