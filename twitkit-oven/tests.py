@@ -14,7 +14,7 @@ class TestTidCode(unittest.TestCase):
 
     def test_encode(self):
         self.assertEqual(
-            tid_code.encode(0x1234),
+            tid_code.encode(0x1234, key=0),
             [
                 True, False, True, False, True, False, True, False,  # 1111 F
                 False, True, False, True, False, True, True, False,  # 0001 1

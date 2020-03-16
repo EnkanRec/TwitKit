@@ -13,8 +13,8 @@ import coloredlogs
 app = Flask(__name__, static_url_path='/static')
 api = Api(app)
 
-if config.APP_LOG_FILE:
-    app_log_handler = logging.FileHandler(config.APP_LOG_FILE)
+if config.LOG_FILE:
+    app_log_handler = logging.FileHandler(config.LOG_FILE)
     app.logger.addHandler(app_log_handler)
 
 coloredlogs.install(

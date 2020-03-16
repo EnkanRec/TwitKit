@@ -63,7 +63,7 @@ def bulk_insert(fridge_tweets: list, include_existing=False):
             break
 
         logging.debug(f"准备插入：{to_be_inserted}")
-        resp = requests.post(f'{config.FRIDGE_API_ROOT}/db/task/bulk',
+        resp = requests.post(f'{config.FRIDGE_API_BASE}/db/task/bulk',
                              json=make_request_payload(to_be_inserted))
         inserted_tweets_actual = extract_response_data(resp)
         for tweet in inserted_tweets_actual:
@@ -74,7 +74,7 @@ def bulk_insert(fridge_tweets: list, include_existing=False):
 
 
 def get_latest_status_id():
-    resp = requests.post(f'{config.FRIDGE_API_ROOT}/db/task/last',
+    resp = requests.post(f'{config.FRIDGE_API_BASE}/db/task/last',
                          json=make_request_payload({'withTranslation': False}))
     latest_tweet = extract_response_data(resp)
     if latest_tweet['twitter']:
@@ -89,7 +89,7 @@ class Maid:
 
     def __init__(self):
         payload = make_request_payload(['twid'])
-        resp = requests.post(f'{config.FRIDGE_API_ROOT}/db/kv/get',
+        resp = requests.post(f'{config.FRIDGE_API_BASE}/db/kv/get',
                              json=payload)
         validate_response(resp)
         resp_data = extract_response_data(resp)
@@ -105,22 +105,32 @@ class Maid:
                 logging.error('执行推特更新时出错：')
                 logging.error(traceback.format_exc())
 
+        def update_history_tweets():
+            time.sleep(1)
+            latest_status_id = get_latest_status_id()
+            new_tweets = batch_convert_tweepy_tweets(
+                get_history_tweets(
+                    self.monitor_target,
+                    config.MAX_HISTORY_TWEETS, latest_status_id))
+            self.update_tweets(new_tweets)
+
+        backoff_timer = 1
+
         while True:
             try:
-                latest_status_id = get_latest_status_id()
+                last_time_start = time.time()
+                threading.Thread(target=update_history_tweets).start()
                 run_realtime_update(self.monitor_target,
                                     update_tweets_from_stream)
-
-                new_tweets = batch_convert_tweepy_tweets(
-                    get_history_tweets(
-                        self.monitor_target,
-                        config.MAX_HISTORY_TWEETS, latest_status_id))
-
-                self.update_tweets(new_tweets)
             except Exception as e:
                 logging.warning(e)
-                logging.warning(traceback.format_exc)
-                time.sleep(1)
+                logging.warning(traceback.format_exc())
+                if time.time() - last_time_start > 20:
+                    backoff_timer = 1
+                else:
+                    backoff_timer *= 2
+                logging.warning(f'尝试在{backoff_timer}秒内重新连接')
+                time.sleep(backoff_timer)
 
     def update_tweets(self, new_tweets):
         new_tid_list = bulk_insert(new_tweets)
@@ -133,7 +143,7 @@ class Maid:
             logging.info(f'推文更新通知app：{task_id}: {tid}')
             notify_data[task_id] = tid
         try:
-            resp = requests.post(f'{config.APP_API_ROOT}/app/twitter',
+            resp = requests.post(f'{config.APP_API_BASE}/app/twitter',
                                  json=make_request_payload(notify_data))
             validate_response(resp)
             logging.info('成功通知APP')
@@ -142,7 +152,7 @@ class Maid:
 
     def check_tid(self, image_url):
         try:
-            resp = requests.post(f'{config.OVEN_API_ROOT}/oven/check',
+            resp = requests.post(f'{config.OVEN_API_BASE}/oven/check',
                                  json=make_request_payload(
                                      {'imageUrl': image_url}))
             validate_response(resp)
@@ -176,12 +186,12 @@ class Maid:
         ret = set()
         for tid in tid_list:
             resp_get = requests.post(
-                f'{config.FRIDGE_API_ROOT}/db/task/get',
+                f'{config.FRIDGE_API_BASE}/db/task/get',
                 json=make_request_payload({'tid': tid}))
             resp_get_data = extract_response_data(resp_get)
             if resp_get_data and not resp_get_data['twitter']['published']:
                 resp_pub = requests.post(
-                    f'{config.FRIDGE_API_ROOT}/db/task/published',
+                    f'{config.FRIDGE_API_BASE}/db/task/published',
                     json=make_request_payload({'tid': tid}))
             ret.add(tid)
         return ret
@@ -190,7 +200,7 @@ class Maid:
         data = {
             'content': item.content,
             'url': item.url,
-            'author': '？？？',  # TODO 确定作者
+            'author': item.feed_title,
             'postDate': item.pub_date.isoformat()
         }
         if item.media_list:
@@ -198,7 +208,7 @@ class Maid:
         if tid_list:
             data['tid'] = tid_list
         try:
-            resp = requests.post(f'{config.APP_API_ROOT}/app/other',
+            resp = requests.post(f'{config.APP_API_BASE}/app/other',
                                  json=make_request_payload(data))
             validate_response(resp)
             logging.info(f'通知APP其他更新成功（已发布：{tid_list})')

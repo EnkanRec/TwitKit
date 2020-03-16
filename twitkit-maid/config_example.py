@@ -1,6 +1,6 @@
-FRIDGE_API_ROOT = 'http://127.0.0.1:10103/api'
-APP_API_ROOT = 'http://127.0.0.1:1551/api'
-OVEN_API_ROOT = 'http://127.0.0.1:5000/api'
+FRIDGE_API_BASE = 'http://127.0.0.1:10103/api'
+APP_API_BASE = 'http://127.0.0.1:1551/api'
+OVEN_API_BASE = 'http://127.0.0.1:5000/api'
 
 API_SERVER_HOST = '127.0.0.1'
 API_SERVER_PORT = 5001
