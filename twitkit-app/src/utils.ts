@@ -17,13 +17,15 @@ export class config_cmd {
     cut?: number            // 消息预览截断长度
 }
 
+export class target {
+    discuss?: number[]   // 讨论组
+    private?: number[]   // 私聊
+    group?:   number[]   // 群
+}
+
 export class config_watcher {
     port?: number           // 接收更新推送端口
-    target?: {              // 更新推送目标
-        discuss: number[]   // 讨论组
-        private: number[]   // 私聊
-        group: number[]     // 群
-    }
+    target?: target         // 更新推送目标
 }
 
 /**

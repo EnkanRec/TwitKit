@@ -1,4 +1,4 @@
-import { ISO8601 } from './utils'
+import { ISO8601, config } from './utils'
 export class Twitter {
     /** twitter **/
     id:         number
@@ -145,7 +145,7 @@ export function convert(dbtw: dbtw, orig?: dbtw): Twitter {
     return tw
 }
 
-export function Twitter2msg(tw: Twitter, argv): string {
+export function Twitter2msg(tw: Twitter, argv: config): string {
     let msg: string = "【" + tw.user.display + "】"
     if (tw.type === "转推") {
         msg += "转发了【" + tw.oirgUser.display + "】的推 " + argv.prefix + tw.refTid

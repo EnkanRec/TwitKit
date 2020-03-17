@@ -60,7 +60,7 @@ function getKVs(keys: string[]): Promise<any> {
  * @param key 目标设置项
  * @returns error ? null : value
  */
-async function getKV(key): Promise<any> {
+async function getKV(key: string): Promise<any> {
     const data = await getKVs([key])
     if (data !== null && key in data) return data[key]
     return null

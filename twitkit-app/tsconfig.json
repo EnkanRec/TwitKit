@@ -4,7 +4,8 @@
     "declaration": true,
     "outDir": "dist",
     "removeComments": true,
-    // "strict": true,
+    "strict": true,
+    "strictNullChecks": false,
     // "module": "es2015",
     // "target": "es5",
     // "lib": [

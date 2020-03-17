@@ -4,10 +4,10 @@
   "description": "Twitter translator tools plugin for koishi",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo anyway it works :)",
+    "test": "tsc -b",
     "build": "tsc -b",
-    "dev": "koishi run",
-    "prod": "koishi run ../../koishi.config.js"
+    "dev": "tsc -b && koishi run",
+    "prod": "tsc -b && koishi run ../../koishi.config.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,7 @@
     "koishi-utils": "^1.0.4"
   },
   "devDependencies": {
+    "@types/ws": "^7.2.2",
     "ts-node": "^8.6.2",
     "typescript": "^3.8.3"
   }
