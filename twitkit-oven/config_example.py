@@ -25,7 +25,7 @@ TID_CODE_KEY = 0
 
 ## URL设置
 EXT_STATIC_BASE_URL = 'https://example.com/images'
-INT_BASE_URL = 'http://127.0.0.1:5000'
+INT_BASE_URL = f'http://127.0.0.1:{API_SERVER_PORT}'
 
 ## Fridge API URL
 FRIDGE_API_BASE = 'http://127.0.0.1:10103/api'
