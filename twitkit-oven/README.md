@@ -55,9 +55,13 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 ### 渲染设置
 
 * `VIEWPORT_WIDTH`：视口宽度。96PPI时，一个像素等于一个真实像素。即例如设为480的话，96PPI时出图为480px
+
 * `DEFAULT_PPI`：默认PPI（Pixels Per Inch）。如果Oven的API调用的时候没有指定PPI，会用这里的值
+
 * `ZH_FONT`：中文字体。假如按上面的步骤安装了Noto Sans，保持默认即可
+
 * `JA_FONT`：日文字体。假如按上面的步骤安装了Noto Sans，保持默认即可
+
 * `JAVASCRIPT_DELAY`：JavaScript延时（毫秒，如果网页无法在此时间限制内载完，需增大此值）
 
 ### 监听设置
@@ -67,24 +71,33 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 * `API_SERVER_PORT`：监听端口
 
 ### 二维码设置
+
 此二维码用于识别tid。以下定位数值对应的均为相对于浏览器渲染时的像素值，和上面视口宽度类似。
 
 * `TID_CODE_WIDTH`：tid二维码宽度
+
 * `TID_CODE_HEIGHT`：tid二维码宽度
 
 * `TID_CODE_POS_X`：tid二维码水平定位（若填写负数，表示从右起）
+
 * `TID_CODE_POS_Y`：tid二维码垂直定位（若填写负数，表示从下起）
 
 * `TID_CODE_KEY`：tid二维码的key，由不同实例产生的图需要发在同一个Bilibili账号上时，可修改此值避免冲突，key可以是0到255的整型。
 
 ### URL设置
+
 * `EXT_STATIC_BASE_URL`：指向`/static`的对外URL前缀，返回输出图片URL时用，例如`https://example.local/images`
+
 * `INT_BASE_URL`：内部URL前缀，在`wkhtmltoimage`访问内部生成的推文页面时用。如果Gunicorn配置里改了端口号，这里要相应修改
+
 * `FRIDGE_API_BASE`：指向Fridge API的Base URL，用于从数据库烤推，例如`http://127.0.0.1:10103/api`
+
 * `MAID_API_BASE`：指向Maid API的Base URL，用于URL烤推，例如`http://127.0.0.1:5001/api`
 
 ### 日志设置
+
 * `LOG_DEBUG`：是否打印调试日志
+
 * `LOG_FILE`：日志文件路径。设`None`不输出日志文件
 
 
