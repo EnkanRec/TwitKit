@@ -1,7 +1,7 @@
 import { Context, Logger, Meta } from 'koishi-core'
 import { Twitter, Twitter2msg } from './twitter'
 import store from './store'
-import waitress from './waitress'
+import maid from './maid'
 import translator from './translator'
 import { config, config_cmd } from './utils'
 
@@ -24,7 +24,7 @@ export default function (ctx: Context, argv: config) {
     const cmd: config_cmd = {
         host: {
             store:      argv.cmd.host.store     || "http://localhost",
-            waitress:   argv.cmd.host.waitress  || "http://localhost",
+            maid:   argv.cmd.host.maid  || "http://localhost",
             translator: argv.cmd.host.translator|| "http://localhost"
         },
         cut:    argv.cmd.cut    || 8,
@@ -34,7 +34,7 @@ export default function (ctx: Context, argv: config) {
     }
     translator.init(ctx, cmd.host.translator)
     store.init(ctx, cmd.host.store)
-    waitress.init(ctx, cmd.host.waitress)
+    maid.init(ctx, cmd.host.maid)
     const logger: Logger = ctx.logger("app:cmd")
     // 初始化群成员列表
     if (cmd.group.length && cmd.private) {
@@ -268,7 +268,7 @@ export default function (ctx: Context, argv: config) {
                     return meta.$send(img + (argv.ispro ? "\n[CQ:image,cache=0,file=" + img + "]" : ""))
                 } else {
                     logger.debug("fetch new task: %s", url)
-                    let list = await waitress.addTask(url)
+                    let list = await maid.addTask(url)
                     if (!list) return meta.$send("请求失败")
                     if (!list.length) return meta.$send("添加失败，是否已经在库中？")
                     list = list.sort().reverse()
