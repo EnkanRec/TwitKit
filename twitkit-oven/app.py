@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, make_response, abort
-from flask_restplus import Resource, Api
+from flask_restx import Resource, Api
 from oven import tweet_page_bp
 from api import oven_api
 from requests import post, options
@@ -13,8 +13,8 @@ import coloredlogs
 app = Flask(__name__, static_url_path='/static')
 api = Api(app)
 
-if config.APP_LOG_FILE:
-    app_log_handler = logging.FileHandler(config.APP_LOG_FILE)
+if config.LOG_FILE:
+    app_log_handler = logging.FileHandler(config.LOG_FILE)
     app.logger.addHandler(app_log_handler)
 
 coloredlogs.install(

@@ -236,12 +236,6 @@ export default {
     color: #4daefd;
     display: inline-block;
   }
-  img.emoji {
-    height: 1em;
-    width: 1em;
-    margin: 0 0.05em 0 0.1em;
-    vertical-align: -0.1em;
-  }
   .origText {
     legend {
       font-size: 18px;
@@ -267,6 +261,14 @@ export default {
 .postTime {
   color: #888;
   font-size: 14px;
+}
+
+
+img.emoji {
+  height: 1em;
+  width: 1em;
+  margin: 0 0.05em 0 0.1em;
+  vertical-align: -0.1em;
 }
 
 .altBackground {

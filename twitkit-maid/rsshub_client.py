@@ -8,7 +8,7 @@ from xml.etree import ElementTree
 
 RSSHUB_BILIBILI_URL = 'https://rsshub.app/bilibili/user/dynamic/{}'
 
-FeedItem = namedtuple('FeedItem', 'content media_list url pub_date')
+FeedItem = namedtuple('FeedItem', 'feed_title content media_list url pub_date')
 
 
 def extract_content_media(content):
@@ -29,6 +29,7 @@ def get_new_feed(feed_url):
     if rss.tag != 'rss':
         raise ValueError('RSS格式有误')
     channel = rss.find('channel')
+    feed_title = channel.find('title').text
     ret = []
     for item in channel:
         if item.tag != 'item':
@@ -38,6 +39,7 @@ def get_new_feed(feed_url):
         pub_date = dateutil.parser.parse(item.find('pubDate').text)
         url = item.find('guid').text
         ret.append(FeedItem(
+            feed_title=feed_title,
             content=content,
             media_list=media_list,
             url=url,

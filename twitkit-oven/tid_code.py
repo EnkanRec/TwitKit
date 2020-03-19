@@ -7,6 +7,9 @@ import requests
 import config
 
 
+TID_CODE_KEY = config.TID_CODE_KEY & 0xff
+
+
 def calculate_checksum(tid: int) -> int:
     bytes_ = []
     for i in range(3):
@@ -15,12 +18,12 @@ def calculate_checksum(tid: int) -> int:
     return int(crc8(bytes_).digest()[0])
 
 
-def encode(tid: int) -> List[bool]:
+def encode(tid: int, key=TID_CODE_KEY) -> List[bool]:
     '''
     返回bool列表，表示编码后的bits。
     参数：tid -- 支持最大24位
     '''
-    checksum = calculate_checksum(tid)
+    checksum = calculate_checksum(tid) ^ key
     data = tid & 0xffffff | (checksum << 24)
     encoded = []
     for i in range(32):
@@ -32,7 +35,7 @@ def encode(tid: int) -> List[bool]:
     return encoded
 
 
-def decode(encoded_tid: List[bool]) -> int:
+def decode(encoded_tid: List[bool], key=TID_CODE_KEY) -> int:
     '''
     返回解码后的tid。
     参数：表示bits的bool列表。
@@ -49,7 +52,7 @@ def decode(encoded_tid: List[bool]) -> int:
         else:
             raise ValueError('曼彻斯特编码有误')
     tid = decoded_with_checksum & 0xffffff
-    checksum = decoded_with_checksum >> 24
+    checksum = (decoded_with_checksum >> 24) ^ key
     if calculate_checksum(tid) != checksum:
         raise ValueError('校验码有误')
     return tid

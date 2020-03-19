@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from flask import Flask, make_response, request
-from flask_restplus import Api, fields, Namespace, Resource
+from flask_restx import Api, fields, Namespace, Resource
 from traceback import format_exc
 
 import maid

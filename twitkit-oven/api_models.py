@@ -1,4 +1,4 @@
-from flask_restplus import fields, Namespace
+from flask_restx import fields, Namespace
 import config
 
 oven_api = Namespace('api', description='烤推出图API')

@@ -1,7 +1,7 @@
 import { Context, Logger, MessageType } from 'koishi-core'
 import * as http from 'http'
 import { parse } from 'url'
-import { ISO8601, verifyDatetime, config, config_watcher, request, response } from './utils'
+import { ISO8601, verifyDatetime, config, target, config_watcher, request, response } from './utils'
 import { Twitter, Twitter2msg } from './twitter'
 import store from './store'
 import translator from './translator'
@@ -50,12 +50,12 @@ async function rss2msg(tw: rss, argv: config): Promise<string> {
     return msg
 }
 
-async function sendmsg(ctx: Context, target: { discuss: number[], private: number[], group: number[] }, msg: string) {
-    logger.debug("msg: " + msg)
-    for (const i in target) for (const j of target[i]) {
-        await ctx.sender.sendMsgAsync(<MessageType>i, j, msg)
-        logger.debug("send message to: %s_%d", i, j)
-    }
+async function sendmsg(ctx: Context, target: target, msg: string) {
+    logger.debug(`sending msg: ${msg}`)
+    logger.debug(`to: ${target}`)
+    for (const j of target.discuss) await ctx.sender.sendDiscussMsgAsync(j, msg)
+    for (const j of target.private) await ctx.sender.sendPrivateMsgAsync(j, msg)
+    for (const j of target.group)   await ctx.sender.sendGroupMsgAsync(j, msg)
 }
 
 export default function (ctx: Context, argv: config) {

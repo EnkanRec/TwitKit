@@ -5,25 +5,29 @@ export class config {
     watcher?: config_watcher// 监听器模块
 }
 
+class host {
+    store?: string          // 数据库
+    maid?: string           // 推特监视器
+    translator?: string     // 烤推机
+}
+
 export class config_cmd {
-    host?: {                // 微服务域名
-        store: string,      // 数据库
-        waitress: string,   // 推特监视器
-        translator: string  // 烤推机
-    }
+    host?: host             // 微服务域名
     group?: number[]        // 允许使用指令的群号
     private?: boolean       // 是否允许私聊指令
     friend?: boolean        // 是否允许好友指令
     cut?: number            // 消息预览截断长度
 }
 
+export class target {
+    discuss?: number[]      // 讨论组
+    private?: number[]      // 私聊
+    group?:   number[]      // 群
+}
+
 export class config_watcher {
     port?: number           // 接收更新推送端口
-    target?: {              // 更新推送目标
-        discuss: number[]   // 讨论组
-        private: number[]   // 私聊
-        group: number[]     // 群
-    }
+    target?: target         // 更新推送目标
 }
 
 /**

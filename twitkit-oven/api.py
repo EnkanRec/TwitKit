@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask_restplus import Resource, Api
+from flask_restx import Resource, Api
 from flask import request
 from datetime import datetime
 from dateutil.parser import isoparser

@@ -74,8 +74,7 @@ class RealtimeUpdateStreamListener(tweepy.StreamListener):
             logging.warning(traceback.format_exc())
 
     def on_error(self, status_code):
-        logging.warning(f"发生错误：{status_code}，重新连接。")
-        return True
+        raise Exception(f"发生错误：{status_code}")
 
 
 def run_realtime_update(username, callback):

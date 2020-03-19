@@ -29,9 +29,9 @@
 
 其他组件API设置：
 
-* `FRIDGE_API_ROOT`：Fridge API根URL
-* `APP_API_ROOT`：App API根URL
-* `OVEN_API_ROOT`：Oven API根URL
+* `FRIDGE_API_BASE`：Fridge API根URL
+* `APP_API_BASE`：App API根URL
+* `OVEN_API_BASE`：Oven API根URL
 
 监听设置：
 
