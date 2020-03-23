@@ -44,6 +44,7 @@ const chars = "0123456789abcdef"
 function randstr(count: number = 1) {
     let msg: string = ""
     while (msg.length < count) msg += chars[Math.random() * 16 | 0]
+    return msg
 }
 
 export function genUuid(): uuid {
