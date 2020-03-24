@@ -102,31 +102,32 @@ export default {
           return "UTC" + offset;
         }
       };
-
-      // 实测中遇到了Date无法直接正确解析ISO8601日期时间的情况
-      var d = new Date();
+      var d = new Date(date);
       var formatted;
 
-      d.setUTCFullYear(parseInt(date.substring(0, 4)));
-      d.setUTCMonth(parseInt(date.substring(5, 7)));
-      d.setUTCDate(parseInt(date.substring(8, 10)));
-      d.setUTCHours(parseInt(date.substring(11, 13)));
-      d.setUTCMinutes(parseInt(date.substring(14, 16)));
-      d.setUTCSeconds(parseInt(date.substring(17, 19)));
+      // 实测中遇到了Date解析不出来ISO8601的格式的情况，所以加了下面的代码作为fallback
+      if (isNaN(d.getFullYear())) {
+        d.setUTCFullYear(parseInt(date.substring(0, 4)));
+        d.setUTCMonth(parseInt(date.substring(5, 7)) - 1);
+        d.setUTCDate(parseInt(date.substring(8, 10)));
+        d.setUTCHours(parseInt(date.substring(11, 13)));
+        d.setUTCMinutes(parseInt(date.substring(14, 16)));
+        d.setUTCSeconds(parseInt(date.substring(17, 19)));
 
-      date = date.substring(19);
-      var tzPos = date.indexOf("+");
-      if (tzPos == -1) tzPos = date.indexOf("-");
-      if (tzPos != -1) {
-        var tzStr = date.substring(tzPos).replace(":", "");
-        var tzOffset = parseFloat(tzStr);
-        if (Math.abs(tzOffset) > 12) tzOffset /= 100;
-        tzOffset *= 60 * 60 * 1000;
-        d.setTime(d.getTime() - tzOffset);
+        date = date.substring(19);
+        var tzPos = date.indexOf("+");
+        if (tzPos == -1) tzPos = date.indexOf("-");
+        if (tzPos != -1) {
+          var tzStr = date.substring(tzPos).replace(":", "");
+          var tzOffset = parseFloat(tzStr);
+          if (Math.abs(tzOffset) > 12) tzOffset /= 100;
+          tzOffset *= 60 * 60 * 1000;
+          d.setTime(d.getTime() - tzOffset);
+        }
       }
 
       formatted =
-        `${d.getFullYear()} 年 ${d.getMonth()} 月 ${d.getDate()} 日 ` +
+        `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日 ` +
         `${padZero(d.getHours())}:${padZero(d.getMinutes())}:` +
         `${padZero(d.getSeconds())}` +
         `（${formatTimezone(d.getTimezoneOffset() / 60)}）`;
