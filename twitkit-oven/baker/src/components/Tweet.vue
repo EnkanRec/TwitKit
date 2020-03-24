@@ -108,7 +108,7 @@ export default {
       // 实测中遇到了Date解析不出来ISO8601的格式的情况，所以加了下面的代码作为fallback
       if (isNaN(d.getFullYear())) {
         d.setUTCFullYear(parseInt(date.substring(0, 4)));
-        d.setUTCMonth(parseInt(date.substring(5, 7)));
+        d.setUTCMonth(parseInt(date.substring(5, 7)) - 1);
         d.setUTCDate(parseInt(date.substring(8, 10)));
         d.setUTCHours(parseInt(date.substring(11, 13)));
         d.setUTCMinutes(parseInt(date.substring(14, 16)));
@@ -127,7 +127,7 @@ export default {
       }
 
       formatted =
-        `${d.getFullYear()} 年 ${d.getMonth()} 月 ${d.getDate()} 日 ` +
+        `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日 ` +
         `${padZero(d.getHours())}:${padZero(d.getMinutes())}:` +
         `${padZero(d.getSeconds())}` +
         `（${formatTimezone(d.getTimezoneOffset() / 60)}）`;
