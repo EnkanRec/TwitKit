@@ -13,7 +13,7 @@ FeedItem = namedtuple('FeedItem', 'feed_title content media_list url pub_date')
 
 def extract_content_media(content):
     media_list = []
-    for match in re.findall(r'(<br><img src="(.*?)".*?>)', content):
+    for match in re.findall(r'(<img src="(.*?)".*?>)', content):
         media_list.append(match[1])
         content.replace(match[0], '')
     content = re.sub('<br>', '\n', content, flags=re.IGNORECASE)
