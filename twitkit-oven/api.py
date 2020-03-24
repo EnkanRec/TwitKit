@@ -22,7 +22,7 @@ isoparse = isoparser().isoparse
 
 image_path = 'static'
 image_url_prefix = f'{config.EXT_STATIC_BASE_URL}/'
-logger = logging.getLogger('app')
+logger = logging.getLogger('api')
 
 
 @oven_api.route('/bake')

@@ -16,6 +16,14 @@ from twitter_client import get_history_tweets, run_realtime_update
 from twitter_util import batch_convert_tweepy_tweets, convert_tweepy_tweet
 
 
+coloredlogs.install(
+    level=logging.DEBUG if config.LOG_DEBUG else logging.INFO)
+
+if config.LOG_FILE:
+    log_handler = logging.FileHandler(config.LOG_FILE)
+    logging.getLogger().addHandler(log_handler)
+
+
 def make_request_payload(data):
     return {'forwardFrom': 'twitkit-maid',
             'timestamp': datetime.utcnow().isoformat(),
@@ -246,8 +254,5 @@ class Maid:
 
 
 if __name__ == '__main__':
-    coloredlogs.install(
-        level=logging.DEBUG if config.LOG_DEBUG else logging.INFO)
-
     maid = Maid()
     maid.run()
