@@ -102,28 +102,27 @@ export default {
           return "UTC" + offset;
         }
       };
-      var d = new Date(date);
+
+      // 实测中遇到了Date无法直接正确解析ISO8601日期时间的情况
+      var d = new Date();
       var formatted;
 
-      // 实测中遇到了Date解析不出来ISO8601的格式的情况，所以加了下面的代码作为fallback
-      if (isNaN(d.getFullYear())) {
-        d.setUTCFullYear(parseInt(date.substring(0, 4)));
-        d.setUTCMonth(parseInt(date.substring(5, 7)));
-        d.setUTCDate(parseInt(date.substring(8, 10)));
-        d.setUTCHours(parseInt(date.substring(11, 13)));
-        d.setUTCMinutes(parseInt(date.substring(14, 16)));
-        d.setUTCSeconds(parseInt(date.substring(17, 19)));
+      d.setUTCFullYear(parseInt(date.substring(0, 4)));
+      d.setUTCMonth(parseInt(date.substring(5, 7)));
+      d.setUTCDate(parseInt(date.substring(8, 10)));
+      d.setUTCHours(parseInt(date.substring(11, 13)));
+      d.setUTCMinutes(parseInt(date.substring(14, 16)));
+      d.setUTCSeconds(parseInt(date.substring(17, 19)));
 
-        date = date.substring(19);
-        var tzPos = date.indexOf("+");
-        if (tzPos == -1) tzPos = date.indexOf("-");
-        if (tzPos != -1) {
-          var tzStr = date.substring(tzPos).replace(":", "");
-          var tzOffset = parseFloat(tzStr);
-          if (Math.abs(tzOffset) > 12) tzOffset /= 100;
-          tzOffset *= 60 * 60 * 1000;
-          d.setTime(d.getTime() - tzOffset);
-        }
+      date = date.substring(19);
+      var tzPos = date.indexOf("+");
+      if (tzPos == -1) tzPos = date.indexOf("-");
+      if (tzPos != -1) {
+        var tzStr = date.substring(tzPos).replace(":", "");
+        var tzOffset = parseFloat(tzStr);
+        if (Math.abs(tzOffset) > 12) tzOffset /= 100;
+        tzOffset *= 60 * 60 * 1000;
+        d.setTime(d.getTime() - tzOffset);
       }
 
       formatted =
