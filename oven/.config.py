@@ -7,7 +7,7 @@ JAVASCRIPT_DELAY = 20000
 
 # 监听设置
 API_SERVER_HOST = '127.0.0.1'
-API_SERVER_PORT = 5000
+API_SERVER_PORT = 8221
 
 ## 二维码设置
 ## （以下定位数值对应的均为相对于浏览器渲染时的像素值）
@@ -24,14 +24,14 @@ TID_CODE_POS_Y = -2
 TID_CODE_KEY = 0
 
 ## URL设置
-EXT_STATIC_BASE_URL = 'https://example.com/images'
+EXT_STATIC_BASE_URL = 'http://example.com/timg'
 INT_BASE_URL = f'http://127.0.0.1:{API_SERVER_PORT}'
 
 ## Fridge API URL
-FRIDGE_API_BASE = 'http://127.0.0.1:10103/api'
+FRIDGE_API_BASE = 'http://127.0.0.1:8220/api'
 
 ## Maid API URL
-MAID_API_BASE = 'http://127.0.0.1:5001/api'
+MAID_API_BASE = 'http://127.0.0.1:8222/api'
 
 ## 日志设置
 LOG_DEBUG = False
