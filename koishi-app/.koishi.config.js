@@ -21,9 +21,9 @@ module.exports = {
       ispro: false,     // 是否发图
       cmd: {
         host: {
-          translator: "http://localhost",
-          maid: "http://localhost",
-          store: "http://localhost"
+          store: "http://localhost:8220",
+          translator: "http://localhost:8221",
+          maid: "http://localhost:8222",
         },
         group: [],      // 监听命令的群组，留空监听所有人
         private: false, // 是否允许私聊上班
@@ -31,8 +31,8 @@ module.exports = {
         cut: 8          // 消息预览截断长度
       },
       watcher: {
-        port: 1551,     // 监视器推送端口
-        target: {       // 监视器更新推送目标
+        port: 8223,     // 监听端口
+        target: {       // 推送目标
           discuss: [],
           private: [],
           group: []
