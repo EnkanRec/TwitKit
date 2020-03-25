@@ -11,9 +11,6 @@ import threading
 
 
 if __name__ == '__main__':
-    coloredlogs.install(
-        level=logging.DEBUG if config.LOG_DEBUG else logging.INFO)
-
     api_server_thread = threading.Thread(
         target=serve, args=(app,), kwargs={
             'host': config.API_SERVER_HOST,

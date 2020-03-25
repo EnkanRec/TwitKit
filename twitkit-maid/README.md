@@ -38,7 +38,7 @@
 * `API_SERVER_HOST`：监听地址
 * `API_SERVER_PORT`：监听端口
 
-推特API相关设置
+推特API相关设置：
 
 * `CONSUMER_KEY`：Consumer Key
 * `CONSUMER_SECRET`：Consumer Secret

@@ -201,12 +201,20 @@ export default {
   margin: 18px;
   margin-top: 16px;
   padding-bottom: 1px;
+  overflow-wrap: break-word;
 }
 
 .cardTitle {
   height: 56px;
   padding-top: 18px;
   padding-bottom: 12px;
+
+  .username,
+  .displayName {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
 
   .username {
     color: #888;
@@ -223,7 +231,6 @@ export default {
     font-size: 22px;
     font-weight: bold;
     line-height: 24px;
-    white-space: pre-wrap;
   }
 }
 
@@ -262,7 +269,6 @@ export default {
   color: #888;
   font-size: 14px;
 }
-
 
 img.emoji {
   height: 1em;

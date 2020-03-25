@@ -14,8 +14,8 @@ app = Flask(__name__, static_url_path='/static')
 api = Api(app)
 
 if config.LOG_FILE:
-    app_log_handler = logging.FileHandler(config.LOG_FILE)
-    app.logger.addHandler(app_log_handler)
+    log_handler = logging.FileHandler(config.LOG_FILE)
+    logging.getLogger().addHandler(log_handler)
 
 coloredlogs.install(
     level=logging.DEBUG if config.LOG_DEBUG else logging.INFO)

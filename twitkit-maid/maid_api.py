@@ -118,7 +118,7 @@ class AddTask(Resource):
         except Exception as e:
             logging.warning(f'{task_label} 请求Fridge失败')
             logging.warning(format_exc())
-            return make_response(500, '请求Fridge失败')
+            return make_response(500, f'请求Fridge失败：{e}')
 
         if not inserted:
             return make_response(500, '已插入列表为空')
@@ -149,7 +149,7 @@ class GetTweet(Resource):
         except Exception as e:
             logging.warning(f'{task_label} 请求推特API失败')
             logging.warning(format_exc())
-            return make_response(500, '请求推特API失败')
+            return make_response(500, f'请求推特API失败：{e}')
 
         converted_tweets = twitter_util.convert_tweepy_tweet(
             tweet, two_level_format=True)
