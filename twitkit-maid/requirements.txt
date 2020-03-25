@@ -1,6 +1,0 @@
-requests
-coloredlogs
-python-dateutil
-flask_restx
-waitress
-tweepy
