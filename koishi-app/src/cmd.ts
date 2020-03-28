@@ -1,4 +1,5 @@
 import { Context, Logger, Meta } from 'koishi-core'
+import { CQCode } from 'koishi-utils'
 import { Twitter, Twitter2msg } from './twitter'
 import store from './store'
 import maid from './maid'
@@ -208,7 +209,7 @@ export default function (ctx: Context, argv: config) {
         .action(async ({ meta, options }, id, trans) => {
             if (!promission) return
             const twi = parseInt(id)
-            trans = trans.replace(/\[CQ:[^\]]*\]/g, " ").trim()
+            trans = CQCode.unescape(trans.replace(/\[CQ:[^\]]*\]/g, " ").trim())
             if (isNaN(twi)) {
                 logger.warn("Bad translate id: " + id)
                 return meta.$send("找不到 " + id)
@@ -260,7 +261,7 @@ export default function (ctx: Context, argv: config) {
         .action(async ({ meta }, url, trans) => {
             if (!promission) return
             if (/^https?:\/\/((www\.)?twitter\.com|t\.co)\//.test(url)) {
-                trans = trans.replace(/\[CQ:[^\]]*\]/g, " ").trim()
+                trans = CQCode.unescape(trans.replace(/\[CQ:[^\]]*\]/g, " ").trim())
                 if (trans) {
                     logger.debug("translate with url=%s trans=%s", url, trans)
                     const img = await translator.getByUrl(url, trans)
