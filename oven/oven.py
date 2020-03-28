@@ -5,6 +5,7 @@ from PIL import Image
 from tid_code import add_code_to_image
 from hashlib import md5
 
+import urllib.parse
 import os
 import sys
 import logging
@@ -25,13 +26,13 @@ def bake_tweet(tid=None, url=None, trans_text=None,
         logger.error('不能同时指定tid和url')
         return False
 
-    payload_data = json.dumps({
+    payload_data = urllib.parse.quote(json.dumps({
         'tid': tid,
         'url': url,
         'transText': trans_text,
         'zhFont': config.ZH_FONT,
         'jaFont': config.JA_FONT,
-    })
+    }), safe='')
 
     zoom_ratio = ppi / 96
     if smooth:
