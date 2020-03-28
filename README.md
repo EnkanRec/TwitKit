@@ -6,18 +6,18 @@
 
 ## 组件说明
 
-### twitkit-app
+### koishi-app
 
 基于koishi框架的APP部分，业务逻辑依赖于其他组件
 
-### twitkit-maid
+### maid
 
 依赖推特API和RSSHub的更新检测组
 
-### twitkit-fridge
+### fridge
 
 封装成微服务的数据库组件
 
-### twitkit-oven
+### oven
 
 基于wkhtmltoimage的烤图组件
