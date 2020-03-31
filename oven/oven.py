@@ -5,6 +5,7 @@ from PIL import Image
 from tid_code import add_code_to_image
 from hashlib import md5
 
+import urllib.parse
 import os
 import sys
 import logging
@@ -32,6 +33,10 @@ def bake_tweet(tid=None, url=None, trans_text=None,
         'zhFont': config.ZH_FONT,
         'jaFont': config.JA_FONT,
     })
+
+    logger.debug(f'payload_data: {payload_data}')
+
+    payload_data = urllib.parse.quote(payload_data, safe='')
 
     zoom_ratio = ppi / 96
     if smooth:
