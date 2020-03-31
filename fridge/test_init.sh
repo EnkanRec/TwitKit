@@ -7,6 +7,7 @@ GRANT ALL PRIVILEGES ON fridge_test.* TO 'fridge_test'@'localhost';
 FLUSH PRIVILEGES;
 USE fridge_test;
 SOURCE $BASEPATH/schema/test_init.sql;
+MYSQL_SCRIPT
 
 echo "Test database created."
 echo "Database:   fridge_test"
