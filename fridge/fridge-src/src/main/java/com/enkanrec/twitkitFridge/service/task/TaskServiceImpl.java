@@ -194,7 +194,7 @@ public class TaskServiceImpl implements TaskService {
         twitterUser.setDisplay(twitter.getUser_display());
         twitterUser.setName(twitter.getUser_name());
         twitterUser.setTwitterUid(twitter.getUser_twitter_uid());
-        twitterUser = this.twitterRepository.save(twitterUser);
+        twitterUser = this.twitterRepository.saveAndFlush(twitterUser);
         this.entityManager.refresh(twitterUser);
         log.info("twitter user updated: " + twitterUser.toString());
         return twitterUser;
