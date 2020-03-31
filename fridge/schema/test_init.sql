@@ -82,6 +82,6 @@ INSERT INTO `enkan_translate` VALUES (5, 1001, 0, '翻译B1', '[img_21]', '2020-
 INSERT INTO `enkan_translate` VALUES (6, 1001, 1, '翻译B2', '[img_22]', '2020-02-07 00:10:57', '2020-02-07 00:10:57');
 INSERT INTO `enkan_translate` VALUES (8, 1002, 0, '翻译C1', '[img_31]', '2020-02-07 17:21:34', '2020-02-07 17:21:34');
 
-INSERT INTO `enkan_twitter` VALUES (4, '123000123', 'enkanRecGLZ', '圆环记录攻略组', 'http://example.org/111.jpg', '2020-03-01 12:42:25', '2020-03-01 12:08:29');
+INSERT INTO `enkan_twitter` VALUES (4, '123000123', 'enkanRecGLZ', '圆环纪录攻略组', 'http://example.org/111.jpg', '2020-03-01 12:42:25', '2020-03-01 12:08:29');
 
 COMMIT;
