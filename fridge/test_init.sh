@@ -5,6 +5,7 @@ CREATE DATABASE fridge_test;
 CREATE USER 'fridge_test'@'localhost' IDENTIFIED BY 'fridge_test';
 GRANT ALL PRIVILEGES ON fridge_test.* TO 'fridge_test'@'localhost';
 FLUSH PRIVILEGES;
+USE fridge_test;
 SOURCE $BASEPATH/schema/test_init.sql;
 
 echo "Test database created."
