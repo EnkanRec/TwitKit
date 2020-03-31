@@ -7,8 +7,8 @@ DROP TABLE IF EXISTS enkan_twitter;
 
 CREATE TABLE `enkan_config` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `namespace` varchar(255) NOT NULL DEFAULT '___DEFAULT___',
-  `config_key` varchar(255) NOT NULL,
+  `namespace` varchar(191) NOT NULL DEFAULT '___DEFAULT___',
+  `config_key` varchar(191) NOT NULL,
   `config_value` text,
   `newdate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -19,7 +19,7 @@ CREATE TABLE `enkan_config` (
 
 CREATE TABLE `enkan_task` (
   `tid` int(11) NOT NULL AUTO_INCREMENT COMMENT '任务id',
-  `status_id` varchar(255) NOT NULL COMMENT '推特生成的推文唯一id',
+  `status_id` varchar(191) NOT NULL COMMENT '推特生成的推文唯一id',
   `url` varchar(767) NOT NULL COMMENT '推文URL',
   `content` longtext NOT NULL COMMENT '推文内容',
   `media` text NOT NULL COMMENT '媒体地址',
@@ -28,7 +28,7 @@ CREATE TABLE `enkan_task` (
   `comment` varchar(1023) NOT NULL DEFAULT '' COMMENT '备注',
   `newdate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `twitter_uid` varchar(255) DEFAULT NULL COMMENT '指向该推文主动用户',
+  `twitter_uid` varchar(191) DEFAULT NULL COMMENT '指向该推文主动用户',
   `ref_tid` int(11) DEFAULT NULL COMMENT '指向转发/引用的推文id\n',
   `pub_date` datetime DEFAULT NULL COMMENT 'API返回的发推时间',
   `extra` longtext COMMENT 'json储存动态字段，任意扩展，不需要索引的东西都可以丢进来\n\n\n\n',
@@ -55,7 +55,7 @@ CREATE TABLE `enkan_translate` (
 
 CREATE TABLE `enkan_twitter` (
   `uid` int(11) NOT NULL AUTO_INCREMENT,
-  `twitter_uid` varchar(255) NOT NULL,
+  `twitter_uid` varchar(191) NOT NULL,
   `name` varchar(511) NOT NULL,
   `display` varchar(511) NOT NULL,
   `avatar` varchar(2047) NOT NULL,
@@ -82,6 +82,6 @@ INSERT INTO `enkan_translate` VALUES (5, 1001, 0, '翻译B1', '[img_21]', '2020-
 INSERT INTO `enkan_translate` VALUES (6, 1001, 1, '翻译B2', '[img_22]', '2020-02-07 00:10:57', '2020-02-07 00:10:57');
 INSERT INTO `enkan_translate` VALUES (8, 1002, 0, '翻译C1', '[img_31]', '2020-02-07 17:21:34', '2020-02-07 17:21:34');
 
-INSERT INTO `enkan_twitter` VALUES (4, '123000123', 'enkanRecGLZ', '圆环纪录攻略组', 'http://111/111.jpg', '2020-03-01 12:42:25', '2020-03-01 12:08:29');
+INSERT INTO `enkan_twitter` VALUES (4, '123000123', 'enkanRecGLZ', '圆环记录攻略组', 'http://example.org/111.jpg', '2020-03-01 12:42:25', '2020-03-01 12:08:29');
 
 COMMIT;
