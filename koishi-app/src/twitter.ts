@@ -137,7 +137,7 @@ export function convert(dbtw: dbtw, orig?: dbtw): Twitter {
             let link: string
             for (const j of i.video_info.variants) if (j.url && (!link || j.bitrate && bitrate < j.bitrate)) {
                 link = j.url
-                bitrate = j.bitrate
+                bitrate = j.bitrate || 0
             }
             if (link) tw.video.push(link)
         }
