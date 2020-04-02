@@ -21,7 +21,6 @@ SOURCE $BASEPATH/schema/db_init.sql;
 MYSQL_SCRIPT
 
 echo "# 数据源
-spring.datasource.yui.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.datasource.yui.jdbc-url=jdbc:mysql://localhost:3306/$DB?characterEncoding=utf-8&useSSL=true&serverTimezone=Asia/Shanghai
 spring.datasource.yui.username=$DB
 spring.datasource.yui.password=$PASS"
