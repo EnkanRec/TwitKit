@@ -7,8 +7,8 @@ DROP TABLE IF EXISTS enkan_twitter;
 
 CREATE TABLE `enkan_config` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `namespace` varchar(255) NOT NULL DEFAULT '___DEFAULT___',
-  `config_key` varchar(255) NOT NULL,
+  `namespace` varchar(191) NOT NULL DEFAULT '___DEFAULT___',
+  `config_key` varchar(191) NOT NULL,
   `config_value` text,
   `newdate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -19,7 +19,7 @@ CREATE TABLE `enkan_config` (
 
 CREATE TABLE `enkan_task` (
   `tid` int(11) NOT NULL AUTO_INCREMENT COMMENT '任务id',
-  `status_id` varchar(255) NOT NULL COMMENT '推特生成的推文唯一id',
+  `status_id` varchar(191) NOT NULL COMMENT '推特生成的推文唯一id',
   `url` varchar(767) NOT NULL COMMENT '推文URL',
   `content` longtext NOT NULL COMMENT '推文内容',
   `media` text NOT NULL COMMENT '媒体地址',
@@ -28,7 +28,7 @@ CREATE TABLE `enkan_task` (
   `comment` varchar(1023) NOT NULL DEFAULT '' COMMENT '备注',
   `newdate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `twitter_uid` varchar(255) DEFAULT NULL COMMENT '指向该推文主动用户',
+  `twitter_uid` varchar(191) DEFAULT NULL COMMENT '指向该推文主动用户',
   `ref_tid` int(11) DEFAULT NULL COMMENT '指向转发/引用的推文id\n',
   `pub_date` datetime DEFAULT NULL COMMENT 'API返回的发推时间',
   `extra` longtext COMMENT 'json储存动态字段，任意扩展，不需要索引的东西都可以丢进来\n\n\n\n',
@@ -55,7 +55,7 @@ CREATE TABLE `enkan_translate` (
 
 CREATE TABLE `enkan_twitter` (
   `uid` int(11) NOT NULL AUTO_INCREMENT,
-  `twitter_uid` varchar(255) NOT NULL,
+  `twitter_uid` varchar(191) NOT NULL,
   `name` varchar(511) NOT NULL,
   `display` varchar(511) NOT NULL,
   `avatar` varchar(2047) NOT NULL,

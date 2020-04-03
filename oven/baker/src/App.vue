@@ -35,7 +35,7 @@ export default {
   mounted() {
     var cookies = cookie.parse(document.cookie);
     try {
-      this.payloadData = JSON.parse(cookies.payload_data);
+      this.payloadData = JSON.parse(decodeURIComponent(cookies.payload_data));
     } catch (error) {
       this.errorMessage = "错误：" + error.message + "<br>";
       return;

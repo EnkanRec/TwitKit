@@ -189,14 +189,14 @@ public class TaskServiceImpl implements TaskService {
         EnkanTwitterEntity twitterUser = this.twitterRepository.findByTwitterUid(twitter.getUser_twitter_uid());
         if (twitterUser == null) {
             twitterUser = new EnkanTwitterEntity();
-            twitterUser.setAvatar(twitter.getUser_avatar());
-            twitterUser.setDisplay(twitter.getUser_display());
-            twitterUser.setName(twitter.getUser_name());
-            twitterUser.setTwitterUid(twitter.getUser_twitter_uid());
-            twitterUser = this.twitterRepository.save(twitterUser);
-            this.entityManager.refresh(twitterUser);
-            log.info("new twitter user added to steady: " + twitterUser.toString());
         }
+        twitterUser.setAvatar(twitter.getUser_avatar());
+        twitterUser.setDisplay(twitter.getUser_display());
+        twitterUser.setName(twitter.getUser_name());
+        twitterUser.setTwitterUid(twitter.getUser_twitter_uid());
+        twitterUser = this.twitterRepository.saveAndFlush(twitterUser);
+        this.entityManager.refresh(twitterUser);
+        log.info("twitter user updated: " + twitterUser.toString());
         return twitterUser;
     }
 

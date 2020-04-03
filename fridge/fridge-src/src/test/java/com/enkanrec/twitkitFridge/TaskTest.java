@@ -421,7 +421,7 @@ public class TaskTest {
         queryData.put("status_id", "900000000000");
         queryData.put("user_twitter_uid", "123000123");
         queryData.put("user_name", "enkanRecGLZ");
-        queryData.put("user_display", "圆环纪录攻略组");
+        queryData.put("user_display", "圆环纪录攻略组新版");
         queryData.put("user_avatar", "http://111/111.jpg");
         Map<String, Object> back2 = helper.apiPost("/create", queryData, Map.class);
         Map<String, Object> twitter2 = (Map<String, Object>) back2.get("twitter");
