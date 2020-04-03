@@ -4,6 +4,16 @@
 
 TwitKit是一个面向推文翻译工作的开源套件。基于微服务架构设计，组件间均使用REST API通信。
 
+### 主要贡献者
+
+[k9yyy](https://github.com/k9yyy)：oven、maid组件
+
+[Rinka](https://github.com/orgs/EnkanRec/people/rinkako)：fridge组件
+
+[MisakaHonoka](https://github.com/y2361547758)：koishi-app组件
+
+[Inactive Virus](https://github.com/orgs/EnkanRec/people/inactive-virus)：项目管理和shell scripts
+
 ## 后端组件
 
 ### fridge
