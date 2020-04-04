@@ -1,6 +1,7 @@
 from dateutil import tz
 from datetime import datetime
 from twitter_client import get_tweet_by_id
+from tweepy.error import TweepError
 
 import json
 import re
@@ -56,16 +57,24 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
 
         if hasattr(tweepy_tweet, 'retweeted_status'):
             full_text = None
-            ref_tweet = _convert_tweepy_tweet(tweepy_tweet.retweeted_status)
+            _convert_tweepy_tweet(tweepy_tweet.retweeted_status)
             ref_id = tweepy_tweet.retweeted_status.id
             media_urls = []
         elif hasattr(tweepy_tweet, 'quoted_status'):
-            ref_tweet = _convert_tweepy_tweet(tweepy_tweet.quoted_status)
+            _convert_tweepy_tweet(tweepy_tweet.quoted_status)
             ref_id = tweepy_tweet.quoted_status.id
         elif hasattr(tweepy_tweet, 'in_reply_to_status_id') \
                 and tweepy_tweet.in_reply_to_status_id:
             ref_id = tweepy_tweet.in_reply_to_status_id
-            ref_tweet = _convert_tweepy_tweet(get_tweet_by_id(ref_id))
+            try:
+                _convert_tweepy_tweet(get_tweet_by_id(ref_id))
+            except TweepError as e:
+                if e.api_code == 144:
+                    ret.append(make_dummy_tweet(
+                        '找不到此推文，可能已删除', two_level_format, ref_id))
+                else:
+                    ret.append(make_dummy_tweet(
+                        e.reason, two_level_format, ref_id))
 
         user = tweepy_tweet.user
         user_avatar_url = user.profile_image_url_https.replace(
@@ -114,3 +123,38 @@ def batch_convert_tweepy_tweets(tweepy_tweets: list):
         converted = convert_tweepy_tweet(tweet)
         ret += converted
     return ret
+
+
+def make_dummy_tweet(message, two_level_format=False, status_id=0):
+    dummy_avatar = 'https://www.gravatar.com/avatar/' + \
+        '00000000000000000000000000000000?d=mp&f=y'
+    return {
+        'url': 'n/a',
+        'content': message,
+        'media': json.dumps([]),
+        'pub_date': datetime.now(tz.tzlocal()).isoformat(),
+        'status_id': str(status_id),
+        'user_twitter_uid': '0',
+        'user_name': '**error**',
+        'user_display': '错误',
+        'user_avatar': dummy_avatar,
+        'extra': json.dumps({}),
+        'ref': None
+    } if not two_level_format else {
+        'twitter': {
+            'statusId': str(status_id),
+            'url': 'n/a',
+            'content': message,
+            'media': json.dumps([]),
+            'refStatusId': None,
+            'twitterUid': '0',
+            'pubDate': datetime.now(tz.tzlocal()).isoformat(),
+            'extra': json.dumps({}),
+        },
+        'user': {
+            'twitterUid': '0',
+            'name': '**error**',
+            'display': '错误',
+            'avatar': dummy_avatar
+        }
+    }
