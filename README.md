@@ -22,7 +22,7 @@ Also provides the ability to detect whether Bilibili Dynamics has released an ou
 ## front-end components
 
 ### koishi-app
-QQBot front-end, based on [koishi](koishi.js.org) framework to communicate with CoolQ robot, provides QQ update notification, translation submission and image return services.
+QQBot front-end, based on [koishi](https://koishi.js.org) framework to communicate with CoolQ robot, provides QQ update notification, translation submission and image return services.
 
 ## install
 See README.md in each subfolder; shell scripts are available in the repository for quick deployments. To use them, please give sudo privileges to the appropriate users and recommend revoking them after deployment is complete.
