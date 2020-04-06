@@ -10,6 +10,7 @@ import twitter_util
 import logging
 import coloredlogs
 import config
+import json
 
 app = Flask(__name__)
 api = Api(app, description='Maid API')

@@ -55,7 +55,11 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
             for media in entities['media']:
                 media_urls.append(media['media_url_https'])
 
+        is_retweet = False
+        is_reply = False
+
         if hasattr(tweepy_tweet, 'retweeted_status'):
+            is_retweet = True
             full_text = None
             _convert_tweepy_tweet(tweepy_tweet.retweeted_status)
             ref_id = tweepy_tweet.retweeted_status.id
@@ -65,6 +69,7 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
             ref_id = tweepy_tweet.quoted_status.id
         elif hasattr(tweepy_tweet, 'in_reply_to_status_id') \
                 and tweepy_tweet.in_reply_to_status_id:
+            is_reply = True
             ref_id = tweepy_tweet.in_reply_to_status_id
             try:
                 _convert_tweepy_tweet(get_tweet_by_id(ref_id))
@@ -93,8 +98,12 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
             'user_display': user.name,
             'user_avatar': user_avatar_url,
             'extra': json.dumps(entities),
-            'ref': str(ref_id) if ref_id else None
+            'ref': str(ref_id) if ref_id else None,
+            'is_reply': is_reply,
+            'is_retweet': is_retweet
         } if not two_level_format else {
+            'is_reply': is_reply,
+            'is_retweet': is_retweet,
             'twitter': {
                 'statusId': str(tweepy_tweet.id),
                 'url': tweet_url,
@@ -103,7 +112,7 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
                 'refStatusId': str(ref_id) if ref_id else None,
                 'twitterUid': str(user.id),
                 'pubDate': utc_to_local(tweepy_tweet.created_at).isoformat(),
-                'extra': json.dumps(entities),
+                'extra': json.dumps(entities)
             },
             'user': {
                 'twitterUid': str(user.id),
@@ -139,8 +148,12 @@ def make_dummy_tweet(message, two_level_format=False, status_id=0):
         'user_display': '错误',
         'user_avatar': dummy_avatar,
         'extra': json.dumps({}),
-        'ref': None
+        'ref': None,
+        'is_reply': False,
+        'is_retweet': False
     } if not two_level_format else {
+        'is_reply': False,
+        'is_retweet': False,
         'twitter': {
             'statusId': str(status_id),
             'url': 'n/a',

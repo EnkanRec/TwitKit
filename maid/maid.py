@@ -81,6 +81,19 @@ def bulk_insert(fridge_tweets: list, include_existing=False):
     return inserted_tweets
 
 
+def separate_no_push_tweets(tweets):
+    do_push = []
+    no_push = []
+    for tweet in tweets:
+        if not config.PUSH_REPLIES and tweet['is_reply']:
+            no_push.append(tweet)
+        elif not config.PUSH_RETWEETS and tweet['is_retweet']:
+            no_push.append(tweet)
+        else:
+            do_push.append(tweet)
+    return do_push, no_push
+
+
 def get_latest_status_id():
     resp = requests.post(f'{config.FRIDGE_API_BASE}/db/task/last',
                          json=make_request_payload({'withTranslation': False}))
@@ -141,7 +154,10 @@ class Maid:
                 time.sleep(backoff_timer)
 
     def update_tweets(self, new_tweets):
-        new_tid_list = bulk_insert(new_tweets)
+        do_push_tweets, no_push_tweets = separate_no_push_tweets(new_tweets)
+        logging.debug(f'不通知的推：{no_push_tweets}')
+        bulk_insert(no_push_tweets)
+        new_tid_list = bulk_insert(do_push_tweets)
         if not new_tid_list:
             logging.debug('没有需要插入新推')
             return
@@ -245,12 +261,13 @@ class Maid:
             target=self.run_twitter_realtime_update, args=(), daemon=True)
         self.twitter_updater_thread.start()
 
-        self.bilibili_updater_thread = threading.Thread(
-            target=self.run_bilibili_update_checker, args=(), daemon=True)
-        self.bilibili_updater_thread.start()
+        if config.BILIBILI_UID:
+            self.bilibili_updater_thread = threading.Thread(
+                target=self.run_bilibili_update_checker, args=(), daemon=True)
+            self.bilibili_updater_thread.start()
+            self.bilibili_updater_thread.join()
 
         self.twitter_updater_thread.join()
-        self.bilibili_updater_thread.join()
 
 
 if __name__ == '__main__':
