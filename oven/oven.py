@@ -14,7 +14,8 @@ import config
 
 
 logger = logging.getLogger('oven')
-tweet_page_bp = Blueprint('internal', __name__, static_folder='baker/dist/')
+tweet_page_bp = Blueprint(
+    'internal', __name__, static_folder='baker/dist/', static_url_path='/')
 
 STATIC = 'static'
 
