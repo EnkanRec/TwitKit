@@ -1,31 +1,55 @@
 <template>
-  <div class="tweet" :class="altBg ? 'altBackground' : 'normalBackground'">
+  <div
+    class="tweet"
+    :class="`${altBg ? 'altBackground' : 'normalBackground'} ${inline && 'inline'}`"
+  >
+    <div class="refTweet" v-if="isReply && (tweet.refTid || tweet.refStatusId)">
+      <Tweet
+        :tid="tweets && tweet.refStatusId in tweets ? undefined : tweet.refTid"
+        :tweets="tweets"
+        :statusId="tweet.refStatusId"
+        :alt-bg="altBg"
+        :no-date="true"
+        :isWebTrans="isWebTrans"
+        :inline="true"
+      />
+    </div>
     <div class="card" v-if="dataReady">
       <div class="cardTitle">
         <img class="avatar" :src="user.avatar" />
         <div class="userInfo">
-          <div class="displayName" lang="ja-jp" v-html="user.display"></div>
+          <div class="displayName" lang="ja-jp" v-html="formattedUserDispName"></div>
           <div class="username">@{{ user.name }}</div>
         </div>
       </div>
-      <div class="cardBody">
-        <div v-html="actualTransText || tweet.content" :lang="actualTransText ? null : 'ja-jp'"></div>
-        <div class="origText" v-if="actualTransText && tweet.content">
-          <legend>原文</legend>
-          <div lang="ja-jp" v-html="tweet.content"></div>
+      <div class="replyDecorationLine" :style="`height: ${decorationLineHeight}px`" v-if="inline"></div>
+      <div class="cardBody" ref="cardBody">
+        <div v-if="isWebTrans">
+          <TranslationBox :origTransText="plainTransText"></TranslationBox>
         </div>
-      </div>
-      <div class="refTweet" v-if="tweet.refTid || tweet.refStatusId">
-        <Tweet
-          :tid="tweet.refTid"
-          :tweets="tweets"
-          :statusId="tweet.refStatusId"
-          :alt-bg="!altBg"
-          :no-date="true"
-        />
-      </div>
-      <div class="media">
-        <img v-for="url in JSON.parse(tweet.media)" :key="url" :src="url" />
+        <div
+          v-html="formattedTransText || formattedContent"
+          :lang="formattedTransText ? null : 'ja-jp'"
+        ></div>
+        <div class="origText" v-if="formattedTransText && formattedContent">
+          <legend>原文</legend>
+          <div lang="ja-jp" v-html="formattedContent"></div>
+        </div>
+
+        <div class="media">
+          <img v-for="url in mediaList" :key="url" :src="url" />
+        </div>
+
+        <div class="refTweet" v-if="!isReply && (tweet.refTid || tweet.refStatusId)">
+          <Tweet
+            :tid="tweets && tweet.refStatusId in tweets ? undefined : tweet.refTid"
+            :tweets="tweets"
+            :statusId="tweet.refStatusId"
+            :alt-bg="!altBg"
+            :no-date="true"
+            :isWebTrans="isWebTrans"
+          />
+        </div>
       </div>
       <div class="postTime" v-if="!noDate">▶ 原推发表于 {{ formatDate(tweet.pubDate) }}</div>
     </div>
@@ -38,9 +62,15 @@ import axios from "axios";
 import { parse as twimojiParse } from "twemoji-parser";
 import escape from "escape-html";
 import { v4 as uuidv4 } from "uuid";
+import TranslationBox from "./TranslationBox";
+import Vue from "vue";
+import elementResizeEvent from "element-resize-event";
 
 export default {
   name: "Tweet",
+  components: {
+    TranslationBox
+  },
   props: {
     tid: String,
     statusId: String,
@@ -48,41 +78,73 @@ export default {
     altBg: Boolean,
     transText: String,
     noDate: Boolean,
-    tweets: Object
+    tweets: Object,
+    isWebTrans: Boolean,
+    inline: Boolean
   },
   data() {
     return {
       tweet: null,
       user: null,
-      translation: null,
       dataReady: false,
-      actualTransText: null,
-      errorMessage: null
+      plainTransText: null,
+      formattedTransText: null,
+      formattedContent: null,
+      formattedUserDispName: null,
+      errorMessage: null,
+      isReply: false,
+      mediaList: [],
+      decorationLineHeight: 0
     };
   },
   mounted() {
-    if (this.tid) {
-      axios
-        .post("/api_proxy/fridge/db/task/get", {
-          taskId: uuidv4(),
-          forwardFrom: "twitkit-oven-baker",
-          timestamp: new Date().toISOString(),
-          data: { tid: this.tid }
-        })
-        .then(response => {
-          if (response.data.code != 0) {
-            this.errorMessage = `Fridge返回${response.data.code}：${response.data.message}`;
-            return;
-          }
-          this.renderTweet(response.data.data);
-        })
-        .catch(error => {
-          this.errorMessage = `请求Fridge失败：${error.message}`;
-        });
-    } else if (this.statusId) {
+    if (!this.tid && !this.url && !this.tweets) {
+      this.errorMessage = "没有传入数据";
+      return;
+    }
+    if (this.statusId) {
       this.renderTweet(this.tweets[this.statusId]);
     } else {
-      this.errorMessage = "没有传入数据";
+      if (this.url) {
+        axios
+          .post("/api_proxy/maid/maid/gettweet", {
+            taskId: uuidv4(),
+            forwardFrom: "twitkit-oven-baker",
+            timestamp: new Date().toISOString(),
+            data: { url: this.url }
+          })
+          .then(response => {
+            if (response.data.code != 0) {
+              this.errorMessage = `Maid返回${response.data.code}：${response.data.message}`;
+            } else {
+              this.tweets = response.data.tweets;
+              this.statusId = response.data.rootId;
+              this.renderTweet(this.tweets[this.statusId]);
+              this.dataReady = true;
+            }
+          })
+          .catch(error => {
+            this.errorMessage = `请求Maid失败：${error.message}`;
+          });
+      } else if (this.tid) {
+        axios
+          .post("/api_proxy/fridge/db/task/get", {
+            taskId: uuidv4(),
+            forwardFrom: "twitkit-oven-baker",
+            timestamp: new Date().toISOString(),
+            data: { tid: this.tid }
+          })
+          .then(response => {
+            if (response.data.code != 0) {
+              this.errorMessage = `Fridge返回${response.data.code}：${response.data.message}`;
+              return;
+            }
+            this.renderTweet(response.data.data);
+          })
+          .catch(error => {
+            this.errorMessage = `请求Fridge失败：${error.message}`;
+          });
+      }
     }
   },
   methods: {
@@ -134,63 +196,85 @@ export default {
 
       return formatted;
     },
+
     renderTweet(tweetData) {
       this.tweet = tweetData.twitter;
       this.user = tweetData.user;
-      this.translation = tweetData.translation;
-      this.actualTransText =
-        this.transText ||
-        (this.translation ? this.translation.translation : null);
+      var translation = tweetData.translation;
+      this.plainTransText =
+        this.transText || (translation ? translation.translation : null);
       if (this.tweet === null) {
         this.errorMessage = "推文不存在";
         return;
       }
-
-      var convertEmoji = str => {
-        var entities = twimojiParse(str);
-        for (var e of entities) {
-          var emojiImg = `<img src="${e.url}" class="emoji">`;
-          str = str.replace(e.text, emojiImg);
-        }
-        return str;
-      };
-
-      var addColor = str => {
-        str = str.replace(/(@\w{1,15})/g, '<span class="mention">$1</span>');
-        str = str.replace(
-          /(#[^\s,.!?，。！？<]*)/g,
-          '<span class="hashtag">$1</span>'
-        );
-        var entities = this.tweet.extra ? JSON.parse(this.tweet.extra) : {};
-        JSON.parse(this.tweet.extra);
-        if (entities && entities.urls) {
-          for (var url of entities.urls) {
-            str = str.replace(
-              url.url,
-              `<span class="link">${url.display_url}</span>`
-            );
-          }
-        }
-        str = str.replace(
-          /(https?:\/\/[\w-_~:[\]@!$&'()*+,;=.?%#/]+)/g,
-          '<span class="link">$1</span>'
-        );
-        return str;
-      };
-
       if (this.tweet && this.tweet.content)
-        this.tweet.content = convertEmoji(addColor(this.tweet.content));
+        this.formattedContent = this.formatContent(this.tweet.content);
       if (this.translation && this.translation.content)
-        this.translation.content = convertEmoji(
-          addColor(escape(this.translation.content))
-        );
-      if (this.actualTransText)
-        this.actualTransText = convertEmoji(
-          addColor(escape(this.actualTransText))
-        );
-      this.user.display = convertEmoji(addColor(escape(this.user.display)));
+        this.formattedContent = this.formatContent(this.translation.content);
+      if (this.plainTransText)
+        this.formattedTransText = this.formatContent(this.plainTransText);
+      this.formattedUserDispName = this.formatName(this.user.display);
 
+      this.mediaList = JSON.parse(this.tweet.media);
+
+      // 临时的回复判断，目前推文类型没有入库
+      if (this.tweet.content) {
+        this.isReply =
+          this.tweet.content[0] == "@" &&
+          (this.tweet.refTid || this.tweet.refStatusId);
+      }
+      
       this.dataReady = true;
+
+      var calcDecoLineHeight = () => {
+        this.decorationLineHeight =
+          this.$refs.cardBody.clientHeight + (!this.mediaList.length ? 22 : 2);
+        // 回复画线的hack
+      };
+      Vue.nextTick(() => {
+        calcDecoLineHeight();
+        elementResizeEvent(this.$refs.cardBody, calcDecoLineHeight);
+      });
+    },
+
+    formatContent(str) {
+      return this.convertEmoji(this.addColor(escape(str)));
+    },
+
+    formatName(str) {
+      return this.convertEmoji(this.addColor(escape(str)));
+    },
+
+    convertEmoji(str) {
+      var entities = twimojiParse(str);
+      for (var e of entities) {
+        var emojiImg = `<img src="${e.url}" class="emoji">`;
+        str = str.replace(e.text, emojiImg);
+      }
+      return str;
+    },
+
+    addColor(str) {
+      str = str.replace(/(@\w{1,15})/g, '<span class="mention">$1</span>');
+      str = str.replace(
+        /(^|\s)(#[^\s,.!?，。！？<]*)/g,
+        '$1<span class="hashtag">$2</span>'
+      );
+      var entities = this.tweet.extra ? JSON.parse(this.tweet.extra) : {};
+      JSON.parse(this.tweet.extra);
+      if (entities && entities.urls) {
+        for (var url of entities.urls) {
+          str = str.replace(
+            url.url,
+            `<span class="link">${url.display_url}</span>`
+          );
+        }
+      }
+      str = str.replace(
+        /(https?:\/\/[\w-_~:[\]@!$&'()*+,;=.?%#/]+)/g,
+        '<span class="link">$1</span>'
+      );
+      return str;
     }
   }
 };
@@ -209,16 +293,29 @@ export default {
   padding-top: 18px;
   padding-bottom: 12px;
 
+  .inline & .userInfo {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
   .username,
   .displayName {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    .inline & {
+      display: inline;
+    }
   }
 
   .username {
     color: #888;
     font-size: 20px;
+    .inline & {
+      margin-left: 0.5em;
+    }
   }
   .avatar {
     float: left;
@@ -254,6 +351,11 @@ export default {
     margin-top: 14px;
     font-size: 18px;
   }
+
+  .inline & {
+    margin-left: 62px;
+    margin-top: -28px;
+  }
 }
 
 .media {
@@ -285,5 +387,14 @@ img.emoji {
 }
 .tweet {
   border-radius: 16px;
+}
+
+.inline .replyDecorationLine {
+  background: #4daefd5d;
+  width: 3px;
+  position: absolute;
+  margin-left: 27px;
+  margin-top: -2px;
+  border-radius: 2px;
 }
 </style>

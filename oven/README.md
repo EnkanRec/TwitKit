@@ -10,9 +10,9 @@
 
 以下步骤以在Ubuntu 18.04的环境下为例。
 
-1. Oven使用wkhtmltopdf的`wkhtmltoimage`从网页生成图片，在非GUI环境下需要用Xvfb在无头环境下运行，可用以下命令安装：
+1. Oven使用无头Chrome（Chromium）的远程调试接口调用打印接口生成整页PDF，然后用Poppler转换成图片，可用以下命令安装相关软件包：
     ```
-    apt install wkhtmltopdf xvfb
+    apt install chromium-browser poppler-utils
     ```
 
 2. 安装Python依赖：
@@ -34,12 +34,12 @@
     * 如果要支持一些不常见的符号，可从Windows复制一份Segoe UI Symbol字体至Ubuntu（ 从Windows复制`%WINDIR%\Fonts\seguisym.ttf`放入`/usr/local/share/fonts/`，可执行`fc-list`确认字体已装好）。
 
 5. 构建Baker（渲染推文用的网页）：
-   
+
     先安装Yarn（可能需要sudo）
     ```
     npm install -g yarn
     ```
-    
+
     然后安装依赖，构建
     ```
     cd baker
@@ -47,7 +47,7 @@
     yarn build
     ```
     （以后考虑在release里包含构建好的`dist`文件）
-    
+
 ## 配置文件说明
 
 Oven从`config.py`中的变量读入配置。变量名和说明如下。
@@ -103,13 +103,19 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 
 ## 运行服务端
 
-在Xvfb下，用Python3执行`start_oven.py`即可，例如：
+启动无头Chromium实例：
 
 ```
-xvfb-run python3 start_oven.py
+chromium-browser --headless --remote-debugging-port=9222 --window-size=480,20 --enable-logging
 ```
 
-如果有图形环境，可以不用`xvfb-run`
+`--window-size=480,20`中的`480`是窗口宽度，渲染推文时的视口宽度由此值决定；高度一般无需修改。
+
+用Python3执行`start_oven.py`即可，例如：
+
+```
+python3 start_oven.py
+```
 
 ## API说明
 

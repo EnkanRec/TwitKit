@@ -3,7 +3,6 @@
 from flask_restx import Resource, Api
 from flask import request
 from datetime import datetime
-from dateutil.parser import isoparser
 from api_models import oven_api
 from api_models import bake_model, bake_response_model
 from api_models import check_model, check_response_model
@@ -17,8 +16,6 @@ import time
 import logging
 import config
 
-
-isoparse = isoparser().isoparse
 
 image_path = 'static'
 image_url_prefix = f'{config.EXT_STATIC_BASE_URL}/'

@@ -99,13 +99,18 @@ def print_image_from_tab(tab, payload_data, ppi):
 
     tab.Page.navigate(url=f'{config.INT_BASE_URL}/internal/index.html')
 
-    for _ in range(30):
-        tab.wait(1)
+    success_count = 0
+    for _ in range(300):
+        tab.wait(0.1)
         ready_state = tab.Runtime.evaluate(expression="document.readyState")[
             'result']['value']
         logger.debug(f'页面状态：{ready_state}')
         if ready_state == 'complete' and not loading_counter:
-            break
+            success_count += 1
+            if success_count == 10:
+                break
+        else:
+            success_count = 0
 
     layout_metrics = tab.Page.getLayoutMetrics()
     content_size = layout_metrics['contentSize']
