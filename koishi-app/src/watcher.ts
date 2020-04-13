@@ -1,9 +1,8 @@
-import { Context, Logger, MessageType } from 'koishi-core'
+import { Context, Logger } from 'koishi-core'
 import * as http from 'http'
 import { parse } from 'url'
 import { ISO8601, verifyDatetime, config, target, config_watcher, request, response } from './utils'
-import { Twitter, Twitter2msg } from './twitter'
-import store from './store'
+import { tids2msgs } from './twitter'
 import translator from './translator'
 
 let logger: Logger
@@ -101,17 +100,7 @@ export default function (ctx: Context, argv: config) {
                             }
                             else logger.debug("Event %s, no update", i)
                         }
-                        list = list.sort().reverse()
-                        let ref: number[] = []
-                        let quere: string[] = []
-                        for (const i of list) {
-                            if (~ref.indexOf(i)) continue
-                            const tw: Twitter = await store.getTask(i)
-                            if (tw.type === "转推") ref.push(tw.refTid)
-                            logger.debug("[" + tw.user.display + "]" + tw.content)
-                            const msg = Twitter2msg(tw, argv)
-                            quere.unshift(msg)
-                        }
+                        let quere: string[] = await tids2msgs(list, argv)
                         for (const msg of quere) await sendmsg(ctx, watcher.target, msg)
                         logger.info("Update notice done")
                         break
