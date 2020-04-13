@@ -205,6 +205,7 @@ export default function (ctx: Context, argv: config) {
 
     // 命令实现具体功能
     ctx.command('translate <id> [trans...]', "更新(获取)一个任务翻译(图)")
+        .option("-d, --hold", "仅更新翻译，不烤图")
         .option("-e, --empty", "允许空翻译，直接烤图")
         .action(async ({ meta, options }, id, trans) => {
             if (!promission) return
@@ -218,6 +219,10 @@ export default function (ctx: Context, argv: config) {
                 if (!tw) {
                     logger.warn("Twitter %d not found", twi)
                     return meta.$send("找不到 " + id)
+                }
+                if (options.d || options.hold) {
+                    await store.trans(tw.refTid, trans, "")
+                    return meta.$send(argv.prefix + twi + " 已更新翻译：\n" + trans)
                 }
                 if (trans || options.e || options.empty) {
                     if (tw.type === "转推") {
