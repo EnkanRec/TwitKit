@@ -23,6 +23,7 @@
   "dependencies": {
     "@types/node": "^13.9.1",
     "axios": "^0.19.2",
+    "koishi": "^1.11.2",
     "koishi-core": "^1.11.1",
     "koishi-plugin-common": "^2.1.7",
     "koishi-utils": "^1.0.4"
