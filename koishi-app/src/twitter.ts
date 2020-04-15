@@ -1,4 +1,5 @@
 import { ISO8601, config } from './utils'
+import store from './store'
 export class Twitter {
     /** twitter **/
     id:         number
@@ -164,4 +165,22 @@ export function Twitter2msg(tw: Twitter, argv: config): string {
     if (tw.comment) msg += "\n备注: " + tw.comment
     msg += "\n原链接: " + tw.url + "\n快速嵌字发送: " + argv.prefix + tw.id + " 译文"
     return msg
+}
+
+export async function tids2msgs(list: number[], argv: config): Promise<string[]> {
+    list = list.sort()
+    let quere: string[] = []
+    for (const i of list) {
+        const tw: Twitter = await store.getTask(i)
+        let msg: string
+        if (tw.type === "转推") {
+            msg = "【" + tw.user.display + "】转发了【" + tw.oirgUser.display + "】的推 " 
+                + argv.prefix + tw.refTid + "\n----------------\n"
+                + "原链接: " + tw.url + "\n快速嵌字发送: " + argv.prefix + tw.id + " 译文"
+        } else {
+            msg = Twitter2msg(tw, argv)
+        }
+        quere.push(msg)
+    }
+    return quere
 }
