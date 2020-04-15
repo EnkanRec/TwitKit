@@ -21,7 +21,7 @@
     pip3 install -r requirements.txt
     ```
 
-3. 将`config_example.py`复制一份，命名为`config.py`，根据需要修改配置（下面介绍）；
+3. 执行`./configen.sh`生成一份配置文件（`config.py`），根据需要修改配置（下面介绍）；
 
 4. 安装字体：
 
@@ -54,7 +54,7 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 
 ### 渲染设置
 
-* `VIEWPORT_WIDTH`：视口宽度。96PPI时，一个像素等于一个真实像素。即例如设为480的话，96PPI时出图为480px
+* `CHROME_REMOTE_DEBUGGING_URL`：Chrome远程调试URL，用于远程控制无头Chrome烤图
 
 * `DEFAULT_PPI`：默认PPI（Pixels Per Inch）。如果Oven的API调用的时候没有指定PPI，会用这里的值
 
@@ -62,7 +62,7 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 
 * `JA_FONT`：日文字体。假如按上面的步骤安装了Noto Sans，保持默认即可
 
-* `JAVASCRIPT_DELAY`：JavaScript延时（毫秒，如果网页无法在此时间限制内载完，需增大此值）
+* `LOAD_TIME_LIMIT`：网页载入时间限制（秒，如果网页无法在此时间限制内载完，需增大此值）
 
 ### 监听设置
 
@@ -111,10 +111,10 @@ chromium-browser --headless --remote-debugging-port=9222 --window-size=480,20 --
 
 `--window-size=480,20`中的`480`是窗口宽度，渲染推文时的视口宽度由此值决定；高度一般无需修改。
 
-用Python3执行`start_oven.py`即可，例如：
+执行`start.sh`即可：
 
 ```
-python3 start_oven.py
+./start.sh
 ```
 
 ## API说明

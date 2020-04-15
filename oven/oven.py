@@ -14,8 +14,9 @@ import logging
 import json
 import config
 import traceback
+import time
 
-browser = pychrome.Browser(url="http://127.0.0.1:9222")
+browser = pychrome.Browser(url=config.CHROME_REMOTE_DEBUGGING_URL)
 
 logger = logging.getLogger('oven')
 tweet_page_bp = Blueprint(
@@ -100,7 +101,8 @@ def print_image_from_tab(tab, payload_data, ppi):
     tab.Page.navigate(url=f'{config.INT_BASE_URL}/internal/index.html')
 
     success_count = 0
-    for _ in range(300):
+    begin_time = time.time()
+    while time.time() - begin_time < config.LOAD_TIME_LIMIT:
         tab.wait(0.1)
         ready_state = tab.Runtime.evaluate(expression="document.readyState")[
             'result']['value']
