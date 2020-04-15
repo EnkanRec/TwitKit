@@ -55,6 +55,11 @@ RSSHub相关设置：
 * `LOG_DEBUG`：是否使用调试日志级别
 * `LOG_FILE`：日志文件路径（`None`为不保存日志文件）
 
+推送过滤设置：
+
+* `PUSH_RETWEETS`：是否推送转推（布尔值）
+* `PUSH_REPLIES`：是否推送回复（布尔值）
+
 其他：
 
 * `MAX_HISTORY_TWEETS`：启动时获取的最大历史推数（数据库中最新推开始至当前）
