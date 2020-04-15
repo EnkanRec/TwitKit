@@ -15,13 +15,9 @@
    pip3 install -r requirements.txt
    ```
 
-2. 将`config_example.py`复制一份，命名为`config.py`，将必要的信息填入（具体下述）
+2. 执行`./configen.sh`创建配置文件（`config.py`），将必要的信息填入（具体下述）
 
-3. 用Pyrthon3执行`start_maid.py`，例如：
-
-   ```
-   python3 start_maid.py
-   ```
+3. 执行`./start.sh`启动Maid
 
    
 
