@@ -43,7 +43,7 @@
 
 RSSHub相关设置：
 
-* `BILIBILI_UID`：监听的Bilibili账号的UID（考虑改为数据库中的设置）
+* `BILIBILI_UID`：监听的Bilibili账号的UID（考虑改为数据库中的设置）,设`None`可以禁用
 * `UPDATE_INTERVAL`：更新间隔（秒）
 
 日志设置：

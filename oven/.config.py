@@ -36,3 +36,6 @@ MAID_API_BASE = 'http://127.0.0.1:8222/api'
 ## 日志设置
 LOG_DEBUG = False
 LOG_FILE = None
+
+## 一个遗留问题，未来将移除
+VIEWPORT_WIDTH = 480
