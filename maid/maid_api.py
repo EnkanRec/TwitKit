@@ -115,7 +115,7 @@ class AddTask(Resource):
         try:
             inserted = maid.bulk_insert(
                 twitter_util.convert_tweepy_tweet(tweet),
-                include_existing=True)
+                full_ret=True)
         except Exception as e:
             logging.warning(f'{task_label} 请求Fridge失败')
             logging.warning(format_exc())
