@@ -263,11 +263,13 @@ export default function (ctx: Context, argv: config) {
         .example(argv.prefix + "1000 <翻译> 或 translate 1000 <翻译> // 翻译任务1000并取得烤图")
 
     ctx.command('fetch <url> [trans...]', "处理推文链接")
-        .action(async ({ meta }, url, trans) => {
+        .option("-e, --empty", "允许空翻译，直接烤图")
+        .action(async ({ meta, options }, url, trans) => {
             if (!promission) return
             if (/^https?:\/\/((www\.)?twitter\.com|t\.co)\//.test(url)) {
                 trans = CQCode.unescape(trans.replace(/\[CQ:[^\]]*\]/g, " ").trim())
-                if (trans) {
+                if (trans || options.e || options.empty) {
+                    if (options.e || options.empty) trans = ""
                     logger.debug("translate with url=%s trans=%s", url, trans)
                     const img = await translator.getByUrl(url, trans)
                     if (!img) return meta.$send("请求失败")
