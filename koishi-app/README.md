@@ -16,7 +16,8 @@
 
 #### 短指令/快捷命令
 
-基本格式 `"指令前缀[任务id][指令符] [附加文字]"`
+<detail>
+<summary>基本格式 `"指令前缀[任务id][指令符] [附加文字]"`</summary>
 
 除了附加文字，各部分之间没有空格
 
@@ -41,10 +42,12 @@
 | id | 翻译 | 更新该任务翻译 | #1000 [翻译] | translate 1000 [翻译] |
 | url | <无> | 将指定链接的推文入库 | #<https://twitter.com/any/status/12345> | fetch [url] |
 | url | 翻译 | 直接对链接烤图 | #<https://twitter.com/any/status/12345> [翻译] | fetch [url] [翻译] |
+</detail>
 
 #### 长指令
 
-指令前缀参考koishi指令帮助，默认为空，可以在群聊中直接使用如 `undo`
+<detail>
+<summary>指令前缀参考koishi指令帮助，默认为空，可以在群聊中直接使用如 `undo`</summary>
 
 指令前缀
 
@@ -62,10 +65,12 @@
 | undo | undo [tid] | 撤销某个推的翻译修改，id为空时，撤销最近修改过的翻译 |
 | delete| delete &lt;tid&gt; | 删除一个任务，返回是否删除成功，建议使用hide隐藏 |
 | how | how | 显示内置帮助 |
+</detail>
 
 ### 监听器
 
-REST基本请求格式：
+<detail>
+<summary>REST基本请求格式：</summary>
 
 HTTP method: `POST`
 
@@ -79,18 +84,22 @@ body：（均非空）
 | timestamp | string | ISO8601格式的日期字符串 |
 | taskId | string | 一个uuid，用于调试跟踪执行过程 |
 | data | any | 接口需要的数据，见下 |
+</detail>
 
 #### 推特更新
 
-路由：`/api/app/twitter`
+<detail>
+<summary>路由：`/api/app/twitter`</summary>
 
 data: number[] 所有新到达的任务id
 
 通知app有哪些新任务
+</detail>
 
 #### 其他更新
 
-路由：`/api/app/other`
+<detail>
+<summary>路由：`/api/app/other`</summary>
 
 data: dict （无注明既可空说）其他更新的详细信息
 
@@ -105,28 +114,29 @@ data: dict （无注明既可空说）其他更新的详细信息
 | postDate | string | 发布日期，ISO8601格式 |
 
 将非任务更新，推送给app以便在群里通知
+</detail>
 
 ## 输出接口
 
 ### 数据库
 
-见 `store.ts` 及 `twitkit-fridge`
+见 `store.ts`
 
 ### 烤推机
 
-见 `translator.ts` 及 `twitkit-oven`
+见 `translator.ts`
 
 ## 配置
 
 ```js
 {
-    twid: "",         // 监听推主
     prefix: '#',      // 快捷指令前缀
     ispro: false,     // 是否发图
     cmd: {
         host: {       // 其他组件的REST监听HOST
-            translator: "http://localhost",
-            store: "http://localhost"
+            store: "http://localhost:8220",
+            translator: "http://localhost:8221",
+            maid: "http://localhost:8222",
         },
         group: [],      // 监听命令的群组，留空监听所有人
         private: true,  // 是否允许私聊上班
@@ -134,7 +144,7 @@ data: dict （无注明既可空说）其他更新的详细信息
         cut: 8          // 消息预览截断长度
     },
     watcher: {
-        port: 1551,     // 监视器推送端口
+        port: 8223,     // 监视器推送端口
         target: {       // 监视器更新推送目标
             discuss: [],
             private: [],
@@ -147,9 +157,7 @@ data: dict （无注明既可空说）其他更新的详细信息
 ## 启动
 
 1. 安装[koishi](https://koishi.js.org/)
-
 2. 安装依赖 `npm install`
-
-3. 编写配置，参考 `koishi.config.js`
-
-4. 运行 `npm run dev`
+3. 编写配置，参考 `.koishi.config.js`
+4. 编译 `npm run build`
+5. 运行 `koishi run` 或 `npm run dev`

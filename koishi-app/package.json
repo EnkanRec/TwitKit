@@ -1,6 +1,6 @@
 {
-  "name": "koishi-plugin-twitkit-app",
-  "version": "0.0.1",
+  "name": "@enkanrec/koishi-plugin-twitkit-app",
+  "version": "1.1.0",
   "description": "Twitter translator tools plugin for koishi",
   "main": "dist/index.js",
   "scripts": {
@@ -11,10 +11,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@gitlab.com:EnkanRec/koishi-plugin-twitkit.git"
+    "url": "git@github.com:EnkanRec/TwitKit.git"
   },
   "keywords": [
+    "bot",
     "qqbot",
+    "twitter",
     "koishi-plugin",
     "translator-tools"
   ],
@@ -32,5 +34,8 @@
     "@types/ws": "^7.2.4",
     "ts-node": "^8.6.2",
     "typescript": "^3.8.3"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
   }
 }
