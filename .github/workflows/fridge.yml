@@ -20,8 +20,8 @@ jobs:
       run: mvn -B package --file fridge/fridge-src/pom.xml -Dmaven.test.skip=true 
     - name: Moving builds to artifacts directory
       run: |
-      mkdir -p artifacts/fridge
-      cp fridge/fridge-src/target/*.jar artifacts/fridge
+        mkdir -p artifacts/fridge
+        cp fridge/fridge-src/target/*.jar artifacts/fridge
     - uses: actions/upload-artifact@v1
       with:
         name: fridge

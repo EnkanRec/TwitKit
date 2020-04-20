@@ -1,0 +1,31 @@
+name: koishi-app
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+    - 'koishi-app/**'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+    - name: Build with tsc
+      run: |
+        npm install --prefix koishi-app
+        npm run build --prefix koishi-app
+    - name: Moving builds to artifacts directory
+      run: |
+        mkdir -p artifacts/koishi-app
+        cp -r koishi-app/dist artifacts/koishi-app
+    - uses: actions/upload-artifact@v1
+      with:
+        name: koishi-app
+        path: artifacts/koishi-app
