@@ -5,7 +5,8 @@ on:
     branches:
       - dev
     paths:
-    - 'koishi-app/**'
+      - 'koishi-app/src/**'
+      - 'koishi-app/tsconfig.json'
 
 jobs:
   build:
