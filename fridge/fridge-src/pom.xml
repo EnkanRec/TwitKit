@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.enkanRec</groupId>
     <artifactId>twitkit-fridge</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>twitkit-fridge</name>
     <description>twitkit-fridge for EnkanRec</description>
 
