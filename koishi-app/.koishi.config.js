@@ -1,5 +1,5 @@
 module.exports = {
-  logLevel: 3,
+  logLevel: 2,
   type: "ws",
   server: "ws://localhost:6700",
   selfId: undefined,
@@ -27,7 +27,7 @@ module.exports = {
         },
         group: [],      // 监听命令的群组，留空监听所有人
         private: false, // 是否允许私聊上班
-        friend: true,   // 是否允许好友上班
+        friend: false,   // 是否允许好友上班
         cut: 8          // 消息预览截断长度
       },
       watcher: {
