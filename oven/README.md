@@ -101,16 +101,16 @@ Oven从`config.py`中的变量读入配置。变量名和说明如下。
 
 ## 运行服务端
 
-启动无头Chromium实例：
+先启动无头Chromium实例：
 
 ```
-# 如果出现关于gpu的WARN，尝试增加--disable-gpu
 chromium-browser --headless --remote-debugging-port=9222 --window-size=480,20 --enable-logging --disable-dev-shm-usage --no-sandbox
 ```
 
-`--window-size=480,20`中的`480`是窗口宽度，渲染推文时的视口宽度由此值决定；高度一般无需修改。
+* 如果出现关于GPU的警告，尝试增加`--disable-gpu`
+* `--window-size=480,20`中的`480`是窗口宽度，渲染推文时的视口宽度由此值决定；高度一般无需修改
 
-执行`python3 start_oven.py`或等效的`start.sh`即可：
+然后执行`python3 start_oven.py`或等效的`start.sh`即可启动服务端。
 
 ## API说明
 

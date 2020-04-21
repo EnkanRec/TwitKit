@@ -94,6 +94,11 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
         tweet_url = 'https://twitter.com/' + \
             f'{user.screen_name}/status/{tweepy_tweet.id}'
 
+        entities.update({
+            'is_reply': is_reply,
+            'is_retweet': is_retweet,
+        })
+
         fridge_tweet = {
             'url': tweet_url,
             'content': full_text,
@@ -124,11 +129,7 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
                 'avatar': user_avatar_url
             }
         }
-        fridge_tweet.update({
-            'is_reply': is_reply,
-            'is_retweet': is_retweet,
-            'is_push_filtered': is_push_filtered
-        })
+        fridge_tweet['is_push_filtered'] = is_push_filtered
         ret.append(fridge_tweet)
     _convert_tweepy_tweet(tweepy_tweet)
     return ret
@@ -175,9 +176,5 @@ def make_dummy_tweet(message, two_level_format=False, status_id=0):
             'avatar': dummy_avatar
         }
     }
-    dummy_tweet.update({
-        'is_reply': False,
-        'is_retweet': False,
-        'is_push_filtered': True
-    })
+    dummy_tweet['is_push_filtered'] = True
     return dummy_tweet

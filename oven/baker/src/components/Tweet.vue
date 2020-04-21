@@ -1,7 +1,7 @@
 <template>
   <div
     class="tweet"
-    :class="`${altBg ? 'altBackground' : 'normalBackground'} ${inline && 'inline'}`"
+    :class="`${altBg ? 'altBackground' : 'normalBackground'}`"
   >
     <div class="refTweet" v-if="isReply && (tweet.refTid || tweet.refStatusId)">
       <Tweet
@@ -17,13 +17,13 @@
     <div class="card" v-if="dataReady">
       <div class="cardTitle">
         <img class="avatar" :src="user.avatar" />
-        <div class="userInfo">
-          <div class="displayName" lang="ja-jp" v-html="formattedUserDispName"></div>
-          <div class="username">@{{ user.name }}</div>
+        <div :class="`userInfo ${inline && 'inline'}`">
+          <div :class="`displayName ${inline && 'inline'}`" lang="ja-jp" v-html="formattedUserDispName"></div>
+          <div :class="`username ${inline && 'inline'}`">@{{ user.name }}</div>
         </div>
       </div>
       <div class="replyDecorationLine" :style="`height: ${decorationLineHeight}px`" v-if="inline"></div>
-      <div class="cardBody" ref="cardBody">
+      <div :class="`cardBody ${inline && 'inline'}`" ref="cardBody">
         <div v-if="isWebTrans">
           <TranslationBox :origTransText="plainTransText"></TranslationBox>
         </div>
@@ -91,6 +91,7 @@ export default {
       formattedTransText: null,
       formattedContent: null,
       formattedUserDispName: null,
+      extra: {},
       errorMessage: null,
       isReply: false,
       mediaList: [],
@@ -216,14 +217,10 @@ export default {
       this.formattedUserDispName = this.formatName(this.user.display);
 
       this.mediaList = JSON.parse(this.tweet.media);
+      this.extra = this.tweet.extra ? JSON.parse(this.tweet.extra) : {};
 
-      // 临时的回复判断，目前推文类型没有入库
-      if (this.tweet.content) {
-        this.isReply =
-          this.tweet.content[0] == "@" &&
-          (this.tweet.refTid || this.tweet.refStatusId);
-      }
-      
+      this.isReply = this.extra.is_reply || false;
+
       this.dataReady = true;
 
       var calcDecoLineHeight = () => {
@@ -260,10 +257,8 @@ export default {
         /(^|\s)(#[^\s,.!?，。！？<]*)/g,
         '$1<span class="hashtag">$2</span>'
       );
-      var entities = this.tweet.extra ? JSON.parse(this.tweet.extra) : {};
-      JSON.parse(this.tweet.extra);
-      if (entities && entities.urls) {
-        for (var url of entities.urls) {
+      if (this.extra && this.extra.urls) {
+        for (var url of this.extra.urls) {
           str = str.replace(
             url.url,
             `<span class="link">${url.display_url}</span>`
@@ -293,7 +288,7 @@ export default {
   padding-top: 18px;
   padding-bottom: 12px;
 
-  .inline & .userInfo {
+  .inline.userInfo {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -305,7 +300,7 @@ export default {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-    .inline & {
+    &.inline {
       display: inline;
     }
   }
@@ -313,7 +308,7 @@ export default {
   .username {
     color: #888;
     font-size: 20px;
-    .inline & {
+    &.inline {
       margin-left: 0.5em;
     }
   }
@@ -352,7 +347,7 @@ export default {
     font-size: 18px;
   }
 
-  .inline & {
+  &.inline {
     margin-left: 62px;
     margin-top: -28px;
   }
@@ -389,7 +384,7 @@ img.emoji {
   border-radius: 16px;
 }
 
-.inline .replyDecorationLine {
+.replyDecorationLine {
   background: #4daefd5d;
   width: 3px;
   position: absolute;
