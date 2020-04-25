@@ -1,6 +1,12 @@
+<div align=center><img src="Twitkit.svg" width="160" /></div>
+
 # TwitKit
 
 [README](README.md) | [中文文档](README_zh.md)
+
+[![Fridge](../../workflows/Fridge/badge.svg)](../../actions?query=workflow%3AFridge)
+[![koishi-app](../../workflows/koishi-app/badge.svg)](../../actions?query=workflow%3Akoishi-app)
+[![Oven](../../workflows/Oven/badge.svg)](../../actions?query=workflow%3AOven)
 
 > WARNING: Machine-translation detected.
 
