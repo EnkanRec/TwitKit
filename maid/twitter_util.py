@@ -3,6 +3,7 @@ from datetime import datetime
 from twitter_client import get_tweet_by_id
 from tweepy.error import TweepError
 from config import PUSH_REPLIES, PUSH_RETWEETS
+from html import unescape
 
 import json
 import re
@@ -29,6 +30,7 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
             full_text = tweepy_tweet.text
 
         full_text = re.sub(r' https:\/\/t.co\/[A-Za-z0-9]{10}$', '', full_text)
+        full_text = unescape(full_text)
 
         ref_id = None
 
