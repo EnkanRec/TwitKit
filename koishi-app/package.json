@@ -7,7 +7,7 @@
     "test": "tsc -b",
     "build": "tsc -b",
     "dev": "tsc -b && koishi run -- -r ts-node/register",
-    "prod": "koishi run ../../koishi.config.js"
+    "prod": "koishi run"
   },
   "repository": {
     "type": "git",
