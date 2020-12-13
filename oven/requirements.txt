@@ -4,3 +4,5 @@ pillow
 crc8
 coloredlogs
 waitress
+pychrome
+pdf2image

@@ -1,6 +1,6 @@
 import { Context, Logger, Meta } from 'koishi-core'
 import { CQCode } from 'koishi-utils'
-import { Twitter, Twitter2msg } from './twitter'
+import { Twitter, Twitter2msg, tids2msgs } from './twitter'
 import store from './store'
 import maid from './maid'
 import translator from './translator'
@@ -205,6 +205,7 @@ export default function (ctx: Context, argv: config) {
 
     // 命令实现具体功能
     ctx.command('translate <id> [trans...]', "更新(获取)一个任务翻译(图)")
+        .option("-d, --hold", "仅更新翻译，不烤图")
         .option("-e, --empty", "允许空翻译，直接烤图")
         .action(async ({ meta, options }, id, trans) => {
             if (!promission) return
@@ -218,6 +219,10 @@ export default function (ctx: Context, argv: config) {
                 if (!tw) {
                     logger.warn("Twitter %d not found", twi)
                     return meta.$send("找不到 " + id)
+                }
+                if (options.d || options.hold) {
+                    await store.trans(tw.refTid, trans, "")
+                    return meta.$send(argv.prefix + twi + " 已更新翻译：\n" + trans)
                 }
                 if (trans || options.e || options.empty) {
                     if (tw.type === "转推") {
@@ -258,11 +263,13 @@ export default function (ctx: Context, argv: config) {
         .example(argv.prefix + "1000 <翻译> 或 translate 1000 <翻译> // 翻译任务1000并取得烤图")
 
     ctx.command('fetch <url> [trans...]', "处理推文链接")
-        .action(async ({ meta }, url, trans) => {
+        .option("-e, --empty", "允许空翻译，直接烤图")
+        .action(async ({ meta, options }, url, trans) => {
             if (!promission) return
             if (/^https?:\/\/((www\.)?twitter\.com|t\.co)\//.test(url)) {
                 trans = CQCode.unescape(trans.replace(/\[CQ:[^\]]*\]/g, " ").trim())
-                if (trans) {
+                if (trans || options.e || options.empty) {
+                    if (options.e || options.empty) trans = ""
                     logger.debug("translate with url=%s trans=%s", url, trans)
                     const img = await translator.getByUrl(url, trans)
                     if (!img) return meta.$send("请求失败")
@@ -272,20 +279,7 @@ export default function (ctx: Context, argv: config) {
                     let list = await maid.addTask(url)
                     if (!list) return meta.$send("请求失败")
                     if (!list.length) return meta.$send("添加失败，是否已经在库中？")
-                    list = list.sort().reverse()
-                    let ref: number[] = []
-                    let quere: string[] = []
-                    for (const i of list) {
-                        if (~ref.indexOf(i)) {
-                            logger.debug("ignore ref tid: %d", i)
-                            continue
-                        }
-                        const tw: Twitter = await store.getTask(i)
-                        if (tw.type === "转推") ref.push(tw.refTid)
-                        logger.debug("[" + tw.user.display + "]" + tw.content)
-                        const msg = Twitter2msg(tw, argv)
-                        quere.unshift(msg)
-                    }
+                    let quere: string[] = await tids2msgs(list, argv)
                     for (const msg of quere) await meta.$send(msg)
                 }
             } else {

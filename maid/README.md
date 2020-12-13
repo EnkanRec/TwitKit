@@ -15,13 +15,9 @@
    pip3 install -r requirements.txt
    ```
 
-2. 将`config_example.py`复制一份，命名为`config.py`，将必要的信息填入（具体下述）
+2. 执行`./configen.sh`创建配置文件（`config.py`），将必要的信息填入（具体下述）
 
-3. 用Pyrthon3执行`start_maid.py`，例如：
-
-   ```
-   python3 start_maid.py
-   ```
+3. 执行`./start.sh`启动Maid
 
    
 
@@ -47,13 +43,18 @@
 
 RSSHub相关设置：
 
-* `BILIBILI_UID`：监听的Bilibili账号的UID（考虑改为数据库中的设置）
+* `BILIBILI_UID`：监听的Bilibili账号的UID（考虑改为数据库中的设置）,设`None`可以禁用
 * `UPDATE_INTERVAL`：更新间隔（秒）
 
 日志设置：
 
 * `LOG_DEBUG`：是否使用调试日志级别
 * `LOG_FILE`：日志文件路径（`None`为不保存日志文件）
+
+推送过滤设置：
+
+* `PUSH_RETWEETS`：是否推送转推（布尔值）
+* `PUSH_REPLIES`：是否推送回复（布尔值）
 
 其他：
 

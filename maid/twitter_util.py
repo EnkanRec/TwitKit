@@ -1,6 +1,9 @@
 from dateutil import tz
 from datetime import datetime
 from twitter_client import get_tweet_by_id
+from tweepy.error import TweepError
+from config import PUSH_REPLIES, PUSH_RETWEETS
+from html import unescape
 
 import json
 import re
@@ -16,7 +19,7 @@ def utc_to_local(dt: datetime):
 def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
     ret = []
 
-    def _convert_tweepy_tweet(tweepy_tweet):
+    def _convert_tweepy_tweet(tweepy_tweet, is_push_filtered=False):
         logging.debug(tweepy_tweet)
         ref_tweet = None
         if hasattr(tweepy_tweet, 'full_text'):
@@ -27,6 +30,7 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
             full_text = tweepy_tweet.text
 
         full_text = re.sub(r' https:\/\/t.co\/[A-Za-z0-9]{10}$', '', full_text)
+        full_text = unescape(full_text)
 
         ref_id = None
 
@@ -54,24 +58,48 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
             for media in entities['media']:
                 media_urls.append(media['media_url_https'])
 
+        is_retweet = False
+        is_reply = False
+
         if hasattr(tweepy_tweet, 'retweeted_status'):
+            is_retweet = True
+            if not PUSH_RETWEETS:
+                is_push_filtered = True
             full_text = None
-            ref_tweet = _convert_tweepy_tweet(tweepy_tweet.retweeted_status)
+            _convert_tweepy_tweet(
+                tweepy_tweet.retweeted_status, is_push_filtered)
             ref_id = tweepy_tweet.retweeted_status.id
             media_urls = []
         elif hasattr(tweepy_tweet, 'quoted_status'):
-            ref_tweet = _convert_tweepy_tweet(tweepy_tweet.quoted_status)
+            _convert_tweepy_tweet(tweepy_tweet.quoted_status, is_push_filtered)
             ref_id = tweepy_tweet.quoted_status.id
         elif hasattr(tweepy_tweet, 'in_reply_to_status_id') \
                 and tweepy_tweet.in_reply_to_status_id:
+            is_reply = True
+            if not PUSH_REPLIES:
+                is_push_filtered = True
             ref_id = tweepy_tweet.in_reply_to_status_id
-            ref_tweet = _convert_tweepy_tweet(get_tweet_by_id(ref_id))
+            try:
+                _convert_tweepy_tweet(
+                    get_tweet_by_id(ref_id), is_push_filtered)
+            except TweepError as e:
+                if e.api_code == 144:
+                    ret.append(make_dummy_tweet(
+                        '找不到此推文，可能已删除', two_level_format, ref_id))
+                else:
+                    ret.append(make_dummy_tweet(
+                        e.reason, two_level_format, ref_id))
 
         user = tweepy_tweet.user
         user_avatar_url = user.profile_image_url_https.replace(
             '_normal.jpg', '_400x400.jpg')
         tweet_url = 'https://twitter.com/' + \
             f'{user.screen_name}/status/{tweepy_tweet.id}'
+
+        entities.update({
+            'is_reply': is_reply,
+            'is_retweet': is_retweet,
+        })
 
         fridge_tweet = {
             'url': tweet_url,
@@ -84,7 +112,7 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
             'user_display': user.name,
             'user_avatar': user_avatar_url,
             'extra': json.dumps(entities),
-            'ref': str(ref_id) if ref_id else None
+            'ref': str(ref_id) if ref_id else None,
         } if not two_level_format else {
             'twitter': {
                 'statusId': str(tweepy_tweet.id),
@@ -94,7 +122,7 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
                 'refStatusId': str(ref_id) if ref_id else None,
                 'twitterUid': str(user.id),
                 'pubDate': utc_to_local(tweepy_tweet.created_at).isoformat(),
-                'extra': json.dumps(entities),
+                'extra': json.dumps(entities)
             },
             'user': {
                 'twitterUid': str(user.id),
@@ -103,6 +131,7 @@ def convert_tweepy_tweet(tweepy_tweet, two_level_format=False):
                 'avatar': user_avatar_url
             }
         }
+        fridge_tweet['is_push_filtered'] = is_push_filtered
         ret.append(fridge_tweet)
     _convert_tweepy_tweet(tweepy_tweet)
     return ret
@@ -114,3 +143,40 @@ def batch_convert_tweepy_tweets(tweepy_tweets: list):
         converted = convert_tweepy_tweet(tweet)
         ret += converted
     return ret
+
+
+def make_dummy_tweet(message, two_level_format=False, status_id=0):
+    dummy_avatar = 'https://www.gravatar.com/avatar/' + \
+        '00000000000000000000000000000000?d=mp&f=y'
+    dummy_tweet = {
+        'url': 'n/a',
+        'content': message,
+        'media': json.dumps([]),
+        'pub_date': datetime.now(tz.tzlocal()).isoformat(),
+        'status_id': str(status_id),
+        'user_twitter_uid': '0',
+        'user_name': '**error**',
+        'user_display': '错误',
+        'user_avatar': dummy_avatar,
+        'extra': json.dumps({}),
+        'ref': None,
+    } if not two_level_format else {
+        'twitter': {
+            'statusId': str(status_id),
+            'url': 'n/a',
+            'content': message,
+            'media': json.dumps([]),
+            'refStatusId': None,
+            'twitterUid': '0',
+            'pubDate': datetime.now(tz.tzlocal()).isoformat(),
+            'extra': json.dumps({}),
+        },
+        'user': {
+            'twitterUid': '0',
+            'name': '**error**',
+            'display': '错误',
+            'avatar': dummy_avatar
+        }
+    }
+    dummy_tweet['is_push_filtered'] = True
+    return dummy_tweet

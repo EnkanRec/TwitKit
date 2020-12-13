@@ -1,9 +1,9 @@
 ## 渲染设置
-VIEWPORT_WIDTH = 480
+CHROME_REMOTE_DEBUGGING_URL = 'http://127.0.0.1:9222'
 DEFAULT_PPI = 144
 ZH_FONT = 'Noto Sans CJK SC, Segoe UI Symbol'
 JA_FONT = 'Noto Sans CJK JP, Segoe UI Symbol'
-JAVASCRIPT_DELAY = 20000
+LOAD_TIME_LIMIT = 60
 
 # 监听设置
 API_SERVER_HOST = '127.0.0.1'
@@ -36,3 +36,6 @@ MAID_API_BASE = 'http://127.0.0.1:8222/api'
 ## 日志设置
 LOG_DEBUG = False
 LOG_FILE = None
+
+## 一个遗留问题，未来将移除
+VIEWPORT_WIDTH = 480

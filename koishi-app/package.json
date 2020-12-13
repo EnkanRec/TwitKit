@@ -1,35 +1,41 @@
 {
-  "name": "koishi-plugin-twitkit-app",
-  "version": "0.0.1",
+  "name": "@enkanrec/koishi-plugin-twitkit-app",
+  "version": "1.1.0",
   "description": "Twitter translator tools plugin for koishi",
   "main": "dist/index.js",
   "scripts": {
     "test": "tsc -b",
     "build": "tsc -b",
-    "dev": "tsc -b && koishi run -- -r ts-node/register",
-    "prod": "koishi run ../../koishi.config.js"
+    "dev": "koishi run -- -r ts-node/register",
+    "prod": "koishi run"
   },
   "repository": {
     "type": "git",
-    "url": "git@gitlab.com:EnkanRec/koishi-plugin-twitkit.git"
+    "url": "git@github.com:EnkanRec/TwitKit.git"
   },
   "keywords": [
+    "bot",
     "qqbot",
+    "twitter",
     "koishi-plugin",
     "translator-tools"
   ],
   "author": "MisakaHonoka",
   "license": "MIT",
   "dependencies": {
-    "@types/node": "^13.9.1",
     "axios": "^0.19.2",
-    "koishi-core": "^1.11.1",
-    "koishi-plugin-common": "^2.1.7",
-    "koishi-utils": "^1.0.4"
+    "koishi": "^1.12.0",
+    "koishi-core": "^1.12.0",
+    "koishi-plugin-common": "^2.2.0",
+    "koishi-utils": "^1.1.0"
   },
   "devDependencies": {
-    "@types/ws": "^7.2.2",
+    "@types/node": "^13.13.0",
+    "@types/ws": "^7.2.4",
     "ts-node": "^8.6.2",
     "typescript": "^3.8.3"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
   }
 }

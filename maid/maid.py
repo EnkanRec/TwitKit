@@ -51,20 +51,26 @@ def extract_response_data(resp):
     return json.loads(resp.text)['data']
 
 
-def bulk_insert(fridge_tweets: list, include_existing=False):
-    known_tid = {}
+def bulk_insert(fridge_tweets: list, full_ret=False):
+    """此函数返回插入成功的tid列表，full_ret表示返回是否包括已存在、已过滤推送的"""
+    known_tids = {}
     inserted_tweets = set()
+    do_push_status_ids = set()
     logging.debug(f'准备插入{len(fridge_tweets)}条推')
 
     while True:
         to_be_inserted = []
         for tweet in fridge_tweets:
-            if tweet['ref'] and tweet['ref'] not in known_tid.keys():
+            if tweet['ref'] and tweet['ref'] not in known_tids.keys():
                 continue
-            if tweet['status_id'] in known_tid.keys():
+            if tweet['status_id'] in known_tids.keys():
                 continue
             if tweet['ref']:
-                tweet['ref'] = known_tid[tweet['ref']]
+                tweet['ref'] = known_tids[tweet['ref']]
+            # 有可能出现有重复时有的是过滤的有的没过滤的情况，以没过滤的优先
+            if not tweet['is_push_filtered']:
+                do_push_status_ids.add(tweet['status_id'])
+            
             to_be_inserted.append(tweet)
 
         if not to_be_inserted:
@@ -75,10 +81,24 @@ def bulk_insert(fridge_tweets: list, include_existing=False):
                              json=make_request_payload(to_be_inserted))
         inserted_tweets_actual = extract_response_data(resp)
         for tweet in inserted_tweets_actual:
-            known_tid[tweet['twitter']['statusId']] = tweet['twitter']['tid']
-            if include_existing or not tweet['alreadyExist']:
+            known_tids[tweet['twitter']['statusId']] = tweet['twitter']['tid']
+            if full_ret or not tweet['alreadyExist'] and \
+                    tweet['twitter']['statusId'] in do_push_status_ids:
                 inserted_tweets.add(tweet['twitter']['tid'])
     return inserted_tweets
+
+
+def separate_no_push_tweets(tweets):
+    do_push = []
+    no_push = []
+    for tweet in tweets:
+        if not config.PUSH_REPLIES and tweet['is_reply']:
+            no_push.append(tweet)
+        elif not config.PUSH_RETWEETS and tweet['is_retweet']:
+            no_push.append(tweet)
+        else:
+            do_push.append(tweet)
+    return do_push, no_push
 
 
 def get_latest_status_id():
@@ -141,6 +161,7 @@ class Maid:
                 time.sleep(backoff_timer)
 
     def update_tweets(self, new_tweets):
+        new_tweets = new_tweets[::-1]
         new_tid_list = bulk_insert(new_tweets)
         if not new_tid_list:
             logging.debug('没有需要插入新推')
@@ -245,12 +266,13 @@ class Maid:
             target=self.run_twitter_realtime_update, args=(), daemon=True)
         self.twitter_updater_thread.start()
 
-        self.bilibili_updater_thread = threading.Thread(
-            target=self.run_bilibili_update_checker, args=(), daemon=True)
-        self.bilibili_updater_thread.start()
+        if config.BILIBILI_UID:
+            self.bilibili_updater_thread = threading.Thread(
+                target=self.run_bilibili_update_checker, args=(), daemon=True)
+            self.bilibili_updater_thread.start()
+            self.bilibili_updater_thread.join()
 
         self.twitter_updater_thread.join()
-        self.bilibili_updater_thread.join()
 
 
 if __name__ == '__main__':

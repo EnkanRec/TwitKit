@@ -1,0 +1,30 @@
+name: Oven
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'oven/baker/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+    - name: Build with yarn
+      run: |
+        npm install yarn -g
+        yarn --cwd oven/baker install
+        yarn --cwd oven/baker build
+    - name: Moving builds to artifacts directory
+      run: |
+        mkdir -p artifacts/oven
+        cp -r oven/baker/dist artifacts/oven
+    - uses: actions/upload-artifact@v1
+      with:
+        name: oven
+        path: artifacts/oven
